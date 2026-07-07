@@ -60,6 +60,8 @@ export {
   setVolume,
   shuffleQueue,
   isMusicActive,
+  isPlayingAudio,
+  canControlPlayback,
   recallTrack,
   applyPreset,
   getActivePreset,

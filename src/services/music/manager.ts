@@ -79,6 +79,14 @@ export function isMusicActive(guildId: string): boolean {
   return gp(guildId).isActive;
 }
 
+export function isPlayingAudio(guildId: string): boolean {
+  return gp(guildId).isPlayingAudio();
+}
+
+export function canControlPlayback(guildId: string, botInVoice: boolean): boolean {
+  return botInVoice || gp(guildId).isPlayingAudio() || gp(guildId).isActive;
+}
+
 export function recallTrack(guildId: string): Track | undefined {
   const s = getGuildState(guildId);
   return s.current ?? s.lastPlayed ?? undefined;

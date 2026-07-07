@@ -10,6 +10,7 @@ import {
   shuffleQueue,
   deleteQueue,
   isMusicActive,
+  canControlPlayback,
   applyPreset,
   getActivePreset,
   buildPresetListEmbed,
@@ -141,8 +142,9 @@ const music: Command[] = [
     category: 'music',
     run: async ({ message }) => {
       const guildId = message.guild!.id;
+      const botInVoice = Boolean(message.guild?.members.me?.voice.channelId);
 
-      if (!isMusicActive(guildId)) {
+      if (!canControlPlayback(guildId, botInVoice)) {
         return void message.reply({ embeds: [errorEmbed('Nothing is playing.')] });
       }
 

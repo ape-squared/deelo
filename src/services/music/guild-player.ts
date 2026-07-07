@@ -117,6 +117,24 @@ export class GuildPlayer {
     }
   }
 
+  private ensureVoiceSubscription(): void {
+    const conn = getVoiceConnection(this.guildId);
+    if (!conn || conn.state.status === VoiceConnectionStatus.Destroyed) return;
+    this.connection = conn;
+    try {
+      conn.subscribe(this.player);
+    } catch {
+      // already subscribed
+    }
+  }
+
+  private async waitUntilNotBusy(timeoutMs = 5000): Promise<void> {
+    const deadline = Date.now() + timeoutMs;
+    while (this.busy && Date.now() < deadline) {
+      await new Promise((r) => setTimeout(r, 50));
+    }
+  }
+
   async connect(guild: Guild, channelId: string): Promise<VoiceConnection> {
     const existing = getVoiceConnection(guild.id);
     if (existing && existing.state.status !== VoiceConnectionStatus.Destroyed) {
@@ -248,6 +266,7 @@ export class GuildPlayer {
 
       const resource = createAudioResource(stream, { inputType, inlineVolume });
       resource.volume?.setVolume(this.state.volume / 100);
+      this.ensureVoiceSubscription();
       this.player.play(resource);
     } catch (err) {
       if (generation !== this.playGeneration) return;
@@ -267,24 +286,34 @@ export class GuildPlayer {
 
   async skip(): Promise<Track | null> {
     this.init();
+    this.ensureVoiceSubscription();
+
     const skipped = this.state.current ?? this.state.lastPlayed;
     this.playGeneration++;
 
     const status = this.player.state.status;
     console.log(
-      `[music:${this.guildId}] skip (status=${status}, current=${this.state.current?.title ?? 'none'}, queued=${this.state.queue.length})`,
+      `[music:${this.guildId}] skip (status=${status}, current=${this.state.current?.title ?? 'none'}, queued=${this.state.queue.length}, busy=${this.busy})`,
     );
 
+    // Actively playing — stop triggers idle handler which calls playNext()
     if (
       status === AudioPlayerStatus.Playing ||
       status === AudioPlayerStatus.Paused ||
       status === AudioPlayerStatus.Buffering
     ) {
       this.player.stop(true);
-    } else if (this.state.queue.length) {
+      return skipped;
+    }
+
+    // Player idle but playNext may still be fetching a stream — cancel and advance
+    await this.waitUntilNotBusy();
+    this.pendingIdle = false;
+    this.state.current = null;
+
+    if (this.state.queue.length) {
       await this.playNext();
     } else {
-      this.state.current = null;
       this.scheduleLeave();
     }
 
@@ -293,6 +322,7 @@ export class GuildPlayer {
 
   pause(): boolean {
     this.init();
+    this.ensureVoiceSubscription();
     if (this.player.state.status !== AudioPlayerStatus.Playing) return false;
     this.player.pause();
     return true;
@@ -300,6 +330,7 @@ export class GuildPlayer {
 
   resume(): boolean {
     this.init();
+    this.ensureVoiceSubscription();
     if (this.player.state.status !== AudioPlayerStatus.Paused) return false;
     this.player.unpause();
     return true;
