@@ -17,3 +17,4 @@ web/node_modules/
 shared/*.js
 shared/*.js.map
 shared/*.d.ts.map
+supabase/.temp/
