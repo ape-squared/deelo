@@ -11,6 +11,7 @@ export function registerEvents(client: DeeloClient): void {
     void import('../services/guild-identity').then(({ syncAllGuildIdentities }) =>
       syncAllGuildIdentities(client).catch((err) => console.warn('[guild-identity] sync failed:', err)),
     );
+    void import('../services/social-poll').then(({ startSocialPollLoop }) => startSocialPollLoop(client));
   });
 
   client.on('messageCreate', async (message) => {

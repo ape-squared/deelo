@@ -51,17 +51,39 @@ const integrations: Command[] = [
     premiumFeature: 'socialNotifications',
     run: async ({ message, args }) => {
       const sub = args[0]?.toLowerCase();
-      const platforms = ['instagram', 'twitter', 'tiktok', 'youtube', 'twitch', 'soundcloud'];
+      const platforms = ['instagram', 'twitter', 'tiktok', 'youtube', 'twitch', 'soundcloud', 'reddit', 'kick'];
 
       if (sub === 'add') {
         const platform = args[1]?.toLowerCase();
         const channel = message.mentions.channels.first();
-        const username = args[3];
+        const username = args.slice(3).join(' ') || args[3];
         if (!platform || !platforms.includes(platform) || !channel || !username) {
           return void message.reply({ embeds: [errorEmbed(`Usage: ,social add <${platforms.join('|')}> #channel <username>`)] });
         }
-        await getSupabase().from('social_feeds').insert({ guild_id: message.guild!.id, platform, channel_id: channel.id, username });
-        return void message.reply({ embeds: [successEmbed(`Tracking **${platform}/@${username}** → ${channel}`)] });
+        const clean = username.replace(/^@/, '').replace(/^r\//i, '');
+        const { data, error } = await getSupabase()
+          .from('social_feeds')
+          .insert({ guild_id: message.guild!.id, platform, channel_id: channel.id, username: clean })
+          .select()
+          .single();
+        if (error) {
+          return void message.reply({ embeds: [errorEmbed('Failed to add feed. It may already exist.')] });
+        }
+        if (data) {
+          const { seedSocialFeed } = await import('../../services/social-poll');
+          await seedSocialFeed(data.id, platform, clean);
+        }
+        return void message.reply({ embeds: [successEmbed(`Tracking **${platform}/@${clean}** → ${channel}`)] });
+      }
+
+      if (sub === 'remove') {
+        const platform = args[1]?.toLowerCase();
+        const username = args[2]?.replace(/^@/, '').replace(/^r\//i, '');
+        if (!platform || !username) {
+          return void message.reply({ embeds: [errorEmbed('Usage: `,social remove <platform> <username>`')] });
+        }
+        await getSupabase().from('social_feeds').delete().eq('guild_id', message.guild!.id).eq('platform', platform).eq('username', username);
+        return void message.reply({ embeds: [successEmbed('Feed removed.')] });
       }
 
       if (sub === 'list') {

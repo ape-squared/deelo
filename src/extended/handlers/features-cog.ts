@@ -351,12 +351,79 @@ async function handleAntiraidExt(name: string, message: Message, args: string[])
 }
 
 async function handleFortnite(name: string, message: Message, args: string[]) {
-  if (name === 'fortnite shop' || name === 'fortnite item') {
-    await replyInfo(message, 'Fortnite Shop', `[View today's shop](https://fortnite-api.com/shop)`);
+  const guildId = message.guild!.id;
+  const { buildCosmeticEmbed, buildShopEmbed, getFortniteShop, searchFortniteItem } = await import('../../services/integrations/fortnite');
+
+  if (name === 'fortnite shop' || name === 'fortniteshop' || name === 'fnshop') {
+    const ch = mentionChannel(message);
+    if (ch) {
+      await setExtraConfig(guildId, 'fortnite.shop_channel', ch.id);
+      const shop = await getFortniteShop();
+      if (shop) await setExtraConfig(guildId, 'fortnite.shop_hash', shop.hash);
+      await replySuccess(message, `Daily shop updates will post in ${ch}.`);
+      return true;
+    }
+    const shop = await getFortniteShop();
+    if (!shop) {
+      await replyError(message, 'Could not fetch the Fortnite shop right now. Try again in a minute.');
+      return true;
+    }
+    await message.reply({ embeds: [buildShopEmbed(shop)] });
     return true;
   }
+
+  if (name === 'fortnite item') {
+    const query = args.join(' ').trim();
+    if (!query) {
+      await replyError(message, 'Usage: `,fortnite item <skin name>`');
+      return true;
+    }
+    const item = await searchFortniteItem(query);
+    if (!item) {
+      await replyError(message, `No cosmetic found for **${query}**.`);
+      return true;
+    }
+    await message.reply({ embeds: [buildCosmeticEmbed(item)] });
+    return true;
+  }
+
+  if (name === 'fortnite shop ping') {
+    const role = mentionRole(message);
+    if (!role) {
+      await replyError(message, 'Mention a role: `,fortnite shop ping @role`');
+      return true;
+    }
+    await setExtraConfig(guildId, 'fortnite.shop_ping_role', role.id);
+    await replySuccess(message, `Shop ping role set to ${role}.`);
+    return true;
+  }
+
+  if (name.startsWith('fortnite watch')) {
+    if (name === 'fortnite watch list') {
+      const watches = await getConfigValue(guildId, 'fortnite.watch', []);
+      const list = Array.isArray(watches) ? watches.join(', ') : String(watches || 'None');
+      await replyInfo(message, 'Watched Items', list || 'None');
+      return true;
+    }
+    const item = args.join(' ').trim();
+    if (!item) {
+      await replyError(message, 'Usage: `,fortnite watch <item name>`');
+      return true;
+    }
+    const watches = (await getConfigValue(guildId, 'fortnite.watch', [])) as string[];
+    const arr = Array.isArray(watches) ? watches : [];
+    if (!arr.includes(item)) arr.push(item);
+    await setExtraConfig(guildId, 'fortnite.watch', arr);
+    await replySuccess(message, `Watching **${item}** in the item shop.`);
+    return true;
+  }
+
   if (name.startsWith('fortnite')) {
-    await replyInfo(message, 'Fortnite', 'Track shop rotations with `,fortnite shop`.');
+    await replyInfo(
+      message,
+      'Fortnite',
+      '**`,fortnite shop`** — today\'s item shop\n**`,fortnite item <name>`** — look up a cosmetic\n**`,fortnite shop #channel`** — auto-post shop rotations\n**`,fortnite shop ping @role`** — ping on rotation\n**`,fortnite watch <item>`** — watch for an item',
+    );
     return true;
   }
   return false;

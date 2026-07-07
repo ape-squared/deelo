@@ -162,6 +162,8 @@ export function resolveNative(name: string): { cmd: string; args: string[] } | n
   const root = parts[0].toLowerCase();
   const mapped = CATALOG_TO_NATIVE[root];
   if (mapped && parts.length > 1) {
+    const sub = parts[1].toLowerCase();
+    if (root === 'kick' && ['add', 'list', 'remove', 'message'].includes(sub)) return null;
     return { cmd: mapped.cmd, args: parts.slice(1) };
   }
   if (mapped) return { cmd: mapped.cmd, args: [] };
