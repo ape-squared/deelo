@@ -88,7 +88,8 @@ export default function DashboardPage() {
       guilds={guilds.map((g) => ({ id: g.id, name: g.name, icon: g.icon, botPresent: g.botPresent, plan: g.plan }))}
       onLogout={logout}
     >
-      <div className="p-4 sm:p-6 lg:p-8">
+      <div className="h-full overflow-y-auto">
+      <div className="p-4 sm:p-6 lg:p-8 animate-fade-in">
       <PageHeader
         title="Select a server"
         description="Choose a server to manage its modules and settings."
@@ -130,7 +131,7 @@ export default function DashboardPage() {
           {withBot.length > 0 && (
             <section>
               <h2 className="module-group-title mb-4">Your servers</h2>
-              <div className="server-picker-grid">
+              <div className="server-picker-grid dashboard-stagger">
                 {withBot.map((g) => (
                   <ServerPickerCard key={g.id} guild={g} />
                 ))}
@@ -140,7 +141,7 @@ export default function DashboardPage() {
           {withoutBot.length > 0 && (
             <section>
               <h2 className="module-group-title mb-4">Invite Deelo</h2>
-              <div className="server-picker-grid">
+              <div className="server-picker-grid dashboard-stagger">
                 {withoutBot.map((g) => (
                   <ServerPickerCard key={g.id} guild={g} invite />
                 ))}
@@ -149,6 +150,7 @@ export default function DashboardPage() {
           )}
         </div>
       )}
+      </div>
       </div>
     </DashboardShell>
   );
@@ -161,14 +163,14 @@ function ServerPickerCard({ guild: g, invite }: { guild: Guild; invite?: boolean
         <GuildIcon guild={g} size={72} rounded="xl" />
       </div>
       <p className="server-picker-name">{g.name}</p>
-      {g.owner && <Crown className="absolute right-3 top-3 h-3.5 w-3.5 text-amber-400" />}
+      {g.owner && <Crown className="absolute right-3 top-3 z-10 h-3.5 w-3.5 text-amber-400" />}
       {!invite && (
-        <span className="mt-1 text-[11px] capitalize text-muted">{g.plan.replace('_', ' ')}</span>
+        <span className="relative z-10 mt-1 text-[11px] capitalize text-muted">{g.plan.replace('_', ' ')}</span>
       )}
       {invite && (
-        <span className="mt-1 text-[11px] text-muted">Not installed</span>
+        <span className="relative z-10 mt-1 text-[11px] text-muted">Not installed</span>
       )}
-      <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-2xl bg-background/80 opacity-0 transition-opacity group-hover:opacity-100">
+      <div className="server-picker-overlay">
         <span className="btn-primary text-xs py-2 px-4">{invite ? 'Invite' : 'Manage'}</span>
       </div>
     </>

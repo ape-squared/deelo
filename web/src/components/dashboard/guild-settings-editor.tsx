@@ -129,7 +129,7 @@ export function GuildSettingsEditor({
   }
 
   return (
-    <div className="module-layout -m-4 sm:-m-6 lg:-m-8">
+    <div className="module-layout">
       <aside className="module-sidebar">
         <div className="module-sidebar-inner">
           {MODULE_GROUPS.map((group) => (
@@ -155,7 +155,8 @@ export function GuildSettingsEditor({
         </div>
       </aside>
 
-      <div className="module-content p-4 sm:p-6 lg:p-8">
+      <div className="module-content">
+        <div className="module-content-pad">
         {message && (
           <div className={`mb-6 rounded-xl border px-4 py-3 text-sm animate-fade-in ${message.includes('Failed') || message.includes('failed') ? 'border-red-500/30 bg-red-500/10 text-red-400' : 'border-green-500/30 bg-green-500/10 text-green-400'}`}>
             {message}
@@ -163,7 +164,7 @@ export function GuildSettingsEditor({
         )}
 
         {tab !== 'overview' && activeModule && (
-          <div className="mb-6">
+          <div className="mb-6 animate-fade-in">
             <h1 className="text-xl font-bold sm:text-2xl">{activeModule.label}</h1>
             <p className="mt-1 text-sm text-muted">{activeModule.description}</p>
           </div>
@@ -172,7 +173,7 @@ export function GuildSettingsEditor({
         {tab === 'overview' ? (
           <ModuleOverview guild={guild} config={{ ...initial, guild }} onSelect={setTab} />
         ) : (
-          <form onSubmit={save} className="space-y-6 animate-fade-in">
+          <form onSubmit={save} className="space-y-6">
         {tab === 'general' && (
           <Section title="General" desc="Core bot settings">
             <RedeemCodePanel
@@ -342,7 +343,7 @@ export function GuildSettingsEditor({
 
         {['filters', 'responders', 'autoreact', 'tickets', 'social', 'events'].includes(tab) ? null : showSaveBar && (
           <div className={`save-bar ${dirty ? 'border-accent/30' : ''}`}>
-            <div className="mx-auto flex max-w-4xl items-center justify-between gap-4">
+            <div className="flex items-center justify-between gap-4">
               <p className="text-sm text-muted">
                 {dirty ? 'You have unsaved changes' : 'All changes saved'}
               </p>
@@ -355,6 +356,7 @@ export function GuildSettingsEditor({
         )}
           </form>
         )}
+        </div>
       </div>
     </div>
   );

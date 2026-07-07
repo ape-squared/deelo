@@ -100,9 +100,11 @@ export default function GuildDashboardPage() {
       currentGuild={currentGuild ? { ...currentGuild, plan: config.guild.plan } : { id: guildId, name: 'Server', icon: null, plan: config.guild.plan }}
       onLogout={logout}
     >
+      <div className="flex min-h-0 flex-1 flex-col">
       <Suspense fallback={<LoadingScreen label="Loading server settings..." />}>
         <GuildSettingsEditor guildId={guildId} config={config} onReload={load} />
       </Suspense>
+      </div>
     </DashboardShell>
   );
 }

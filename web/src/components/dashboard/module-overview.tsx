@@ -22,7 +22,7 @@ export function ModuleOverview({
 
   return (
     <div className="space-y-8">
-      <div className="module-hero card p-6 sm:p-8">
+      <div className="module-hero card animate-fade-in p-6 sm:p-8">
         <p className="text-sm font-medium text-accent">Server dashboard</p>
         <h2 className="mt-1 text-xl font-bold sm:text-2xl">Modules</h2>
         <p className="mt-2 max-w-2xl text-sm text-muted">
@@ -41,7 +41,7 @@ export function ModuleOverview({
       {MODULE_GROUPS.filter((g) => g.modules.some((m) => m.id !== 'overview')).map((group) => (
         <section key={group.label}>
           <h3 className="module-group-title">{group.label}</h3>
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3 dashboard-stagger">
             {group.modules
               .filter((m) => m.id !== 'overview')
               .map((mod) => {

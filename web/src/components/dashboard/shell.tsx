@@ -90,36 +90,38 @@ export function DashboardShell({
         </div>
       </header>
 
-      <div className="flex min-h-0 flex-1">
-        <aside className="server-rail hidden shrink-0 flex-col sm:flex">
+      <div className="flex min-h-0 flex-1 overflow-hidden">
+        <aside className="server-rail">
           <Link
             href="/dashboard"
-            className={`server-rail-btn ${!isGuildPage ? 'server-rail-btn-active' : ''}`}
+            className={`server-rail-btn mx-auto mt-3 ${!isGuildPage ? 'server-rail-btn-active' : ''}`}
             title="All servers"
           >
             <Home className="h-5 w-5" />
           </Link>
-          <div className="my-2 h-px w-8 bg-border mx-auto" />
-          {activeGuilds.map((g) => (
-            <Link
-              key={g.id}
-              href={`/dashboard/${g.id}`}
-              className={`server-rail-btn ${currentGuild?.id === g.id ? 'server-rail-btn-active' : ''}`}
-              title={g.name}
+          <div className="my-2 h-px w-8 bg-border mx-auto shrink-0" />
+          <div className="server-rail-scroll">
+            {activeGuilds.map((g) => (
+              <Link
+                key={g.id}
+                href={`/dashboard/${g.id}`}
+                className={`server-rail-btn ${currentGuild?.id === g.id ? 'server-rail-btn-active' : ''}`}
+                title={g.name}
+              >
+                <GuildIcon guild={g} size={36} rounded="full" />
+              </Link>
+            ))}
+          </div>
+          <div className="server-rail-footer">
+            <a
+              href={inviteApiPath()}
+              className="server-rail-btn text-muted hover:text-accent"
+              title="Add to server"
+              target="_blank"
+              rel="noreferrer"
             >
-              <GuildIcon guild={g} size={36} rounded="full" />
-            </Link>
-          ))}
-          <a
-            href={inviteApiPath()}
-            className="server-rail-btn mt-auto text-muted hover:text-accent"
-            title="Add to server"
-            target="_blank"
-            rel="noreferrer"
-          >
-            <Plus className="h-5 w-5" />
-          </a>
-          <div className="mt-2 space-y-1 border-t border-border pt-2">
+              <Plus className="h-5 w-5" />
+            </a>
             {FOOTER_NAV.map(({ href, label, icon: Icon }) => (
               <Link key={href} href={href} className="server-rail-btn text-muted hover:text-foreground" title={label}>
                 <Icon className="h-4 w-4" />
@@ -128,8 +130,8 @@ export function DashboardShell({
           </div>
         </aside>
 
-        <main className="min-w-0 flex-1 overflow-y-auto">
-          <div className="animate-fade-in">{children}</div>
+        <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+          {children}
         </main>
       </div>
     </div>

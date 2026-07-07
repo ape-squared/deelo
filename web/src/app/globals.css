@@ -203,6 +203,16 @@ body {
   animation: float 4s ease-in-out infinite;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-up,
+  .animate-fade-in,
+  .animate-scale-in,
+  .animate-float,
+  .dashboard-stagger > * {
+    animation: none !important;
+  }
+}
+
 .delay-100 { animation-delay: 100ms; }
 .delay-200 { animation-delay: 200ms; }
 .delay-300 { animation-delay: 300ms; }
@@ -235,19 +245,32 @@ body {
 .dashboard-app {
   --dyno-rail: 72px;
   --dyno-sidebar: 240px;
+  --dyno-topbar: 3.5rem;
+  height: 100dvh;
+  overflow: hidden;
 }
 
 .dashboard-topbar {
-  @apply flex h-14 items-center justify-between border-b border-border bg-sidebar/90 px-4 backdrop-blur-xl sm:px-6;
+  @apply z-30 flex h-14 shrink-0 items-center justify-between border-b border-border bg-sidebar/90 px-4 backdrop-blur-xl sm:px-6;
 }
 
 .server-rail {
   width: var(--dyno-rail);
-  @apply items-center border-r border-border bg-sidebar/80 py-3 backdrop-blur-xl;
+  @apply hidden shrink-0 flex-col border-r border-border bg-sidebar/80 backdrop-blur-xl sm:flex;
+  height: calc(100dvh - var(--dyno-topbar));
+}
+
+.server-rail-scroll {
+  @apply flex min-h-0 w-full flex-1 flex-col items-center gap-1 overflow-y-auto overflow-x-hidden py-2;
+  scrollbar-width: thin;
+}
+
+.server-rail-footer {
+  @apply flex w-full shrink-0 flex-col items-center gap-1 border-t border-border pt-2 pb-3;
 }
 
 .server-rail-btn {
-  @apply flex h-11 w-11 items-center justify-center rounded-xl text-muted transition-all duration-200;
+  @apply flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-muted transition-colors duration-200;
 }
 .server-rail-btn:hover {
   @apply bg-white/5 text-foreground;
@@ -257,16 +280,33 @@ body {
 }
 
 .module-layout {
-  @apply flex min-h-[calc(100vh-3.5rem)] flex-col lg:flex-row lg:gap-0;
+  @apply flex min-h-0 flex-1 flex-col overflow-hidden lg:flex-row;
 }
 
 .module-sidebar {
   width: 100%;
   @apply shrink-0 border-b border-border bg-sidebar/50 lg:w-[var(--dyno-sidebar)] lg:border-b-0 lg:border-r;
+  max-height: min(40vh, 280px);
+}
+
+@media (min-width: 1024px) {
+  .module-sidebar {
+    max-height: none;
+    height: 100%;
+  }
 }
 
 .module-sidebar-inner {
-  @apply sticky top-0 max-h-[calc(100vh-3.5rem)] overflow-y-auto p-3 lg:p-4;
+  @apply overflow-y-auto p-3 lg:h-full lg:max-h-none lg:p-4;
+  scrollbar-width: thin;
+}
+
+@media (min-width: 1024px) {
+  .module-sidebar-inner {
+    position: sticky;
+    top: 0;
+    max-height: calc(100dvh - var(--dyno-topbar));
+  }
 }
 
 .module-nav-group {
@@ -278,7 +318,7 @@ body {
 }
 
 .module-nav-link {
-  @apply flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-muted transition-all duration-150;
+  @apply flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-muted transition-colors duration-150;
 }
 .module-nav-link:hover {
   @apply bg-white/5 text-foreground;
@@ -289,7 +329,12 @@ body {
 }
 
 .module-content {
-  @apply min-w-0 flex-1 pb-24;
+  @apply min-h-0 min-w-0 flex-1 overflow-y-auto;
+  scrollbar-width: thin;
+}
+
+.module-content-pad {
+  @apply p-4 pb-28 sm:p-6 sm:pb-28 lg:p-8 lg:pb-28;
 }
 
 .module-hero {
@@ -301,13 +346,23 @@ body {
 }
 
 .module-card {
-  @apply rounded-xl border border-border bg-card/80 p-5 backdrop-blur-sm transition-all duration-200;
+  @apply rounded-xl border border-border bg-card/80 p-5 backdrop-blur-sm transition-[border-color,background-color,box-shadow] duration-200;
 }
 .module-card:hover {
   @apply border-accent/30 bg-card-hover;
   box-shadow: 0 8px 32px -12px rgba(0, 71, 255, 0.28);
-  transform: translateY(-1px);
 }
+
+.dashboard-stagger > * {
+  animation: fade-in 0.45s ease-out both;
+}
+.dashboard-stagger > *:nth-child(1) { animation-delay: 0ms; }
+.dashboard-stagger > *:nth-child(2) { animation-delay: 40ms; }
+.dashboard-stagger > *:nth-child(3) { animation-delay: 80ms; }
+.dashboard-stagger > *:nth-child(4) { animation-delay: 120ms; }
+.dashboard-stagger > *:nth-child(5) { animation-delay: 160ms; }
+.dashboard-stagger > *:nth-child(6) { animation-delay: 200ms; }
+.dashboard-stagger > *:nth-child(n+7) { animation-delay: 240ms; }
 
 .module-status {
   @apply rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide;
@@ -324,28 +379,35 @@ body {
 }
 
 .server-picker-card {
-  @apply relative flex flex-col items-center rounded-2xl border border-transparent p-4 transition-all duration-200;
+  @apply relative flex flex-col items-center overflow-hidden rounded-2xl border border-transparent p-4 transition-[border-color,background-color] duration-200;
 }
 .server-picker-card:hover {
   @apply border-border bg-card/60;
 }
 .server-picker-card:hover .server-picker-icon {
-  transform: scale(1.05);
+  @apply scale-105;
+}
+.server-picker-card:hover .server-picker-overlay {
+  @apply opacity-100;
 }
 .server-picker-card-active .server-picker-icon {
   @apply ring-2 ring-accent ring-offset-2 ring-offset-background;
 }
 
 .server-picker-icon {
-  @apply rounded-2xl transition-transform duration-200;
+  @apply relative z-0 rounded-2xl transition-transform duration-200;
 }
 
 .server-picker-name {
-  @apply mt-3 max-w-full truncate text-center text-sm font-medium;
+  @apply relative z-10 mt-3 max-w-full truncate text-center text-sm font-medium;
+}
+
+.server-picker-overlay {
+  @apply pointer-events-none absolute inset-0 z-20 flex items-center justify-center rounded-2xl bg-background/80 opacity-0 transition-opacity duration-200;
 }
 
 .save-bar {
-  @apply fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-sidebar/95 px-4 py-3 backdrop-blur-xl sm:left-[var(--dyno-rail)] lg:pl-[calc(var(--dyno-rail)+var(--dyno-sidebar))];
+  @apply sticky bottom-0 z-20 -mx-4 mt-8 border-t border-border bg-sidebar/95 px-4 py-3 backdrop-blur-xl sm:-mx-6 lg:-mx-8;
 }
 
 /* Admin panel */
