@@ -79,4 +79,5 @@ if (!upsertRes.ok) {
 
 const row = await upsertRes.json();
 console.log(`✅ Granted ${role} to ${email} (${user.id})`);
-console.log('Login at http://localhost:3000/admin/login');
+const adminLoginUrl = `${process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || 'https://deelo.nikkithewikki.top'}/admin/login`;
+console.log(`Login at ${adminLoginUrl}`);

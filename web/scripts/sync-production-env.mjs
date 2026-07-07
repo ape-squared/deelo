@@ -31,7 +31,8 @@ const productionUrl = (
   process.argv[2] ||
   bot.APP_URL ||
   web.NEXT_PUBLIC_APP_URL ||
-  'https://deelo.bot'
+  bot.PUBLIC_APP_URL ||
+  'https://deelo.nikkithewikki.top'
 ).replace(/\/$/, '');
 
 const discordClientId = web.DISCORD_CLIENT_ID || web.NEXT_PUBLIC_DISCORD_CLIENT_ID || '1188001834305060925';

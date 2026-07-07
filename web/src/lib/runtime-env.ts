@@ -38,9 +38,9 @@ export function resolveAppUrl(headers?: Headers): string {
     if (!fromEnv || isLocalhostUrl(fromEnv)) return fromHeaders;
   }
 
+  if (fromEnv && !isLocalhostUrl(fromEnv)) return fromEnv;
+  if (fromHeaders && !isLocalhostUrl(fromHeaders)) return fromHeaders;
   if (fromEnv) return fromEnv;
-  if (fromHeaders) return fromHeaders;
-  if (env('NODE_ENV') === 'development') return 'http://localhost:3000';
 
   throw new Error('Set NEXT_PUBLIC_APP_URL or APP_URL in the deployment environment');
 }

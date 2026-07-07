@@ -1,5 +1,6 @@
 import { DISCORD_API } from '@/lib/session';
 import { getBotGuildIds } from '@/lib/discord-bot';
+import { publicAppHost } from '@/lib/app-url-display';
 
 export interface BotStatus {
   online: boolean;
@@ -148,7 +149,7 @@ export async function getServiceStatuses(): Promise<ServiceStatus[]> {
       id: 'dashboard',
       label: 'Web Dashboard',
       status: 'operational',
-      detail: process.env['NEXT_PUBLIC_APP_URL'] || process.env['APP_URL'] || 'Deployed',
+      detail: publicAppHost(),
     },
   ];
 }

@@ -1,6 +1,6 @@
 import { EmbedBuilder, type Client, type TextChannel, ChannelType } from 'discord.js';
 import { config } from '../config';
-import { fetchAppJson, probeAppReachable, primaryAppUrl } from '../lib/app-urls';
+import { fetchAppJson, probeAppReachable, publicAppUrl, publicAppHost } from '../lib/app-urls';
 
 const STATUS_TITLE = 'Deelo System Status';
 const REFRESH_MS = 5 * 60 * 1000;
@@ -142,8 +142,8 @@ export function buildStatusEmbed(data: StatusApiPayload, uptimeSec?: number): Em
         inline: true,
       },
     )
-    .setURL(`${primaryAppUrl()}/status`)
-    .setFooter({ text: `deelo.bot/status · Updates every 5 min` })
+    .setURL(`${publicAppUrl()}/status`)
+    .setFooter({ text: `${publicAppHost()}/status · Updates every 5 min` })
     .setTimestamp(new Date(data.bot.checkedAt));
 
   if (uptimeSec != null) {

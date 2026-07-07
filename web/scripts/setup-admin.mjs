@@ -87,4 +87,5 @@ if (!upsertRes.ok) {
 }
 
 console.log(`✅ Admin ready: ${email} (superadmin)`);
-console.log('Login at http://localhost:3000/admin/login');
+const adminLoginUrl = `${process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || 'https://deelo.nikkithewikki.top'}/admin/login`;
+console.log(`Login at ${adminLoginUrl}`);

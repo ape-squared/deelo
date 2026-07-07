@@ -1,6 +1,6 @@
 import { EmbedBuilder, type Client, type TextChannel } from 'discord.js';
 import { getSupabase } from '../database/supabase';
-import { fetchAppJson, primaryAppUrl } from '../lib/app-urls';
+import { fetchAppJson, publicAppUrl, publicAppHost } from '../lib/app-urls';
 
 const SYNC_KEY = 'discord_changelog_sync';
 const POLL_MS = 5 * 60 * 1000;
@@ -99,18 +99,19 @@ async function fetchPublishedChangelog(): Promise<ChangelogEntry[]> {
 
 function buildChangelogEmbed(entry: ChangelogEntry): EmbedBuilder {
   const category = entry.category in CATEGORY_LABEL ? entry.category : 'improvement';
-  const appUrl = primaryAppUrl();
+  const appUrl = publicAppUrl();
+  const appHost = publicAppHost();
 
   return new EmbedBuilder()
     .setColor(CATEGORY_COLOR[category])
     .setTitle(`${CATEGORY_EMOJI[category]} ${entry.title}`)
-    .setDescription(truncate(entry.body || 'See the full changelog on deelo.bot.', 1800))
+    .setDescription(truncate(entry.body || `See the full changelog on ${appHost}.`, 1800))
     .addFields(
       { name: 'Category', value: CATEGORY_LABEL[category], inline: true },
       ...(entry.version ? [{ name: 'Version', value: entry.version, inline: true }] : []),
     )
     .setURL(`${appUrl}/changelog`)
-    .setFooter({ text: 'deelo.bot/changelog' })
+    .setFooter({ text: `${appHost}/changelog` })
     .setTimestamp(entry.published_at ? new Date(entry.published_at) : new Date());
 }
 

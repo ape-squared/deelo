@@ -1,20 +1,58 @@
-/** Resolve web app base URLs — public first, then Docker/internal fallbacks. */
-export function appBaseUrls(): string[] {
-  const raw = [
+const INTERNAL_HOSTS = new Set(['localhost', '127.0.0.1', 'web', '0.0.0.0']);
+
+export function isInternalUrl(url: string): boolean {
+  try {
+    const { hostname, protocol } = new URL(url);
+    if (protocol === 'http:' && INTERNAL_HOSTS.has(hostname)) return true;
+    if (hostname.endsWith('.internal')) return true;
+    return false;
+  } catch {
+    return true;
+  }
+}
+
+function trimUrl(url: string): string {
+  return url.replace(/\/$/, '');
+}
+
+/** Public-facing site URL for links, embeds, and OAuth — never Docker/localhost. */
+export function publicAppUrl(): string {
+  const candidates = [
     process.env.APP_URL,
     process.env.NEXT_PUBLIC_APP_URL,
+    process.env.PUBLIC_APP_URL,
+  ]
+    .filter(Boolean)
+    .map((u) => trimUrl(String(u)));
+
+  for (const url of candidates) {
+    if (!isInternalUrl(url)) return url;
+  }
+
+  return 'https://deelo.nikkithewikki.top';
+}
+
+export function publicAppHost(): string {
+  try {
+    return new URL(publicAppUrl()).host;
+  } catch {
+    return 'deelo.nikkithewikki.top';
+  }
+}
+
+/** URLs the bot may call to reach the web API (public first, then Docker internal). */
+export function fetchAppUrls(): string[] {
+  const raw = [
+    publicAppUrl(),
     process.env.STATUS_INTERNAL_URL,
     process.env.WEB_INTERNAL_URL,
-    process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '',
     'http://web:3000',
-    'http://127.0.0.1:3000',
-    'http://localhost:3000',
   ];
 
   const out: string[] = [];
   for (const u of raw) {
     if (!u?.trim()) continue;
-    const base = u.trim().replace(/\/$/, '');
+    const base = trimUrl(u.trim());
     if (!out.includes(base)) out.push(base);
   }
   return out;
@@ -22,7 +60,7 @@ export function appBaseUrls(): string[] {
 
 export async function fetchAppJson<T>(path: string, timeoutMs = 10_000): Promise<T | null> {
   const normalized = path.startsWith('/') ? path : `/${path}`;
-  for (const base of appBaseUrls()) {
+  for (const base of fetchAppUrls()) {
     try {
       const res = await fetch(`${base}${normalized}`, {
         signal: AbortSignal.timeout(timeoutMs),
@@ -37,18 +75,18 @@ export async function fetchAppJson<T>(path: string, timeoutMs = 10_000): Promise
 }
 
 export async function probeAppReachable(timeoutMs = 5_000): Promise<{ ok: boolean; detail: string }> {
-  for (const base of appBaseUrls()) {
+  for (const base of fetchAppUrls()) {
     try {
       const statusRes = await fetch(`${base}/api/status`, {
         signal: AbortSignal.timeout(timeoutMs),
         headers: { Accept: 'application/json' },
       });
       if (statusRes.ok) {
-        return { ok: true, detail: 'Operational' };
+        return { ok: true, detail: publicAppHost() };
       }
       const homeRes = await fetch(`${base}/`, { signal: AbortSignal.timeout(timeoutMs) });
       if (homeRes.ok) {
-        return { ok: true, detail: 'Reachable' };
+        return { ok: true, detail: publicAppHost() };
       }
     } catch {
       // try next base URL
@@ -57,6 +95,12 @@ export async function probeAppReachable(timeoutMs = 5_000): Promise<{ ok: boolea
   return { ok: false, detail: 'Unreachable from bot' };
 }
 
+/** @deprecated use publicAppUrl */
 export function primaryAppUrl(): string {
-  return appBaseUrls()[0] ?? 'https://deelo.bot';
+  return publicAppUrl();
+}
+
+/** @deprecated use fetchAppUrls */
+export function appBaseUrls(): string[] {
+  return fetchAppUrls();
 }
