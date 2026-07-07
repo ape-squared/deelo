@@ -19,20 +19,40 @@ const tickets: Command[] = [
           return void message.reply({ embeds: [errorEmbed('Administrator required.')] });
         }
         const name = args[1] ?? 'Support';
-        const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
-          new ButtonBuilder().setCustomId(`ticket_open_${name}`).setLabel('Open Ticket').setStyle(ButtonStyle.Primary).setEmoji('🎫'),
-        );
         if (!message.channel.isTextBased() || message.channel.isDMBased()) return;
+
+        const { data: inserted, error } = await getSupabase()
+          .from('ticket_panels')
+          .insert({
+            guild_id: message.guild!.id,
+            name,
+            channel_id: message.channel.id,
+          })
+          .select()
+          .single();
+
+        if (error || !inserted) {
+          return void message.reply({ embeds: [errorEmbed('Failed to create panel record.')] });
+        }
+
+        const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
+          new ButtonBuilder()
+            .setCustomId(`ticket_open_${inserted.id}`)
+            .setLabel('Open Ticket')
+            .setStyle(ButtonStyle.Primary)
+            .setEmoji('🎫'),
+        );
+
         const panelMsg = await message.channel.send({
           embeds: [deeloEmbed('🎫 Support', `Click below to open a **${name}** ticket.`)],
           components: [row],
         });
-        await getSupabase().from('ticket_panels').insert({
-          guild_id: message.guild!.id,
-          name,
-          channel_id: message.channel.id,
-          message_id: panelMsg.id,
-        });
+
+        await getSupabase()
+          .from('ticket_panels')
+          .update({ message_id: panelMsg.id })
+          .eq('id', inserted.id);
+
         return void message.reply({ embeds: [successEmbed(`Ticket panel **${name}** created.`)] });
       }
 

@@ -13,7 +13,8 @@ export default async function AdminGuildsPage() {
   return (
     <div>
       <AdminPageHeader
-        title="Guilds"
+        title="Plans & access"
+        badge="Platform"
         description="Manage server plans, prefixes, and premium access across all registered guilds."
       />
       <GuildPlanEditor guilds={guilds ?? []} />

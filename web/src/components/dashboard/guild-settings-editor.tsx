@@ -337,7 +337,7 @@ export function GuildSettingsEditor({
 
         {tab === 'tickets' && (
           <>
-            <TicketPanelsTab guildId={guildId} panels={initial.ticketPanels} onReload={onReload} />
+            <TicketPanelsTab guildId={guildId} panels={initial.ticketPanels} onReload={onReload} setMessage={setMessage} />
             <OpenTicketsTab guildId={guildId} tickets={initial.tickets} onReload={onReload} setMessage={setMessage} />
           </>
         )}
@@ -513,30 +513,58 @@ function RespondersTab({ guildId, responders, onReload, setMessage }: { guildId:
   );
 }
 
-function TicketPanelsTab({ guildId, panels, onReload }: { guildId: string; panels: GuildFullConfig['ticketPanels']; onReload: () => Promise<void> }) {
+function TicketPanelsTab({
+  guildId,
+  panels,
+  onReload,
+  setMessage,
+}: {
+  guildId: string;
+  panels: GuildFullConfig['ticketPanels'];
+  onReload: () => Promise<void>;
+  setMessage: (m: string) => void;
+}) {
   const [name, setName] = useState('');
   const [channel_id, setChannelId] = useState('');
   const [support_role, setSupportRole] = useState('');
   return (
     <CrudList
       title="Ticket panels"
-      desc="Panel configs — post the panel message with ,tickets panel in Discord"
+      desc="Posts an Open Ticket button in the selected channel — synced to Discord immediately."
       items={panels}
-      columns={['Name', 'Channel', 'Support role']}
-      renderRow={(p) => [p.name, p.channel_id, p.support_role ?? '—']}
+      columns={['Name', 'Channel', 'Message', 'Support role']}
+      renderRow={(p) => [p.name, p.channel_id, p.message_id ?? '—', p.support_role ?? '—']}
       onDelete={async (p) => {
-        await fetch(`/api/guilds/${guildId}/ticket-panels?id=${p.id}`, { method: 'DELETE' });
+        const res = await fetch(`/api/guilds/${guildId}/ticket-panels?id=${p.id}`, { method: 'DELETE' });
+        if (!res.ok) {
+          setMessage((await res.json()).error ?? 'Failed to delete panel');
+          return;
+        }
+        setMessage('Panel removed from Discord and dashboard');
         await onReload();
+        setTimeout(() => setMessage(''), 3000);
       }}
       addForm={
-        <AddRow label="Add panel" onAdd={async () => {
-          await fetch(`/api/guilds/${guildId}/ticket-panels`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, channel_id, support_role: support_role || null }) });
+        <AddRow label="Create panel" onAdd={async () => {
+          if (!name.trim()) { setMessage('Panel name is required'); return; }
+          if (!channel_id) { setMessage('Select a channel for the panel'); return; }
+          const res = await fetch(`/api/guilds/${guildId}/ticket-panels`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, channel_id, support_role: support_role || null }),
+          });
+          if (!res.ok) {
+            setMessage((await res.json()).error ?? 'Failed to create panel');
+            return;
+          }
+          setMessage('Ticket panel posted to Discord');
           setName(''); setChannelId(''); setSupportRole('');
           await onReload();
+          setTimeout(() => setMessage(''), 3000);
         }}>
-          <MiniInput label="Panel name" value={name} onChange={setName} />
+          <MiniInput label="Panel name" value={name} onChange={setName} placeholder="Support" />
           <MiniChannelSelect label="Channel" value={channel_id} onChange={setChannelId} />
-          <MiniInput label="Support role ID" value={support_role} onChange={setSupportRole} />
+          <MiniInput label="Support role ID" value={support_role} onChange={setSupportRole} placeholder="Optional" />
         </AddRow>
       }
     />

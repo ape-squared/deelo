@@ -89,6 +89,62 @@ export async function deleteDiscordChannel(channelId: string): Promise<void> {
   }
 }
 
+export async function deleteDiscordMessage(channelId: string, messageId: string): Promise<void> {
+  const token = requireToken();
+  const res = await fetch(`${DISCORD_API}/channels/${channelId}/messages/${messageId}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bot ${token}` },
+  });
+  if (!res.ok && res.status !== 404) {
+    const detail = await res.text().catch(() => '');
+    throw new Error(`Failed to delete message (${res.status})${detail ? `: ${detail.slice(0, 120)}` : ''}`);
+  }
+}
+
+export async function createTicketPanel(
+  channelId: string,
+  panelId: number,
+  name: string,
+  options?: { description?: string },
+): Promise<string> {
+  const token = requireToken();
+  const res = await fetch(`${DISCORD_API}/channels/${channelId}/messages`, {
+    method: 'POST',
+    headers: botHeaders(token),
+    body: JSON.stringify({
+      embeds: [
+        {
+          title: '🎫 Support',
+          description: options?.description ?? `Click below to open a **${name}** ticket.`,
+          color: 0x0047ff,
+        },
+      ],
+      components: [
+        {
+          type: 1,
+          components: [
+            {
+              type: 2,
+              style: 1,
+              label: 'Open Ticket',
+              emoji: { name: '🎫' },
+              custom_id: `ticket_open_${panelId}`,
+            },
+          ],
+        },
+      ],
+    }),
+  });
+
+  if (!res.ok) {
+    const detail = await res.text().catch(() => '');
+    throw new Error(`Failed to create ticket panel (${res.status})${detail ? `: ${detail.slice(0, 120)}` : ''}`);
+  }
+
+  const data = (await res.json()) as { id: string };
+  return data.id;
+}
+
 export async function fetchGuildCounterStats(guildId: string): Promise<{ members: number; bots: number; channels: number }> {
   const token = requireToken();
   const [guildRes, channelsRes] = await Promise.all([

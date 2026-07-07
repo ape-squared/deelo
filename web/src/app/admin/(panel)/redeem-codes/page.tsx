@@ -14,7 +14,8 @@ export default async function AdminRedeemCodesPage() {
   return (
     <div>
       <AdminPageHeader
-        title="Redeem Codes"
+        title="Promo codes"
+        badge="Platform"
         description="Create premium codes for giveaways, partners, and promotions. Users redeem with ,redeem or the dashboard."
       />
       <RedeemCodeManager initial={(codes ?? []) as RedeemCodeRow[]} />

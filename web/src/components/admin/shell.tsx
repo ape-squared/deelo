@@ -2,41 +2,11 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import {
-  LayoutDashboard, Server, Users, CreditCard, ScrollText, Shield, LogOut, ExternalLink, Ticket,
-  BarChart3, Activity, Globe, Code2, UserCog, Search,
-} from 'lucide-react';
+import { Shield, LogOut, ExternalLink, Activity, LayoutGrid } from 'lucide-react';
 import { DeeloIcon, DeeloWordmark } from '@/components/brand/logo';
-import {
-  operatorCanManageStaff,
-  operatorCanReadGuilds,
-  operatorCanUseDevTools,
-  operatorHasAdminPermission,
-  type PlatformOperator,
-} from '@/lib/platform-operator-shared';
 import { platformRoleLabel } from '@/lib/platform-roles';
-
-type NavItem = {
-  href: string;
-  label: string;
-  icon: typeof LayoutDashboard;
-  exact?: boolean;
-  show: (op: PlatformOperator) => boolean;
-};
-
-const NAV: NavItem[] = [
-  { href: '/admin', label: 'Overview', icon: LayoutDashboard, exact: true, show: () => true },
-  { href: '/admin/analytics', label: 'Analytics', icon: BarChart3, show: (op) => operatorHasAdminPermission(op, 'analytics') },
-  { href: '/admin/guild-lookup', label: 'Guild lookup', icon: Search, show: (op) => operatorCanReadGuilds(op) },
-  { href: '/admin/website', label: 'Website', icon: Globe, show: (op) => operatorHasAdminPermission(op, 'website.read') },
-  { href: '/admin/guilds', label: 'Guild plans', icon: Server, show: (op) => operatorHasAdminPermission(op, 'guilds.write') },
-  { href: '/admin/users', label: 'Users', icon: Users, show: (op) => operatorHasAdminPermission(op, 'users.read') },
-  { href: '/admin/subscriptions', label: 'Subscriptions', icon: CreditCard, show: (op) => operatorHasAdminPermission(op, 'subscriptions.write') },
-  { href: '/admin/redeem-codes', label: 'Redeem codes', icon: Ticket, show: (op) => operatorHasAdminPermission(op, 'redeem.write') },
-  { href: '/admin/team', label: 'Platform team', icon: UserCog, show: (op) => operatorCanManageStaff(op) },
-  { href: '/admin/developers', label: 'Developer', icon: Code2, show: (op) => operatorCanUseDevTools(op) },
-  { href: '/admin/audit', label: 'Audit log', icon: ScrollText, show: (op) => operatorHasAdminPermission(op, 'audit.read') },
-];
+import type { PlatformOperator } from '@/lib/platform-operator-shared';
+import { visibleAdminSections } from '@/lib/admin-nav';
 
 export function AdminShell({
   children,
@@ -46,11 +16,13 @@ export function AdminShell({
   operator: PlatformOperator;
 }) {
   const pathname = usePathname();
-  const visibleNav = NAV.filter((item) => item.show(operator));
+  const sections = visibleAdminSections(operator);
 
   const roleLabel =
     operator.kind === 'email'
-      ? operator.role
+      ? operator.role === 'superadmin'
+        ? 'Superadmin'
+        : operator.role
       : platformRoleLabel(operator.role);
 
   async function logout() {
@@ -66,57 +38,83 @@ export function AdminShell({
     <div className="admin-app mesh-bg v3-mesh flex min-h-screen">
       <aside className="admin-sidebar">
         <div className="admin-sidebar-brand">
-          <DeeloIcon size={36} className="shadow-lg shadow-accent/25" />
-          <div>
-            <DeeloWordmark height={18} />
-            <p className="text-[10px] uppercase tracking-widest text-muted">Admin</p>
+          <div className="admin-sidebar-logo">
+            <DeeloIcon size={32} className="shadow-lg shadow-accent/25" />
+          </div>
+          <div className="min-w-0">
+            <DeeloWordmark height={17} />
+            <p className="admin-sidebar-tag">Control panel</p>
           </div>
         </div>
 
         <div className="admin-sidebar-user">
           <div className="flex items-center gap-2">
-            <Shield className="h-3.5 w-3.5 text-accent" />
-            <span className="text-xs font-semibold capitalize text-accent">{roleLabel}</span>
+            <span className="admin-role-pill">
+              <Shield className="h-3 w-3" />
+              {roleLabel}
+            </span>
           </div>
-          <p className="truncate text-xs text-muted mt-1">{operator.label}</p>
-          <p className="text-[10px] text-muted mt-0.5 capitalize">{operator.kind === 'email' ? 'Email login' : 'Discord staff'}</p>
+          <p className="truncate text-xs text-foreground/90 mt-2 font-medium">{operator.label}</p>
+          <p className="text-[10px] text-muted mt-0.5 capitalize">
+            {operator.kind === 'email' ? 'Email session' : 'Discord staff'}
+          </p>
         </div>
 
         <nav className="admin-nav flex-1 overflow-y-auto px-3 py-2">
-          <p className="admin-nav-label">Manage</p>
-          {visibleNav.map(({ href, label, icon: Icon, exact }) => {
-            const active = exact ? pathname === href : pathname.startsWith(href);
-            return (
-              <Link key={href} href={href} className={`admin-nav-link ${active ? 'admin-nav-link-active' : ''}`}>
-                <Icon className="h-4 w-4 shrink-0" />
-                {label}
-              </Link>
-            );
-          })}
+          {sections.map((section) => (
+            <div key={section.id} className="mb-5 last:mb-0">
+              <p className="admin-nav-label">{section.label}</p>
+              <div className="space-y-0.5">
+                {section.items.map(({ href, label, icon: Icon, exact }) => {
+                  const active = exact ? pathname === href : pathname.startsWith(href);
+                  return (
+                    <Link
+                      key={href}
+                      href={href}
+                      className={`admin-nav-link ${active ? 'admin-nav-link-active' : ''}`}
+                    >
+                      <span className="admin-nav-icon">
+                        <Icon className="h-4 w-4" />
+                      </span>
+                      <span className="truncate">{label}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </nav>
 
         <div className="admin-sidebar-footer">
-          <Link href="/dashboard" className="admin-nav-link text-xs">
-            <Server className="h-3.5 w-3.5" />
+          <Link href="/dashboard" className="admin-nav-link admin-nav-link-muted text-xs">
+            <LayoutGrid className="h-3.5 w-3.5" />
             Server dashboard
           </Link>
-          <Link href="/status" className="admin-nav-link text-xs">
+          <Link href="/staff" className="admin-nav-link admin-nav-link-muted text-xs">
+            <Shield className="h-3.5 w-3.5" />
+            Staff portal
+          </Link>
+          <Link href="/status" className="admin-nav-link admin-nav-link-muted text-xs">
             <Activity className="h-3.5 w-3.5" />
             Public status
           </Link>
-          <Link href="/" className="admin-nav-link text-xs">
+          <Link href="/" className="admin-nav-link admin-nav-link-muted text-xs">
             <ExternalLink className="h-3.5 w-3.5" />
             View site
           </Link>
-          <button type="button" onClick={logout} className="admin-nav-link w-full text-left text-red-400/80 hover:text-red-400 hover:bg-red-500/10">
-            <LogOut className="h-4 w-4" />
+          <button
+            type="button"
+            onClick={logout}
+            className="admin-nav-link admin-nav-link-danger w-full text-left text-xs"
+          >
+            <LogOut className="h-3.5 w-3.5" />
             Sign out
           </button>
         </div>
       </aside>
 
       <main className="admin-main animate-fade-in">
-        <div className="mx-auto max-w-7xl">{children}</div>
+        <div className="admin-main-inner">{children}</div>
       </main>
     </div>
   );

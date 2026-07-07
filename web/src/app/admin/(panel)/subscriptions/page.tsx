@@ -16,7 +16,8 @@ export default async function AdminSubscriptionsPage() {
   return (
     <div>
       <AdminPageHeader
-        title="Subscriptions"
+        title="Billing"
+        badge="Platform"
         description="Manage premium access per guild. Each guild can only have one active subscription — new grants replace the previous one."
       />
       <SubscriptionManager

@@ -429,47 +429,88 @@ body {
 
 /* Admin panel */
 .admin-app {
-  --admin-sidebar: 260px;
+  --admin-sidebar: 272px;
 }
 
 .admin-sidebar {
-  @apply fixed inset-y-0 left-0 z-40 flex w-[var(--admin-sidebar)] flex-col border-r border-border backdrop-blur-xl;
-  background: linear-gradient(180deg, rgba(10, 10, 16, 0.98) 0%, rgba(8, 8, 12, 0.95) 100%);
+  @apply fixed inset-y-0 left-0 z-40 flex w-[var(--admin-sidebar)] flex-col border-r border-white/[0.06] backdrop-blur-2xl;
+  background: linear-gradient(180deg, rgba(12, 12, 20, 0.98) 0%, rgba(6, 6, 10, 0.96) 100%);
+  box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.04);
 }
 
 .admin-sidebar-brand {
-  @apply flex h-16 items-center gap-3 border-b border-border px-5;
+  @apply flex items-center gap-3 border-b border-white/[0.06] px-4 py-5;
+}
+
+.admin-sidebar-logo {
+  @apply flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-accent/25 bg-accent/10;
+}
+
+.admin-sidebar-tag {
+  @apply text-[10px] font-semibold uppercase tracking-[0.18em] text-accent-bright mt-0.5;
 }
 
 .admin-sidebar-user {
-  @apply mx-3 mt-4 rounded-xl border border-border bg-white/[0.03] p-3;
+  @apply mx-3 mt-4 rounded-2xl border border-accent/15 bg-gradient-to-br from-accent/[0.08] to-transparent p-3.5;
+}
+
+.admin-role-pill {
+  @apply inline-flex items-center gap-1.5 rounded-full border border-accent/30 bg-accent/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-accent;
 }
 
 .admin-sidebar-footer {
-  @apply space-y-0.5 border-t border-border p-3;
+  @apply space-y-0.5 border-t border-white/[0.06] p-3;
 }
 
 .admin-nav-label {
-  @apply px-3 py-2 text-[10px] font-semibold uppercase tracking-widest text-muted;
+  @apply px-3 pb-1.5 pt-2 text-[10px] font-bold uppercase tracking-[0.16em] text-muted/80;
 }
 
 .admin-nav-link {
-  @apply flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm text-muted transition-all duration-150;
+  @apply flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-muted transition-all duration-150;
 }
 .admin-nav-link:hover {
-  @apply bg-white/5 text-foreground;
+  @apply bg-white/[0.04] text-foreground;
 }
 .admin-nav-link-active {
-  @apply bg-accent/15 font-medium text-accent;
+  @apply bg-accent/12 font-medium text-accent;
   box-shadow: inset 3px 0 0 0 var(--accent);
+}
+.admin-nav-link-muted {
+  @apply py-2 text-muted;
+}
+.admin-nav-link-danger {
+  @apply text-red-400/80 hover:bg-red-500/10 hover:text-red-300;
+}
+.admin-nav-icon {
+  @apply flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/[0.03] text-current;
+}
+.admin-nav-link-active .admin-nav-icon {
+  @apply bg-accent/15;
 }
 
 .admin-main {
-  @apply ml-[var(--admin-sidebar)] min-h-screen flex-1 p-6 lg:p-10;
+  @apply ml-[var(--admin-sidebar)] min-h-screen flex-1;
+}
+
+.admin-main-inner {
+  @apply mx-auto max-w-7xl p-5 sm:p-6 lg:p-10;
 }
 
 .admin-page-header {
-  @apply mb-8 flex flex-wrap items-start justify-between gap-4 pb-6 border-b border-border/60;
+  @apply mb-8 flex flex-wrap items-start justify-between gap-4 rounded-2xl border border-border/60 bg-card/40 p-6 backdrop-blur-sm;
+}
+
+.admin-page-eyebrow {
+  @apply text-[11px] font-bold uppercase tracking-[0.18em] text-accent mb-2;
+}
+
+.admin-page-title {
+  @apply text-2xl font-bold tracking-tight sm:text-3xl;
+}
+
+.admin-page-desc {
+  @apply mt-2 max-w-2xl text-sm text-muted leading-relaxed;
 }
 
 .admin-stat-card {

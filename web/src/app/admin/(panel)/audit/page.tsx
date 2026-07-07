@@ -13,7 +13,8 @@ export default async function AdminAuditPage() {
   return (
     <div>
       <AdminPageHeader
-        title="Audit Log"
+        title="Activity log"
+        badge="Operations"
         description="Complete history of administrative actions on the Deelo platform."
       />
       <AdminAuditLog logs={(logs ?? []).map((l) => ({ ...l, metadata: l.metadata as Record<string, unknown> | null }))} />

@@ -11,6 +11,30 @@ function parseSuggestionVotes(footerText?: string | null): { authorId: string; u
   return { authorId, up, down };
 }
 
+async function resolveTicketPanel(guildId: string, customId: string) {
+  const suffix = customId.replace('ticket_open_', '');
+  const panelId = parseInt(suffix, 10);
+
+  if (Number.isFinite(panelId) && panelId > 0) {
+    const { data } = await getSupabase()
+      .from('ticket_panels')
+      .select('*')
+      .eq('guild_id', guildId)
+      .eq('id', panelId)
+      .maybeSingle();
+    if (data) return data;
+  }
+
+  const { data: byName } = await getSupabase()
+    .from('ticket_panels')
+    .select('*')
+    .eq('guild_id', guildId)
+    .eq('name', suffix)
+    .maybeSingle();
+
+  return byName;
+}
+
 export function registerButtonHandlers(client: DeeloClient): void {
   if (client.buttonsRegistered) return;
   client.buttonsRegistered = true;
@@ -34,11 +58,15 @@ export function registerButtonHandlers(client: DeeloClient): void {
     }
 
     if (interaction.customId.startsWith('ticket_open_')) {
-      const panelName = interaction.customId.replace('ticket_open_', '');
+      if (!interaction.guild) return;
+
+      const panel = await resolveTicketPanel(interaction.guild.id, interaction.customId);
+      const panelName = panel?.name ?? interaction.customId.replace('ticket_open_', '');
+
       const { data: existing } = await getSupabase()
         .from('tickets')
         .select('*')
-        .eq('guild_id', interaction.guild!.id)
+        .eq('guild_id', interaction.guild.id)
         .eq('user_id', interaction.user.id)
         .eq('status', 'open')
         .maybeSingle();
@@ -47,23 +75,39 @@ export function registerButtonHandlers(client: DeeloClient): void {
         return void interaction.reply({ content: `You already have an open ticket: <#${existing.channel_id}>`, ephemeral: true });
       }
 
-      const channel = await interaction.guild!.channels.create({
-        name: `ticket-${interaction.user.username}`,
+      const overwrites: Array<{ id: string; allow?: bigint[]; deny?: bigint[] }> = [
+        { id: interaction.guild.id, deny: [PermissionFlagsBits.ViewChannel] },
+        {
+          id: interaction.user.id,
+          allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.ReadMessageHistory],
+        },
+      ];
+
+      if (panel?.support_role) {
+        overwrites.push({
+          id: panel.support_role,
+          allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.ReadMessageHistory],
+        });
+      }
+
+      const channel = await interaction.guild.channels.create({
+        name: `ticket-${interaction.user.username}`.slice(0, 100),
         type: ChannelType.GuildText,
-        permissionOverwrites: [
-          { id: interaction.guild!.id, deny: [PermissionFlagsBits.ViewChannel] },
-          { id: interaction.user.id, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages] },
-        ],
+        parent: panel?.category_id ?? undefined,
+        permissionOverwrites: overwrites,
       });
 
       await getSupabase().from('tickets').insert({
-        guild_id: interaction.guild!.id,
+        guild_id: interaction.guild.id,
         channel_id: channel.id,
         user_id: interaction.user.id,
         panel_name: panelName,
       });
 
-      await channel.send({ embeds: [deeloEmbed('🎫 Ticket Opened', `${interaction.user}, support will be with you shortly.\nUse \`,tickets close\` to close.`)] });
+      const supportMention = panel?.support_role ? `<@&${panel.support_role}>` : '';
+      await channel.send({
+        embeds: [deeloEmbed('🎫 Ticket Opened', `${interaction.user}, support will be with you shortly.${supportMention ? `\n${supportMention}` : ''}\nUse \`,tickets close\` to close.`)],
+      });
       await interaction.reply({ content: `Ticket created: ${channel}`, ephemeral: true });
       return;
     }

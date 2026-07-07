@@ -14,17 +14,18 @@ const STAT_ICONS: Record<string, LucideIcon> = {
   chart: BarChart3,
 };
 
-export function AdminPageHeader({ title, description, action }: {
+export function AdminPageHeader({ title, description, action, badge = 'Control panel' }: {
   title: string;
   description?: string;
+  badge?: string;
   action?: React.ReactNode;
 }) {
   return (
     <div className="admin-page-header">
       <div>
-        <p className="text-xs font-semibold uppercase tracking-widest text-accent mb-2">Control Panel</p>
-        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{title}</h1>
-        {description && <p className="mt-2 max-w-2xl text-muted leading-relaxed">{description}</p>}
+        <p className="admin-page-eyebrow">{badge}</p>
+        <h1 className="admin-page-title">{title}</h1>
+        {description && <p className="admin-page-desc">{description}</p>}
       </div>
       {action}
     </div>

@@ -14,7 +14,8 @@ export default async function AdminWebsitePage() {
   return (
     <div>
       <AdminPageHeader
-        title="Website"
+        title="Site & changelog"
+        badge="Content"
         description="Manage announcements, changelog, Discord widget, and homepage content. Changes sync to the public site immediately."
         action={
           <div className="flex flex-wrap gap-2">

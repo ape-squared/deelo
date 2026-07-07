@@ -82,7 +82,8 @@ export default async function AdminOverviewPage() {
   return (
     <div>
       <AdminPageHeader
-        title="Overview"
+        title="Command center"
+        badge="Home"
         description="Platform health, revenue indicators, and recent activity across Deelo."
         action={
           <Link href="/admin/subscriptions" className="btn-secondary text-sm">
