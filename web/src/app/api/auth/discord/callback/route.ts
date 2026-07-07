@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { setDashboardSession, DISCORD_API, discordAvatarUrl } from '@/lib/session';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { getAppUrl, getDiscordClientId, getDiscordClientSecret } from '@/lib/discord-config';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
   const code = req.nextUrl.searchParams.get('code');
@@ -10,11 +13,11 @@ export async function GET(req: NextRequest) {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({
-      client_id: process.env.DISCORD_CLIENT_ID!,
-      client_secret: process.env.DISCORD_CLIENT_SECRET!,
+      client_id: getDiscordClientId(),
+      client_secret: getDiscordClientSecret(),
       grant_type: 'authorization_code',
       code,
-      redirect_uri: `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/discord/callback`,
+      redirect_uri: `${getAppUrl()}/api/auth/discord/callback`,
     }),
   });
 

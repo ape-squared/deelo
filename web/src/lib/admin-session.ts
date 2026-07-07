@@ -1,8 +1,9 @@
 import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
+import { getSessionSecret } from '@/lib/discord-config';
 
 const COOKIE = 'deelo_admin_session';
-const secret = () => new TextEncoder().encode(process.env.SESSION_SECRET || 'dev-secret-change-me');
+const secret = () => new TextEncoder().encode(getSessionSecret());
 
 export interface AdminSession {
   userId: string;

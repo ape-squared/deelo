@@ -1,8 +1,9 @@
 import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
+import { getDiscordClientId, getDiscordClientSecret, getSessionSecret } from '@/lib/discord-config';
 
 const COOKIE = 'deelo_session';
-const secret = () => new TextEncoder().encode(process.env.SESSION_SECRET || 'dev-secret-change-me');
+const secret = () => new TextEncoder().encode(getSessionSecret());
 
 /** Session cookie — access tokens live in Supabase, not the JWT (avoids cookie size / stale token issues). */
 export interface DashboardSession {
@@ -89,8 +90,8 @@ async function refreshDiscordToken(discordId: string, refreshToken: string): Pro
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({
-      client_id: process.env.DISCORD_CLIENT_ID!,
-      client_secret: process.env.DISCORD_CLIENT_SECRET!,
+      client_id: getDiscordClientId(),
+      client_secret: getDiscordClientSecret(),
       grant_type: 'refresh_token',
       refresh_token: refreshToken,
     }),
