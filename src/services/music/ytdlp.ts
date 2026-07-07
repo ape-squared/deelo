@@ -39,15 +39,15 @@ export function getYtDlp(): YTDlpWrap {
   return ytdlp;
 }
 
-/** Pipe audio from YouTube (or any URL yt-dlp supports) to stdout. */
+/** Pipe audio from YouTube to stdout as webm/opus when possible. */
 export function streamYoutube(url: string) {
   return getYtDlp().execStream([
     url,
-    '-f', 'bestaudio/best',
+    '-f', 'bestaudio[ext=webm]/bestaudio[acodec=opus]/bestaudio/best',
     '--no-playlist',
-    '-o', '-',
-    '--quiet',
+    '--no-part',
     '--no-warnings',
+    '-o', '-',
   ]);
 }
 

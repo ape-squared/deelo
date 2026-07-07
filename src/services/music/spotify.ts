@@ -46,9 +46,15 @@ export async function ensureSpotifyAccessToken(): Promise<string> {
     body: 'grant_type=client_credentials',
   });
 
-  const data = (await res.json()) as SpotifyTokenResponse;
+  const raw = await res.text();
+  let data: SpotifyTokenResponse;
+  try {
+    data = JSON.parse(raw) as SpotifyTokenResponse;
+  } catch {
+    throw new Error(`Spotify auth returned invalid JSON (${res.status}): ${raw.slice(0, 120)}`);
+  }
   if (!res.ok || !data.access_token) {
-    throw new Error(`Spotify auth failed: ${data.error_description ?? data.error ?? res.statusText}`);
+    throw new Error(`Spotify auth failed: ${data.error_description ?? data.error ?? raw.slice(0, 120)}`);
   }
 
   tokenCache = {
@@ -63,7 +69,13 @@ async function spotifyApi<T>(path: string): Promise<T> {
   const res = await fetch(`https://api.spotify.com/v1${path}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
-  const data = (await res.json()) as T & { error?: { message?: string } };
+  const raw = await res.text();
+  let data: T & { error?: { message?: string } };
+  try {
+    data = JSON.parse(raw) as T & { error?: { message?: string } };
+  } catch {
+    throw new Error(`Spotify API returned invalid JSON (${res.status}): ${raw.slice(0, 120)}`);
+  }
   if (!res.ok) {
     throw new Error(data.error?.message ?? `Spotify API error (${res.status})`);
   }

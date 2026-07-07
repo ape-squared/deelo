@@ -7,18 +7,15 @@ import {
   entersState,
   VoiceConnectionStatus,
   getVoiceConnection,
-  StreamType,
   type AudioPlayer,
   type VoiceConnection,
 } from '@discordjs/voice';
-import play from 'play-dl';
-import type { Readable } from 'node:stream';
-import { ChannelType, type Guild, type TextChannel, type VoiceBasedChannel } from 'discord.js';
+import { ChannelType, type Guild, type VoiceBasedChannel } from 'discord.js';
 import { deeloEmbed } from '../../utils/embeds';
 import type { Track, MusicQueue } from './types';
 import { formatDuration, sourceLabel } from './types';
 import { trackDisplayUrl } from './spotify';
-import { streamYoutube } from './ytdlp';
+import { createTrackStream } from './stream';
 
 const IDLE_LEAVE_MS = 120_000;
 
@@ -166,14 +163,8 @@ class GuildMusicSession implements MusicQueue {
     this.connection = null;
   }
 
-  private async createStream(track: Track): Promise<{ stream: Readable; inputType: StreamType }> {
-    if (track.source === 'soundcloud' && track.url.includes('soundcloud.com')) {
-      const data = await play.stream(track.url);
-      return { stream: data.stream, inputType: mapPlayDlType(data.type) };
-    }
-    // YouTube + anything resolved to a YouTube URL (Spotify, Apple, search, etc.)
-    const stream = streamYoutube(track.url);
-    return { stream, inputType: StreamType.Arbitrary };
+  private async createStream(track: Track) {
+    return createTrackStream(track);
   }
 
   async playNext(): Promise<void> {
@@ -224,12 +215,6 @@ class GuildMusicSession implements MusicQueue {
       this.busy = false;
     }
   }
-}
-
-function mapPlayDlType(type: string): StreamType {
-  if (type === 'opus') return StreamType.OggOpus;
-  if (type === 'webm/opus') return StreamType.WebmOpus;
-  return StreamType.Arbitrary;
 }
 
 function getSession(guildId: string): GuildMusicSession {
@@ -344,10 +329,11 @@ export function buildNowPlayingEmbed(track: Track) {
 export function buildAddedEmbed(track: Track, position: number, started: boolean) {
   const link = trackDisplayUrl(track);
   const status = started ? 'Now playing' : `Queued · position **${position}**`;
+  const source = track.spotifyUrl ? 'Spotify' : sourceLabel(track.source);
   return deeloEmbed(
     started ? '🎵 Now Playing' : '🎵 Added to Queue',
     `**[${track.title}](${link})**\n` +
-      `${status} · \`${formatDuration(track.duration)}\` · **${sourceLabel(track.source)}**`,
+      `${status} · \`${formatDuration(track.duration)}\` · **${source}**`,
   );
 }
 
