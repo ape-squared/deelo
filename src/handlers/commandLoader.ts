@@ -9,7 +9,9 @@ export async function loadCommands(client: DeeloClient): Promise<void> {
 
   for (const category of categories) {
     const categoryPath = path.join(commandsDir, category);
-    const files = fs.readdirSync(categoryPath).filter((f) => f.endsWith('.ts') || f.endsWith('.js'));
+    const files = fs.readdirSync(categoryPath).filter(
+      (f) => !f.endsWith('.d.ts') && (f.endsWith('.js') || f.endsWith('.ts')),
+    );
 
     for (const file of files) {
       const mod = await import(path.join(categoryPath, file));
