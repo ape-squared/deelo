@@ -15,6 +15,7 @@ import { AddRow, CrudList, MiniInput, MiniSelect } from '@/components/dashboard/
 import { ChannelSelect, GuildChannelsProvider, MiniChannelSelect } from '@/components/dashboard/discord-resources';
 import { RedeemCodePanel } from '@/components/dashboard/redeem-panel';
 import { ModuleOverview } from '@/components/dashboard/module-overview';
+import { EmbedsTab } from '@/components/dashboard/embed-builder';
 
 export function GuildSettingsEditor({
   guildId,
@@ -48,7 +49,7 @@ export function GuildSettingsEditor({
   const extra = (guild.extra_config ?? {}) as Record<string, unknown>;
   const isPremium = guild.plan !== 'free';
   const activeModule = MODULE_GROUPS.flatMap((g) => g.modules).find((m) => m.id === tab);
-  const showSaveBar = !['filters', 'responders', 'autoreact', 'tickets', 'social', 'events', 'overview'].includes(tab);
+  const showSaveBar = !['filters', 'responders', 'autoreact', 'tickets', 'social', 'events', 'overview', 'embeds'].includes(tab);
 
   function update<K extends keyof DashboardGuildSettings>(key: K, value: DashboardGuildSettings[K]) {
     setGuild((g) => ({ ...g, [key]: value }));
@@ -373,6 +374,16 @@ export function GuildSettingsEditor({
           </>
         )}
 
+        {tab === 'embeds' && (
+          <EmbedsTab
+            guildId={guildId}
+            items={initial.embeds}
+            plan={guild.plan}
+            onReload={onReload}
+            setMessage={setMessage}
+          />
+        )}
+
         {tab === 'advanced' && (
           <>
             <Section title="Log channels" desc="Extra log destinations (extra_config)">
@@ -392,7 +403,7 @@ export function GuildSettingsEditor({
           </>
         )}
 
-        {['filters', 'responders', 'autoreact', 'tickets', 'social', 'events'].includes(tab) ? null : showSaveBar && (
+        {['filters', 'responders', 'autoreact', 'tickets', 'social', 'events', 'embeds'].includes(tab) ? null : showSaveBar && (
           <div className={`save-bar ${dirty ? 'border-accent/30' : ''}`}>
             <div className="flex items-center justify-between gap-4">
               <p className="text-sm text-muted">

@@ -28,6 +28,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ gui
     reactionRolesRes,
     buttonRolesRes,
     ticketsRes,
+    embedsRes,
   ] = await Promise.all([
     db.from('event_toggles').select('event, enabled').eq('guild_id', guildId),
     db.from('filters').select('*').eq('guild_id', guildId).order('id'),
@@ -43,6 +44,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ gui
     db.from('reaction_roles').select('*').eq('guild_id', guildId).order('id'),
     db.from('button_roles').select('*').eq('guild_id', guildId).order('id'),
     db.from('tickets').select('id, channel_id, user_id, panel_name, status, created_at').eq('guild_id', guildId).order('created_at', { ascending: false }).limit(50),
+    db.from('saved_embeds').select('id, guild_id, name, embed_json, created_by').eq('guild_id', guildId).order('name'),
   ]);
 
   return NextResponse.json({
@@ -62,6 +64,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ gui
     reactionRoles: reactionRolesRes.data ?? [],
     buttonRoles: buttonRolesRes.data ?? [],
     tickets: ticketsRes.data ?? [],
+    embeds: embedsRes.data ?? [],
   });
 }
 

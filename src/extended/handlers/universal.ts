@@ -77,6 +77,10 @@ export async function handleUniversal(cmd: CommandDef, message: Message, args: s
   }
 
   if (args.length > 0) {
+    if (cmd.cog === 'fun') {
+      await replyError(message, `**${name}** couldn't run with those arguments. Use \`,help ${name}\` for usage.`);
+      return true;
+    }
     if (!needManageGuild(message.member)) {
       await replyError(message, 'You need **Manage Server** permission.');
       return true;

@@ -7,7 +7,8 @@ type Feature =
   | 'starboard'
   | 'logging'
   | 'voicemasterGhost'
-  | 'botCustomization';
+  | 'botCustomization'
+  | 'embedScripting';
 
 const FREE: Record<Feature, boolean> = {
   customPrefix: false,
@@ -17,6 +18,7 @@ const FREE: Record<Feature, boolean> = {
   logging: false,
   voicemasterGhost: false,
   botCustomization: false,
+  embedScripting: false,
 };
 
 const PREMIUM: Record<Feature, boolean> = {
@@ -28,6 +30,7 @@ const PREMIUM: Record<Feature, boolean> = {
   logging: true,
   voicemasterGhost: true,
   botCustomization: true,
+  embedScripting: true,
 };
 
 function features(plan: PlanTier): Record<Feature, boolean> {

@@ -176,6 +176,73 @@ const fun: Command[] = [
       await handleGameLookup(message, args.join(' '));
     },
   },
+  {
+    name: 'lyrics',
+    aliases: ['lyric', 'lyr'],
+    description: 'Get song lyrics',
+    category: 'fun',
+    usage: 'lyrics <song> or lyrics Artist - Song',
+    run: async ({ message, args }) => {
+      const query = args.join(' ').trim();
+      if (!query) {
+        await message.reply({ embeds: [errorEmbed('Usage: `,lyrics <song>` or `,lyrics Artist - Song`')] });
+        return;
+      }
+      const { fetchLyrics } = await import('../../lib/lyrics');
+      const result = await fetchLyrics(query);
+      if (!result) {
+        await message.reply({
+          embeds: [deeloEmbed('Lyrics', `[Search on Genius](https://genius.com/search?q=${encodeURIComponent(query)})`)],
+        });
+        return;
+      }
+      const header = `**${result.artist}** — ${result.title}`;
+      const body = result.lyrics.length > 1900 ? `${result.lyrics.slice(0, 1900)}…` : result.lyrics;
+      await message.reply({ embeds: [deeloEmbed('Lyrics', `${header}\n\n${body}`)] });
+    },
+  },
+  {
+    name: 'meme',
+    description: 'Get a random meme',
+    category: 'fun',
+    run: async ({ message }) => {
+      try {
+        const res = await fetch('https://meme-api.com/gimme');
+        const data = (await res.json()) as { title: string; url: string; postLink: string };
+        await message.reply({ embeds: [deeloEmbed(data.title, `[Source](${data.postLink})`).setImage(data.url)] });
+      } catch {
+        await message.reply({ embeds: [errorEmbed('Failed to fetch meme.')] });
+      }
+    },
+  },
+  {
+    name: 'joke',
+    description: 'Get a random joke',
+    category: 'fun',
+    run: async ({ message }) => {
+      try {
+        const res = await fetch('https://official-joke-api.appspot.com/random_joke');
+        const data = (await res.json()) as { setup: string; punchline: string };
+        await message.reply({ embeds: [deeloEmbed('Joke', `${data.setup}\n\n*${data.punchline}*`)] });
+      } catch {
+        await message.reply({ embeds: [deeloEmbed('Joke', 'Why do programmers prefer dark mode? Because light attracts bugs.')] });
+      }
+    },
+  },
+  {
+    name: 'fact',
+    description: 'Get a random fact',
+    category: 'fun',
+    run: async ({ message }) => {
+      try {
+        const res = await fetch('https://uselessfacts.jsph.pl/random.json?language=en');
+        const data = (await res.json()) as { text: string };
+        await message.reply({ embeds: [deeloEmbed('Random Fact', data.text)] });
+      } catch {
+        await message.reply({ embeds: [deeloEmbed('Fact', 'Honey never spoils.')] });
+      }
+    },
+  },
 ];
 
 export default fun;

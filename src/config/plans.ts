@@ -12,6 +12,7 @@ export interface PlanLimits {
   maxFilters: number;
   maxBumpReminders: number;
   maxStarboardChannels: number;
+  maxSavedEmbeds: number;
 }
 
 export interface PlanFeatures {
@@ -116,6 +117,7 @@ const FREE_LIMITS: PlanLimits = {
   maxFilters: 5,
   maxBumpReminders: 1,
   maxStarboardChannels: 0,
+  maxSavedEmbeds: 5,
 };
 
 const PREMIUM_LIMITS: PlanLimits = {
@@ -130,6 +132,7 @@ const PREMIUM_LIMITS: PlanLimits = {
   maxFilters: 50,
   maxBumpReminders: 5,
   maxStarboardChannels: 3,
+  maxSavedEmbeds: 50,
 };
 
 const PREMIUM_PLUS_LIMITS: PlanLimits = {
@@ -143,6 +146,7 @@ const PREMIUM_PLUS_LIMITS: PlanLimits = {
   maxTicketPanels: 25,
   maxFilters: 100,
   maxStarboardChannels: 10,
+  maxSavedEmbeds: 100,
 };
 
 const FREE_FEATURES: PlanFeatures = {

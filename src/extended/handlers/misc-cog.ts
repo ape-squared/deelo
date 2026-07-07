@@ -1,13 +1,15 @@
-import { EmbedBuilder, type Message } from 'discord.js';
+import { type Message, type TextChannel } from 'discord.js';
 import type { CommandDef } from '../types';
 import { getSupabase } from '../../database/supabase';
-import { config } from '../../config';
-import { replyError, replyInfo, replySuccess, deeloEmbed } from '../lib/helpers';
+import { getGuild, getGuildPlan } from '../../database';
+import { replyError, replyInfo, replySuccess } from '../lib/helpers';
+import { buildEmbedFromTemplate, type EmbedTemplateJson } from '../../utils/embed-template';
+import { checkLimit, requirePremium } from '../../premium/check';
+import { EmbedBuilder } from 'discord.js';
 
 export async function handleMiscCog(cmd: CommandDef, message: Message, args: string[]): Promise<boolean> {
   if (cmd.cog !== 'misc') return false;
   const name = cmd.name;
-  const guildId = message.guild!.id;
 
   if (name.startsWith('embed')) return handleEmbed(name, message, args);
   if (name === 'chatgpt' || name === 'gpt' || name === 'ai') return false;
@@ -34,7 +36,13 @@ export async function handleMiscCog(cmd: CommandDef, message: Message, args: str
   if (name === 'createembed' || name === 'ce') {
     const text = args.join(' ');
     const [title, desc] = text.split('|').map((s) => s.trim());
-    await message.reply({ embeds: [deeloEmbed(title || 'Embed', desc || '')] });
+    const guildSettings = await getGuild(message.guild!.id);
+    const plan = await getGuildPlan(message.guild!.id);
+    const embed = buildEmbedFromTemplate(
+      { title: title || 'Embed', description: desc || '' },
+      { extra_config: guildSettings.extra_config, plan },
+    );
+    await message.reply({ embeds: [embed] });
     return true;
   }
   if (name === 'poll' || name === 'quickpoll') return false;
@@ -75,6 +83,29 @@ export async function handleMiscCog(cmd: CommandDef, message: Message, args: str
   return false;
 }
 
+async function guildEmbedContext(guildId: string) {
+  const guildSettings = await getGuild(guildId);
+  const plan = await getGuildPlan(guildId);
+  return { extra_config: guildSettings.extra_config, plan };
+}
+
+async function loadSavedEmbed(guildId: string, embedName: string) {
+  const { data } = await getSupabase()
+    .from('saved_embeds')
+    .select('embed_json')
+    .eq('guild_id', guildId)
+    .eq('name', embedName)
+    .maybeSingle();
+  return data?.embed_json as EmbedTemplateJson | undefined;
+}
+
+function parseChannelArg(message: Message, arg: string): TextChannel | null {
+  const mention = arg.match(/^<#(\d+)>$/)?.[1] ?? (/^\d{17,20}$/.test(arg) ? arg : null);
+  if (!mention) return null;
+  const ch = message.guild!.channels.cache.get(mention);
+  return ch?.isTextBased() ? (ch as TextChannel) : null;
+}
+
 async function handleEmbed(name: string, message: Message, args: string[]) {
   const guildId = message.guild!.id;
   if (!message.member!.permissions.has('ManageMessages')) {
@@ -82,30 +113,79 @@ async function handleEmbed(name: string, message: Message, args: string[]) {
     return true;
   }
 
+  const ctx = await guildEmbedContext(guildId);
+
   if (name === 'embed list') {
-    const { data } = await getSupabase().from('saved_embeds').select('name').eq('guild_id', guildId);
+    const { data } = await getSupabase().from('saved_embeds').select('name').eq('guild_id', guildId).order('name');
     await replyInfo(message, 'Saved Embeds', data?.map((e) => `\`${e.name}\``).join(', ') || 'None.');
     return true;
   }
 
+  if (name === 'embed' && !args.length) {
+    await replyInfo(
+      message,
+      'Embeds',
+      'Commands: `create`, `preview`, `send`, `list`, `delete`, `copy`\nBuild full embeds in the **dashboard → Embeds** tab.',
+    );
+    return true;
+  }
+
   if (name === 'embed create' || name === 'embed') {
-    const embedName = args[0];
+    const embedName = args[0]?.toLowerCase().replace(/[^a-z0-9_-]/g, '');
     const content = args.slice(1).join(' ');
     if (!embedName) { await replyError(message, 'Usage: `,embed create <name> <title> | <description>`'); return true; }
+
+    const { count } = await getSupabase()
+      .from('saved_embeds')
+      .select('id', { count: 'exact', head: true })
+      .eq('guild_id', guildId);
+    const existing = await getSupabase()
+      .from('saved_embeds')
+      .select('id')
+      .eq('guild_id', guildId)
+      .eq('name', embedName)
+      .maybeSingle();
+    if (!existing.data) {
+      const allowed = await checkLimit(guildId, 'maxSavedEmbeds', count ?? 0, (opts) => message.reply(opts));
+      if (!allowed) return true;
+    }
+
     const [title, desc] = content.split('|').map((s) => s.trim());
-    const json = { title: title || embedName, description: desc || '', color: config.botColor };
-    await getSupabase().from('saved_embeds').upsert({ guild_id: guildId, name: embedName.toLowerCase(), embed_json: json, created_by: message.author.id }, { onConflict: 'guild_id,name' });
-    await replySuccess(message, `Embed **${embedName}** saved.`);
+    const json: EmbedTemplateJson = { title: title || embedName, description: desc || '' };
+    await getSupabase().from('saved_embeds').upsert(
+      { guild_id: guildId, name: embedName, embed_json: json, created_by: message.author.id },
+      { onConflict: 'guild_id,name' },
+    );
+    await replySuccess(message, `Embed **${embedName}** saved. Edit the full embed in the dashboard.`);
     return true;
   }
 
   if (name === 'embed preview' || name === 'embed view') {
     const embedName = args[0]?.toLowerCase();
     if (!embedName) { await replyError(message, 'Usage: `,embed preview <name>`'); return true; }
-    const { data } = await getSupabase().from('saved_embeds').select('embed_json').eq('guild_id', guildId).eq('name', embedName).maybeSingle();
-    if (!data) { await replyError(message, 'Embed not found.'); return true; }
-    const j = data.embed_json as { title: string; description: string; color?: number };
-    await message.reply({ embeds: [new EmbedBuilder().setTitle(j.title).setDescription(j.description).setColor(j.color ?? config.botColor)] });
+    const json = await loadSavedEmbed(guildId, embedName);
+    if (!json) { await replyError(message, 'Embed not found.'); return true; }
+    await message.reply({ embeds: [buildEmbedFromTemplate(json, ctx)] });
+    return true;
+  }
+
+  if (name === 'embed send' || name === 'embed post') {
+    if (!(await requirePremium(message, 'embedScripting'))) return true;
+    const channel = parseChannelArg(message, args[0] ?? '');
+    const embedName = args[1]?.toLowerCase();
+    if (!channel || !embedName) {
+      await replyError(message, 'Usage: `,embed send #channel <name>`');
+      return true;
+    }
+    const me = message.guild!.members.me;
+    if (!me?.permissionsIn(channel).has('SendMessages')) {
+      await replyError(message, 'I cannot send messages in that channel.');
+      return true;
+    }
+    const json = await loadSavedEmbed(guildId, embedName);
+    if (!json) { await replyError(message, 'Embed not found.'); return true; }
+    await channel.send({ embeds: [buildEmbedFromTemplate(json, ctx)] });
+    await replySuccess(message, `Sent **${embedName}** to ${channel}.`);
     return true;
   }
 
@@ -131,6 +211,10 @@ async function handleEmbed(name: string, message: Message, args: string[]) {
     return true;
   }
 
-  await replyInfo(message, 'Embeds', 'Commands: `create`, `preview`, `list`, `delete`, `copy`');
+  await replyInfo(
+    message,
+    'Embeds',
+    'Commands: `create`, `preview`, `send`, `list`, `delete`, `copy`\nBuild full embeds in the **dashboard → Embeds** tab.',
+  );
   return true;
 }

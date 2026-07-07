@@ -46,6 +46,7 @@ export default function GuildDashboardPage() {
       reactionRoles: data.reactionRoles ?? [],
       buttonRoles: data.buttonRoles ?? [],
       tickets: data.tickets ?? [],
+      embeds: data.embeds ?? [],
     });
   }, [guildId, router]);
 

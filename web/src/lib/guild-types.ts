@@ -96,6 +96,14 @@ export interface ButtonRoleRow {
   style: string;
 }
 
+export interface SavedEmbedRow {
+  id: number;
+  guild_id: string;
+  name: string;
+  embed_json: import('@/lib/embed-template').EmbedTemplate;
+  created_by: string;
+}
+
 export interface EventToggleRow {
   event: string;
   enabled: boolean;
@@ -118,6 +126,7 @@ export interface GuildFullConfig {
   reactionRoles: ReactionRoleRow[];
   buttonRoles: ButtonRoleRow[];
   tickets: Array<{ id: number; channel_id: string; user_id: string; panel_name: string | null; status: string; created_at: string }>;
+  embeds: SavedEmbedRow[];
 }
 
 /** Common extra_config paths editable from dashboard */

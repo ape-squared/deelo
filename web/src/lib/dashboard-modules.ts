@@ -1,7 +1,7 @@
 import type { LucideIcon } from 'lucide-react';
 import {
   LayoutGrid, Sparkles, MessageSquare, Shield, Filter, Bot, Users,
-  TrendingUp, Star, Mic, Ticket, Zap, Radio, Settings2, Smile, Palette,
+  TrendingUp, Star, Mic, Ticket, Zap, Radio, Settings2, Smile, Palette, LayoutTemplate,
 } from 'lucide-react';
 import type { DashboardGuildSettings } from '@/lib/guild-settings';
 import type { GuildFullConfig } from '@/lib/guild-types';
@@ -22,6 +22,7 @@ export type ModuleId =
   | 'tickets'
   | 'events'
   | 'social'
+  | 'embeds'
   | 'advanced';
 
 export interface DashboardModule {
@@ -70,6 +71,7 @@ export const MODULE_GROUPS: ModuleGroup[] = [
       { id: 'voicemaster', label: 'VoiceMaster', description: 'Join-to-create voice channels', icon: Mic },
       { id: 'tickets', label: 'Tickets', description: 'Support ticket panels', icon: Ticket },
       { id: 'social', label: 'Social', description: 'Feeds and stat counters', icon: Radio },
+      { id: 'embeds', label: 'Embeds', description: 'Build and send custom embeds', icon: LayoutTemplate },
       { id: 'events', label: 'Events', description: 'Toggle bot event handlers', icon: Zap },
       { id: 'advanced', label: 'Advanced', description: 'Aliases, logs, and extras', icon: Settings2 },
     ],
@@ -167,6 +169,13 @@ export function getModuleStatus(
       return {
         enabled: config.socialFeeds.length > 0 || config.counters.length > 0,
         detail: `${config.socialFeeds.length} feeds · ${config.counters.length} counters`,
+      };
+    case 'embeds':
+      return {
+        enabled: config.embeds.length > 0,
+        detail: config.embeds.length
+          ? `${config.embeds.length} saved`
+          : 'No embeds yet',
       };
     case 'events':
       return {

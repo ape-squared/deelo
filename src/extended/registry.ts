@@ -46,7 +46,9 @@ export class CommandRegistry {
         this.commands.set(entry.name, entry);
         list.push(entry);
         for (const alias of entry.aliases) {
-          this.aliasToName.set(alias, entry.name);
+          if (!this.aliasToName.has(alias)) {
+            this.aliasToName.set(alias, entry.name);
+          }
         }
       }
       this.byCog.set(cog.cog_name, list);
@@ -60,17 +62,27 @@ export class CommandRegistry {
 
     for (let len = words.length; len >= 1; len--) {
       const slice = words.slice(0, len);
-      slice[0] = this.aliasToName.get(slice[0]) ?? slice[0];
-      const candidate = slice.join(' ');
-      const command = this.commands.get(candidate);
-      if (command) return { command, args: words.slice(len) };
+      const directCandidate = slice.join(' ');
+      const directCommand = this.commands.get(directCandidate);
+      if (directCommand) return { command: directCommand, args: words.slice(len) };
+
+      const aliased = [...slice];
+      aliased[0] = this.aliasToName.get(aliased[0]) ?? aliased[0];
+      const aliasCandidate = aliased.join(' ');
+      if (aliasCandidate !== directCandidate) {
+        const command = this.commands.get(aliasCandidate);
+        if (command) return { command, args: words.slice(len) };
+      }
     }
     return null;
   }
 
   get(name: string): CommandDef | undefined {
     const key = name.toLowerCase();
-    return this.commands.get(this.aliasToName.get(key) ?? key);
+    const direct = this.commands.get(key);
+    if (direct) return direct;
+    const aliased = this.aliasToName.get(key);
+    return aliased ? this.commands.get(aliased) : undefined;
   }
 
   search(query: string, limit = 15): CommandDef[] {

@@ -1,0 +1,20 @@
+---
+description: Commit and push to origin after completing substantive code changes
+alwaysApply: true
+---
+
+# Auto-push after changes
+
+When you finish a substantive task that modifies the Deelo codebase:
+
+1. Run `git status` and `git diff` to review what changed.
+2. Do **not** commit generated artifacts (e.g. `shared/*.d.ts`, `dist/`, `.env`).
+3. Create a clear commit message focused on **why** the change was made.
+4. Push to `origin` on the current branch (`git push -u origin HEAD`) without asking first.
+
+Skip auto-push only when:
+- The user explicitly says not to push or commit.
+- Changes are incomplete, broken, or only exploratory (WIP the user should review first).
+- The commit would include secrets or credentials.
+
+After pushing, briefly tell the user the commit hash and that changes are on the remote.
