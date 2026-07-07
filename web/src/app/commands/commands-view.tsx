@@ -1,10 +1,9 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { DeeloIcon } from '@/components/brand/logo';
 import commands from '@/data/commands-catalog.json';
 import { mergeNativeCommands } from '@/lib/deelo-native-commands';
-import { Search, ChevronDown, ChevronUp } from 'lucide-react';
+import { Search, ChevronDown, ChevronUp, Terminal } from 'lucide-react';
 
 type Cog = {
   cog_name: string;
@@ -44,20 +43,20 @@ export function CommandsView() {
   const totalCommands = cogs.reduce((n, c) => n + c.commands.length, 0);
 
   return (
-    <main className="flex-1">
-      <div className="mx-auto max-w-6xl px-4 py-16 lg:py-24">
-        <div className="mb-12 text-center animate-fade-up">
-          <div className="brand-logo-mark mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl border border-accent/25 bg-accent/10">
-            <DeeloIcon size={48} />
+    <main className="site-main flex-1">
+      <div className="mx-auto max-w-6xl px-4 py-16 lg:px-6 lg:py-24">
+        <header className="page-hero page-hero-center mb-12 animate-fade-up">
+          <div className="page-hero-icon">
+            <Terminal className="h-8 w-8" />
           </div>
           <span className="section-label">Command reference</span>
-          <h1 className="section-heading">
+          <h1 className="section-heading mt-4">
             <span className="gradient-text">{totalCommands.toLocaleString()}</span> commands
           </h1>
-          <p className="text-muted max-w-xl mx-auto">
-            Browse {cogs.length} categories. Default prefix is <code className="text-accent font-mono">,</code>
+          <p className="section-sub">
+            Browse {cogs.length} categories. Default prefix is <code className="font-mono text-accent">,</code>
           </p>
-        </div>
+        </header>
 
         <div className="relative mb-10 max-w-md mx-auto animate-fade-up delay-100">
           <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />

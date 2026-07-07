@@ -1,13 +1,10 @@
-import { SiteHeader } from '@/components/site-header';
-import { SiteFooter } from '@/components/site-chrome';
+import { MarketingLayout } from '@/components/marketing/site-layout';
 import { StatusView } from './status-view';
 
 export default function StatusPage() {
   return (
-    <div className="flex min-h-screen flex-col">
-      <SiteHeader />
+    <MarketingLayout banner={false}>
       <StatusView />
-      <SiteFooter />
-    </div>
+    </MarketingLayout>
   );
 }

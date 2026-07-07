@@ -60,7 +60,7 @@ export default function DashboardPage() {
 
   if (!user) {
     return (
-      <div className="dashboard-app mesh-bg flex min-h-screen items-center justify-center px-4">
+      <div className="dashboard-app mesh-bg v3-mesh flex min-h-screen items-center justify-center px-4">
         <div className="card gradient-border w-full max-w-md p-10 text-center animate-scale-in">
           <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#5865F2]/20">
             <DiscordIcon className="h-9 w-11 text-[#5865F2]" />

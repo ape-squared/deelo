@@ -1,11 +1,11 @@
 import Link from 'next/link';
-import { SiteFooter, SiteHeader, SiteTopBanner } from '@/components/site-chrome';
 import { getInviteUrl } from '@/lib/invite';
 import { getDiscordSettings, getHeroSettings, getLatestChangelog } from '@/lib/site-data';
 import { FadeUp } from '@/components/ui/animate';
 import { DiscordWidget } from '@/components/discord-widget';
 import { DeeloIcon } from '@/components/brand/logo';
 import { CHANGELOG_CATEGORY_LABELS } from '@/lib/site-content';
+import { MarketingLayout } from '@/components/marketing/site-layout';
 import {
   ArrowRight, Sparkles, ScrollText, Check,
 } from 'lucide-react';
@@ -31,12 +31,9 @@ export default async function HomePage() {
   ]);
 
   return (
-    <div className="mesh-bg flex min-h-screen flex-col">
-      <SiteTopBanner />
-      <SiteHeader />
+    <MarketingLayout>
       <main className="flex-1">
-        {/* Hero */}
-        <section className="relative overflow-hidden px-4 pb-20 pt-14 lg:pb-28 lg:pt-20">
+        <section className="site-hero">
           <div className="grid-pattern pointer-events-none absolute inset-0" />
           <div className="brand-hero-glow right-0 top-0 h-[500px] w-[500px] translate-x-1/4 -translate-y-1/4" />
           <div className="brand-hero-glow left-0 bottom-0 h-80 w-80 -translate-x-1/3 translate-y-1/3 opacity-60" />
@@ -44,17 +41,15 @@ export default async function HomePage() {
           <div className="relative mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-2 lg:gap-16 lg:px-6">
             <div>
               <FadeUp>
-                <div className="mb-6 flex flex-wrap items-center gap-2">
-                  <span className="inline-flex items-center gap-2 rounded-full border border-accent/35 bg-accent-soft px-4 py-1.5 text-sm font-medium text-accent">
-                    <Sparkles className="h-4 w-4" />
-                    {hero.badge}
-                  </span>
-                </div>
+                <span className="section-label">
+                  <Sparkles className="h-4 w-4" />
+                  {hero.badge}
+                </span>
               </FadeUp>
               <FadeUp delay={100}>
-                <h1 className="text-4xl font-bold leading-[1.08] tracking-tight sm:text-5xl lg:text-6xl">
+                <h1 className="mt-6 text-4xl font-bold leading-[1.08] tracking-tight sm:text-5xl lg:text-6xl">
                   The Discord bot
-                  <span className="gradient-text block mt-2">built for serious servers</span>
+                  <span className="gradient-text mt-2 block">built for serious servers</span>
                 </h1>
               </FadeUp>
               <FadeUp delay={200}>
@@ -75,7 +70,7 @@ export default async function HomePage() {
               </FadeUp>
               <FadeUp delay={400}>
                 <div className="mt-9 flex flex-wrap items-center gap-3">
-                  <a href={getInviteUrl()} className="btn-primary text-base px-8" target="_blank" rel="noreferrer">
+                  <a href={getInviteUrl()} className="btn-primary px-8 text-base" target="_blank" rel="noreferrer">
                     Add to Discord
                     <ArrowRight className="h-4 w-4" />
                   </a>
@@ -92,7 +87,7 @@ export default async function HomePage() {
                     <ScrollText className="h-5 w-5 shrink-0 text-accent" />
                     <div className="min-w-0">
                       <p className="text-[10px] font-semibold uppercase tracking-widest text-muted">Latest update</p>
-                      <p className="font-medium truncate">
+                      <p className="truncate font-medium">
                         {latestChangelog.version ? `v${latestChangelog.version} — ` : ''}
                         {latestChangelog.title}
                       </p>
@@ -107,7 +102,7 @@ export default async function HomePage() {
 
             <FadeUp delay={200}>
               <div className="relative">
-                <div className="brand-logo-mark absolute -left-4 -top-4 z-10 hidden lg:flex h-14 w-14 items-center justify-center rounded-2xl border border-accent/20 bg-accent/10 backdrop-blur-sm">
+                <div className="brand-logo-mark absolute -left-4 -top-4 z-10 hidden h-14 w-14 items-center justify-center rounded-2xl border border-accent/20 bg-accent/10 backdrop-blur-sm lg:flex">
                   <DeeloIcon size={40} className="animate-float" />
                 </div>
                 <CommandPreview />
@@ -122,7 +117,7 @@ export default async function HomePage() {
         <DashboardPreviewSection />
         <CompareSection />
 
-        <section className="border-y border-border bg-white/[0.015] py-24 px-4">
+        <section className="site-section site-section-alt">
           <div className="mx-auto max-w-6xl lg:px-6">
             <DiscordWidget settings={discord} />
           </div>
@@ -132,7 +127,6 @@ export default async function HomePage() {
         <FaqSectionWrapper />
         <FinalCta discordInvite={discord.invite_url} />
       </main>
-      <SiteFooter />
-    </div>
+    </MarketingLayout>
   );
 }

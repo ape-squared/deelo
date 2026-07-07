@@ -1,38 +1,106 @@
+'use client';
+
 import Link from 'next/link';
-import { getInviteUrl } from '@/lib/invite';
+import { usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { Menu, X } from 'lucide-react';
 import { DeeloLogoLink } from '@/components/brand/logo';
+import { inviteApiPath } from '@/lib/invite';
 
 const NAV = [
   { href: '/commands', label: 'Commands' },
   { href: '/changelog', label: 'Changelog' },
-  { href: '/announcements', label: 'News' },
+  { href: '/announcements', label: 'Announcements' },
   { href: '/pricing', label: 'Pricing' },
   { href: '/status', label: 'Status' },
 ];
 
-export function SiteHeader() {
+function NavLink({ href, label, onNavigate }: { href: string; label: string; onNavigate?: () => void }) {
+  const pathname = usePathname();
+  const active = href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(`${href}/`);
+
   return (
-    <header className="sticky top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-2xl">
+    <Link
+      href={href}
+      onClick={onNavigate}
+      className={`site-nav-link ${active ? 'site-nav-link-active' : ''}`}
+    >
+      {label}
+    </Link>
+  );
+}
+
+export function SiteHeader() {
+  const pathname = usePathname();
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    document.body.style.overflow = open ? 'hidden' : '';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [open]);
+
+  return (
+    <header className="site-header-v3">
       <div className="mx-auto flex h-[4.25rem] max-w-6xl items-center justify-between px-4 lg:px-6">
         <DeeloLogoLink />
-        <nav className="hidden items-center gap-0.5 text-sm lg:flex">
+
+        <nav className="hidden items-center gap-0.5 lg:flex" aria-label="Main">
           {NAV.map(({ href, label }) => (
-            <Link
-              key={href}
-              href={href}
-              className="rounded-lg px-3.5 py-2 text-muted transition hover:bg-white/5 hover:text-foreground"
-            >
-              {label}
-            </Link>
+            <NavLink key={href} href={href} label={label} />
           ))}
         </nav>
+
         <div className="flex items-center gap-2">
-          <Link href="/dashboard" className="btn-ghost hidden sm:inline-flex text-sm">Dashboard</Link>
-          <a href={getInviteUrl()} className="btn-primary text-sm py-2.5 px-5" target="_blank" rel="noreferrer">
+          <Link href="/dashboard" className="btn-ghost hidden sm:inline-flex text-sm">
+            Dashboard
+          </Link>
+          <a
+            href={inviteApiPath()}
+            className="btn-primary hidden text-sm py-2.5 px-5 sm:inline-flex"
+            target="_blank"
+            rel="noreferrer"
+          >
             Add to Discord
           </a>
+          <button
+            type="button"
+            className="btn-ghost inline-flex p-2.5 lg:hidden"
+            aria-expanded={open}
+            aria-label={open ? 'Close menu' : 'Open menu'}
+            onClick={() => setOpen((v) => !v)}
+          >
+            {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
         </div>
       </div>
+
+      {open && (
+        <div className="site-mobile-nav lg:hidden">
+          <nav className="mx-auto flex max-w-6xl flex-col gap-1 px-4 py-4" aria-label="Mobile">
+            {NAV.map(({ href, label }) => (
+              <NavLink key={href} href={href} label={label} onNavigate={() => setOpen(false)} />
+            ))}
+            <div className="v3-divider my-3" />
+            <Link href="/dashboard" className="site-nav-link" onClick={() => setOpen(false)}>
+              Dashboard
+            </Link>
+            <a
+              href={inviteApiPath()}
+              className="btn-primary mt-2 w-full text-sm"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Add to Discord
+            </a>
+          </nav>
+        </div>
+      )}
     </header>
   );
 }

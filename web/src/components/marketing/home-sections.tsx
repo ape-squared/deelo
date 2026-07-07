@@ -49,7 +49,7 @@ const DASH_MODULES = [
 
 export function HowItWorksSection() {
   return (
-    <section className="border-y border-border bg-white/[0.015] px-4 py-24 lg:py-28">
+    <section className="site-section site-section-alt">
       <div className="mx-auto max-w-6xl lg:px-6">
         <div className="mb-16 text-center">
           <span className="section-label">How it works</span>
@@ -76,7 +76,8 @@ export function HowItWorksSection() {
 
 export function ModulesSection() {
   return (
-    <section className="mx-auto max-w-6xl px-4 py-24 lg:px-6 lg:py-28">
+    <section className="site-section">
+      <div className="mx-auto max-w-6xl lg:px-6">
       <div className="mb-16 text-center">
         <span className="section-label">Modules</span>
         <h2 className="section-heading">Every tool your server needs</h2>
@@ -103,13 +104,14 @@ export function ModulesSection() {
           );
         })}
       </div>
+      </div>
     </section>
   );
 }
 
 export function DashboardPreviewSection() {
   return (
-    <section className="relative overflow-hidden border-y border-border px-4 py-24 lg:py-28">
+    <section className="site-section site-section-alt relative overflow-hidden">
       <div className="brand-hero-glow -left-32 top-1/2 h-96 w-96 -translate-y-1/2" />
       <div className="relative mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-2 lg:px-6">
         <div>
@@ -185,7 +187,8 @@ export function DashboardPreviewSection() {
 
 export function CompareSection() {
   return (
-    <section className="mx-auto max-w-4xl px-4 py-24 lg:px-6">
+    <section className="site-section">
+      <div className="mx-auto max-w-4xl lg:px-6">
       <div className="mb-12 text-center">
         <span className="section-label">Why Deelo</span>
         <h2 className="section-heading">One bot instead of five</h2>
@@ -210,6 +213,7 @@ export function CompareSection() {
             </div>
           </div>
         ))}
+      </div>
       </div>
     </section>
   );
@@ -257,7 +261,7 @@ export function TrustBar() {
 
 export function PricingTeaser() {
   return (
-    <section className="border-t border-border bg-white/[0.015] px-4 py-24 lg:py-28">
+    <section className="site-section site-section-alt">
       <div className="mx-auto max-w-6xl lg:px-6">
         <div className="mb-14 text-center">
           <span className="section-label">Pricing</span>
@@ -302,19 +306,20 @@ export function FaqSectionWrapper() {
 
 export function FinalCta({ discordInvite }: { discordInvite: string }) {
   return (
-    <section className="relative overflow-hidden px-4 py-28">
-      <div className="brand-hero-glow left-1/2 top-0 h-80 w-[600px] -translate-x-1/2" />
-      <div className="relative mx-auto max-w-2xl text-center">
-        <h2 className="text-3xl font-bold sm:text-4xl mb-4">Ready to run your server on Deelo?</h2>
-        <p className="text-muted mb-8 text-lg">Join thousands of communities. Free to start, powerful at scale.</p>
-        <div className="flex flex-wrap justify-center gap-3">
-          <a href={getInviteUrl()} className="btn-primary text-base px-10" target="_blank" rel="noreferrer">
-            Add to Discord
-            <ArrowRight className="h-4 w-4" />
-          </a>
-          <a href={discordInvite} className="btn-secondary text-base" target="_blank" rel="noreferrer">
-            Join community
-          </a>
+    <section className="site-section px-4">
+      <div className="relative mx-auto max-w-3xl">
+        <div className="cta-panel animate-fade-up">
+          <h2 className="mb-4 text-3xl font-bold sm:text-4xl">Ready to run your server on Deelo?</h2>
+          <p className="mx-auto mb-8 max-w-lg text-lg text-muted">Join thousands of communities. Free to start, powerful at scale.</p>
+          <div className="flex flex-wrap justify-center gap-3">
+            <a href={getInviteUrl()} className="btn-primary px-10 text-base" target="_blank" rel="noreferrer">
+              Add to Discord
+              <ArrowRight className="h-4 w-4" />
+            </a>
+            <a href={discordInvite} className="btn-secondary text-base" target="_blank" rel="noreferrer">
+              Join community
+            </a>
+          </div>
         </div>
       </div>
     </section>

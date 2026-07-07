@@ -27,8 +27,8 @@ const FAQ = [
 
 export function FaqSection() {
   return (
-    <section className="px-4 py-24 lg:py-28">
-      <div className="mx-auto max-w-3xl">
+    <section className="site-section">
+      <div className="mx-auto max-w-3xl lg:px-6">
         <div className="mb-12 text-center">
           <span className="section-label">FAQ</span>
           <h2 className="section-heading">Common questions</h2>
