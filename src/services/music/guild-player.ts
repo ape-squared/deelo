@@ -38,15 +38,31 @@ export class GuildPlayer {
     return getAudioPlayer(this.guildId);
   }
 
-  /** True when the audio player is actually outputting audio for a known track. */
-  isPlayingAudio(): boolean {
-    if (!this.state.current) return false;
+  private isPlayerRunning(): boolean {
     const status = this.player.state.status;
     return (
       status === AudioPlayerStatus.Playing ||
       status === AudioPlayerStatus.Paused ||
       status === AudioPlayerStatus.Buffering
     );
+  }
+
+  /** True when audio is playing or a track session is in progress. */
+  isPlayingAudio(): boolean {
+    if (this.isPlayerRunning()) return true;
+    const conn = getVoiceConnection(this.guildId);
+    if (conn?.state.status === VoiceConnectionStatus.Ready && this.state.current) {
+      return true;
+    }
+    return false;
+  }
+
+  /** True when we should append to the queue instead of starting fresh playback. */
+  private inPlaybackSession(): boolean {
+    if (this.busy) return true;
+    if (this.isPlayerRunning()) return true;
+    const conn = getVoiceConnection(this.guildId);
+    return Boolean(conn?.state.status === VoiceConnectionStatus.Ready && this.state.current);
   }
 
   get isActive(): boolean {
@@ -60,6 +76,7 @@ export class GuildPlayer {
   /** Drop ghost state left by hot reloads (current set but player idle, etc.). */
   private pruneStaleState(): void {
     const status = this.player.state.status;
+    const inVoice = getVoiceConnection(this.guildId)?.state.status === VoiceConnectionStatus.Ready;
 
     if (
       !this.state.current &&
@@ -71,7 +88,14 @@ export class GuildPlayer {
       this.player.stop(true);
     }
 
-    if (this.state.current && status === AudioPlayerStatus.Idle && !this.state.queue.length && !this.busy) {
+    // Only clear current when bot is not in an active voice session
+    if (
+      this.state.current &&
+      status === AudioPlayerStatus.Idle &&
+      !this.state.queue.length &&
+      !this.busy &&
+      !inVoice
+    ) {
       console.log(`[music:${this.guildId}] clearing stale current track`);
       this.state.current = null;
     }
@@ -273,7 +297,7 @@ export class GuildPlayer {
     this.state.voiceChannelId = voiceChannelId;
     this.state.textChannelId = textChannelId;
 
-    const shouldStart = !this.isPlayingAudio();
+    const shouldStart = !this.inPlaybackSession();
     this.state.queue.push(...tracks);
     const track = tracks[tracks.length - 1];
 
@@ -282,7 +306,7 @@ export class GuildPlayer {
       await this.connect(guild, voiceChannelId);
       await this.playNext();
 
-      if (!this.isPlayingAudio() && !this.state.current) {
+      if (!this.inPlaybackSession() && !this.state.current) {
         throw new Error(
           'Could not start audio stream. Try another song, a YouTube URL, or check bot logs.',
         );
@@ -291,11 +315,12 @@ export class GuildPlayer {
       return { position: 1, track, started: true };
     }
 
+    const position = this.state.queue.length;
     console.log(
-      `[music:${this.guildId}] queued ${tracks.length} track(s) at position ${this.state.queue.length} (already playing)`,
+      `[music:${this.guildId}] queued ${tracks.length} track(s) at position ${position} (session active, current=${this.state.current?.title ?? 'none'})`,
     );
     this.ensureVoiceSubscription();
-    return { position: this.state.queue.length, track, started: false };
+    return { position, track, started: false };
   }
 
   async playNext(): Promise<void> {
