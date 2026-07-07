@@ -52,10 +52,17 @@ jobs:
 
       - name: Load production env for build
         run: |
-          if [ -f .vercel/.env.production.local ]; then
-            cp .vercel/.env.production.local .env.production.local
-          elif [ -f .env.production ]; then
+          if [ -f .env.production ]; then
             cp .env.production .env.production.local
+          fi
+          if [ -f .vercel/.env.production.local ]; then
+            while IFS= read -r line || [ -n "$line" ]; do
+              key="${line%%=*}"
+              [ -z "$key" ] || [[ "$key" =~ ^# ]] && continue
+              if ! grep -q "^${key}=" .env.production.local 2>/dev/null; then
+                echo "$line" >> .env.production.local
+              fi
+            done < .vercel/.env.production.local
           fi
 
       - name: Build with Vercel
