@@ -89,8 +89,19 @@ export async function handleFunCog(cmd: CommandDef, message: Message, args: stri
     await replyInfo(message, 'RPS', `You: **${user}** | Bot: **${bot}**\n${user === bot ? 'Tie!' : win ? 'You win!' : 'You lose!'}`);
     return true;
   }
-  if (name === 'wouldyourather') {
-    await replyInfo(message, 'Would You Rather', `**A:** ${args[0] ?? 'Option A'}\n**B:** ${args[1] ?? 'Option B'}`);
+  if (name === 'wouldyourather' || name === 'wyr') {
+    try {
+      const res = await fetch('https://would-you-rather-api.abaanshanidhar.repl.co/');
+      const data = (await res.json()) as { data?: Array<{ question: string }> };
+      const q = data.data?.[0]?.question;
+      if (q) {
+        await replyInfo(message, 'Would You Rather', q);
+      } else {
+        throw new Error('no data');
+      }
+    } catch {
+      await replyInfo(message, 'Would You Rather', '**A:** Have unlimited pizza\n**B:** Have unlimited coffee');
+    }
     return true;
   }
   if (name === '8ball') return false;
@@ -100,8 +111,36 @@ export async function handleFunCog(cmd: CommandDef, message: Message, args: stri
   if (name === 'game') return false;
   if (name === 'move') return false;
   if (name === 'steal') {
-    const emote = message.guild!.emojis.cache.random();
-    await replyInfo(message, 'Steal', emote ? `Recent emoji: ${emote}` : 'No emojis found.');
+    const guild = message.guild!;
+    const emojiMatch = message.content.match(/<a?:\w+:(\d+)>/);
+    const emojiId = emojiMatch?.[1] ?? args[0]?.match(/(\d{15,})/)?.[1];
+    const sourceEmoji = emojiId ? guild.emojis.cache.get(emojiId) : null;
+    const external = message.content.match(/<a?:(\w+):(\d+)>/);
+
+    if (!external && !sourceEmoji) {
+      await replyError(message, 'Usage: `,steal :emoji:` or `,steal <emoji id>` from a message with an emoji.');
+      return true;
+    }
+
+    const ext = external ?? (sourceEmoji ? [null, sourceEmoji.name, sourceEmoji.id] : null);
+    if (!ext) {
+      await replyError(message, 'Could not parse that emoji.');
+      return true;
+    }
+
+    const [, ename, eid] = ext;
+    const animated = message.content.includes(`<a:${ename}:`);
+    const url = `https://cdn.discordapp.com/emojis/${eid}.${animated ? 'gif' : 'png'}`;
+
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('fetch failed');
+      const buf = Buffer.from(await res.arrayBuffer());
+      const created = await guild.emojis.create({ attachment: buf, name: ename ?? 'stolen' });
+      await replyInfo(message, 'Steal', `Added ${created} to this server.`);
+    } catch {
+      await replyError(message, 'Could not steal that emoji. Check **Manage Emojis** permission.');
+    }
     return true;
   }
   if (name === 'meme') {

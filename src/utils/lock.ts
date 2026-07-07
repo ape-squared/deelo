@@ -21,7 +21,19 @@ export function acquireBotLock(): void {
           console.warn(`Stopping previous bot instance (PID ${oldPid})...`);
           try {
             process.kill(oldPid, 'SIGTERM');
-            sleepSync(400);
+            for (let i = 0; i < 20; i++) {
+              sleepSync(100);
+              try {
+                process.kill(oldPid, 0);
+              } catch {
+                break;
+              }
+              if (i === 19) {
+                console.warn(`Force-killing previous bot instance (PID ${oldPid})...`);
+                process.kill(oldPid, 'SIGKILL');
+                sleepSync(200);
+              }
+            }
           } catch {
             // already gone
           }

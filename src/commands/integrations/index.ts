@@ -6,7 +6,7 @@ import { getSupabase } from '../../database/supabase';
 const integrations: Command[] = [
   {
     name: 'lastfm',
-    aliases: ['lfm', 'np'],
+    aliases: ['lfm'],
     description: 'Last.fm integration',
     category: 'integrations',
     usage: 'lastfm <set|nowplaying|top> [username]',

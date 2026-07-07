@@ -1,8 +1,6 @@
 import type { Command } from '../../types/command';
 import { deeloEmbed, errorEmbed } from '../../utils/embeds';
 import {
-  getMusicQueue,
-  deleteQueue,
   resolveQuery,
   enqueueTracks,
   skipTrack,
@@ -10,11 +8,18 @@ import {
   resumePlayback,
   setVolume,
   shuffleQueue,
+  deleteQueue,
+  isMusicActive,
+  applyPreset,
+  getActivePreset,
+  buildPresetListEmbed,
   buildAddedEmbed,
   buildNowPlayingEmbed,
   formatDuration,
   sourceLabel,
+  recallTrack,
 } from '../../services/music';
+import { getGuildState } from '../../services/music/store';
 
 const music: Command[] = [
   {
@@ -34,8 +39,8 @@ const music: Command[] = [
       const { getGuildPlan } = await import('../../database');
       const { getLimit } = await import('../../config/plans');
       const plan = await getGuildPlan(message.guild!.id);
-      const queue = getMusicQueue(message.guild!.id);
-      const currentSize = (queue?.tracks.length ?? 0) + (queue?.current ? 1 : 0);
+      const state = getGuildState(message.guild!.id);
+      const currentSize = state.queue.length + (state.current ? 1 : 0);
 
       if (message.channel.isSendable()) {
         await message.channel.sendTyping().catch(() => {});
@@ -58,6 +63,8 @@ const music: Command[] = [
           await message.reply({
             embeds: [deeloEmbed('🎵 Playlist Added', `Added **${tracks.length}** tracks to the queue.\nFirst up: **${track.title}**`)],
           });
+        } else if (!started) {
+          await message.reply({ embeds: [errorEmbed('Could not start playback. Make sure I can join and speak in your voice channel.')] });
         } else {
           await message.reply({ embeds: [buildAddedEmbed(track, position, started)] });
         }
@@ -72,22 +79,58 @@ const music: Command[] = [
     aliases: ['q'],
     description: 'View the music queue',
     category: 'music',
-    run: async ({ message }) => {
-      const queue = getMusicQueue(message.guild!.id);
-      if (!queue?.current && !queue?.tracks.length) {
+    run: async ({ message, args }) => {
+      const guildId = message.guild!.id;
+      const sub = args[0]?.toLowerCase();
+      const state = getGuildState(guildId);
+
+      if (sub === 'remove' || sub === 'del') {
+        const idx = parseInt(args[1], 10) - 1;
+        if (!state.queue.length) return void message.reply({ embeds: [errorEmbed('Queue is empty.')] });
+        if (idx < 0 || idx >= state.queue.length) {
+          return void message.reply({ embeds: [errorEmbed('Invalid queue position.')] });
+        }
+        state.queue.splice(idx, 1);
+        return void message.reply({ embeds: [deeloEmbed('🎵 Queue', 'Track removed.')] });
+      }
+
+      if (sub === 'shuffle') {
+        if (!state.queue.length) return void message.reply({ embeds: [errorEmbed('Queue is empty.')] });
+        shuffleQueue(guildId);
+        return void message.reply({ embeds: [deeloEmbed('🎵 Queue', 'Queue shuffled.')] });
+      }
+
+      if (sub === 'empty' || sub === 'clear') {
+        state.queue = [];
+        return void message.reply({ embeds: [deeloEmbed('🎵 Queue', 'Queue cleared.')] });
+      }
+
+      if (sub === 'move') {
+        const from = parseInt(args[1], 10) - 1;
+        const to = parseInt(args[2], 10) - 1;
+        if (!state.queue.length) return void message.reply({ embeds: [errorEmbed('Queue is empty.')] });
+        if (from < 0 || to < 0 || from >= state.queue.length) {
+          return void message.reply({ embeds: [errorEmbed('Invalid queue positions.')] });
+        }
+        const [track] = state.queue.splice(from, 1);
+        state.queue.splice(to, 0, track);
+        return void message.reply({ embeds: [deeloEmbed('🎵 Queue', 'Track moved.')] });
+      }
+
+      if (!isMusicActive(guildId)) {
         return void message.reply({ embeds: [errorEmbed('Queue is empty.')] });
       }
 
       const lines: string[] = [];
-      if (queue.current) {
-        lines.push(`**Now playing:** [${queue.current.title}](${queue.current.url}) \`${formatDuration(queue.current.duration)}\``);
+      if (state.current) {
+        lines.push(`**Now playing:** [${state.current.title}](${state.current.url}) \`${formatDuration(state.current.duration)}\``);
       }
-      if (queue.tracks.length) {
+      if (state.queue.length) {
         lines.push('', '**Up next:**');
-        queue.tracks.slice(0, 15).forEach((t, i) => {
+        state.queue.slice(0, 15).forEach((t, i) => {
           lines.push(`**${i + 1}.** [${t.title}](${t.url}) · ${sourceLabel(t.source)}`);
         });
-        if (queue.tracks.length > 15) lines.push(`*+ ${queue.tracks.length - 15} more*`);
+        if (state.queue.length > 15) lines.push(`*+ ${state.queue.length - 15} more*`);
       }
 
       await message.reply({ embeds: [deeloEmbed('🎵 Queue', lines.join('\n'))] });
@@ -95,32 +138,36 @@ const music: Command[] = [
   },
   {
     name: 'skip',
-    aliases: ['s'],
+    aliases: ['s', 'next', 'sk'],
     description: 'Skip the current song',
     category: 'music',
     run: async ({ message }) => {
-      const queue = getMusicQueue(message.guild!.id);
-      if (!queue?.current && !queue?.tracks.length) {
+      const guildId = message.guild!.id;
+
+      if (!isMusicActive(guildId)) {
         return void message.reply({ embeds: [errorEmbed('Nothing is playing.')] });
       }
 
-      const skipped = await skipTrack(message.guild!.id);
-      if (!skipped) return void message.reply({ embeds: [errorEmbed('Nothing is playing.')] });
-
-      const next = getMusicQueue(message.guild!.id);
-      const desc = next?.current
-        ? `Skipped **${skipped.title}**\n\nUp next: **${next.current.title}**`
-        : `Skipped **${skipped.title}**`;
+      const skipped = await skipTrack(guildId);
+      const state = getGuildState(guildId);
+      const desc = state.current
+        ? `Skipped **${skipped?.title ?? 'track'}**\n\nUp next: **${state.current.title}**`
+        : `Skipped **${skipped?.title ?? 'track'}**`;
 
       await message.reply({ embeds: [deeloEmbed('🎵 Skipped', desc)] });
     },
   },
   {
     name: 'stop',
+    aliases: ['dc', 'disconnect'],
     description: 'Stop music and clear the queue',
     category: 'music',
     run: async ({ message }) => {
-      deleteQueue(message.guild!.id);
+      const guildId = message.guild!.id;
+      if (!isMusicActive(guildId)) {
+        return void message.reply({ embeds: [errorEmbed('Nothing is playing.')] });
+      }
+      deleteQueue(guildId);
       await message.reply({ embeds: [deeloEmbed('🎵 Stopped', 'Playback stopped and queue cleared.')] });
     },
   },
@@ -129,8 +176,12 @@ const music: Command[] = [
     description: 'Pause playback',
     category: 'music',
     run: async ({ message }) => {
-      if (!pausePlayback(message.guild!.id)) {
+      const guildId = message.guild!.id;
+      if (!isMusicActive(guildId)) {
         return void message.reply({ embeds: [errorEmbed('Nothing is playing.')] });
+      }
+      if (!pausePlayback(guildId)) {
+        return void message.reply({ embeds: [errorEmbed('Playback is not active or already paused.')] });
       }
       await message.reply({ embeds: [deeloEmbed('🎵 Paused', 'Playback paused. Use `,resume` to continue.')] });
     },
@@ -164,10 +215,61 @@ const music: Command[] = [
     description: 'Shuffle the queue',
     category: 'music',
     run: async ({ message }) => {
-      const queue = getMusicQueue(message.guild!.id);
-      if (!queue?.tracks.length) return void message.reply({ embeds: [errorEmbed('Queue is empty.')] });
+      const state = getGuildState(message.guild!.id);
+      if (!state.queue.length) return void message.reply({ embeds: [errorEmbed('Queue is empty.')] });
       shuffleQueue(message.guild!.id);
       await message.reply({ embeds: [deeloEmbed('🎵 Shuffled', 'Queue shuffled.')] });
+    },
+  },
+  {
+    name: 'repeat',
+    aliases: ['loop'],
+    description: 'Toggle looping the current track',
+    category: 'music',
+    run: async ({ message }) => {
+      const state = getGuildState(message.guild!.id);
+      if (!isMusicActive(message.guild!.id)) {
+        return void message.reply({ embeds: [errorEmbed('Nothing is playing.')] });
+      }
+      state.repeat = !state.repeat;
+      await message.reply({
+        embeds: [deeloEmbed('🎵 Repeat', `Repeat is now **${state.repeat ? 'on' : 'off'}**.`)],
+      });
+    },
+  },
+  {
+    name: 'preset',
+    aliases: ['presets'],
+    description: 'Apply audio filters (bass boost, nightcore, 8D, etc.)',
+    category: 'music',
+    usage: 'preset <name|list|off>',
+    run: async ({ message, args }) => {
+      const sub = args[0]?.toLowerCase();
+      const isList = !sub || sub === 'list' || sub === 'active';
+
+      if (!isList) {
+        const { checkPremium } = await import('../../premium/check');
+        const allowed = await checkPremium(message.guild!.id, 'musicFilters', (opts) => message.reply(opts));
+        if (!allowed) return;
+      }
+      if (isList) {
+        const active = getActivePreset(message.guild!.id);
+        await message.reply({ embeds: [buildPresetListEmbed(active)] });
+        return;
+      }
+
+      try {
+        const { label, restarted } = await applyPreset(message.guild!.id, sub);
+        const note = restarted
+          ? 'Restarted the current track with the new filter.'
+          : 'Preset saved — applies to the next track you play.';
+        await message.reply({
+          embeds: [deeloEmbed('🎛️ Preset Applied', `**${label}** is now active.\n${note}`)],
+        });
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : 'Could not apply that preset.';
+        await message.reply({ embeds: [errorEmbed(msg)] });
+      }
     },
   },
   {
@@ -176,9 +278,11 @@ const music: Command[] = [
     description: 'Show currently playing track',
     category: 'music',
     run: async ({ message }) => {
-      const queue = getMusicQueue(message.guild!.id);
-      if (!queue?.current) return void message.reply({ embeds: [errorEmbed('Nothing is playing.')] });
-      await message.reply({ embeds: [buildNowPlayingEmbed(queue.current)] });
+      const track = getGuildState(message.guild!.id).current ?? recallTrack(message.guild!.id);
+      if (!track) {
+        return void message.reply({ embeds: [errorEmbed('Nothing is playing.')] });
+      }
+      await message.reply({ embeds: [buildNowPlayingEmbed(track)] });
     },
   },
 ];

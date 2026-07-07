@@ -23,6 +23,7 @@ export interface MusicQueue {
   volume: number;
   repeat: boolean;
   shuffle: boolean;
+  preset: string;
 }
 
 export function formatDuration(seconds: number): string {

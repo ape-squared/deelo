@@ -9,6 +9,7 @@ import {
   resolveSpotifyTrack,
   searchSpotifyTracks,
   spotifyConfigured,
+  isSpotifySearchAvailable,
 } from './spotify';
 
 const MAX_PLAYLIST_TRACKS = 50;
@@ -63,7 +64,7 @@ function requireSpotify(): void {
 }
 
 async function resolveSpotifySearch(query: string, requestedBy: string): Promise<Track[]> {
-  if (!spotifyConfigured()) {
+  if (!isSpotifySearchAvailable()) {
     return resolveYouTubeSearch(query, requestedBy);
   }
 

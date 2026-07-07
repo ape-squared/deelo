@@ -39,16 +39,20 @@ export function getYtDlp(): YTDlpWrap {
   return ytdlp;
 }
 
-/** Pipe audio from YouTube to stdout as webm/opus when possible. */
-export function streamYoutube(url: string) {
-  return getYtDlp().execStream([
+/** Resolve a direct HTTPS audio URL via yt-dlp (works for YouTube, SoundCloud, etc.). */
+export async function getDirectAudioUrl(url: string): Promise<string> {
+  const out = await getYtDlp().execPromise([
     url,
-    '-f', 'bestaudio[ext=webm]/bestaudio[acodec=opus]/bestaudio/best',
+    '-f', 'bestaudio[ext=webm]/bestaudio[ext=m4a]/bestaudio/best',
+    '-g',
     '--no-playlist',
-    '--no-part',
     '--no-warnings',
-    '-o', '-',
   ]);
+  const direct = out.trim().split('\n')[0]?.trim();
+  if (!direct?.startsWith('http')) {
+    throw new Error('Could not resolve a playable audio URL.');
+  }
+  return direct;
 }
 
 export async function getYoutubeTitle(url: string): Promise<string | null> {

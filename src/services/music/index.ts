@@ -37,9 +37,9 @@ export async function initMusicService(): Promise<void> {
 
     initialized = true;
     if (spotifyConfigured()) {
-      console.log('Music service ready — Spotify primary (search, playlists, albums) + yt-dlp playback');
+      console.log('Music service ready — Spotify + YouTube search, yt-dlp playback');
     } else {
-      console.warn('Music service ready — Spotify credentials missing; search falls back to YouTube');
+      console.warn('Music service ready — Spotify credentials missing; YouTube search fallback');
     }
   } catch (err) {
     console.warn('Music service init warning:', err);
@@ -59,8 +59,14 @@ export {
   resumePlayback,
   setVolume,
   shuffleQueue,
+  isMusicActive,
+  recallTrack,
+  applyPreset,
+  getActivePreset,
+  buildPresetListEmbed,
   buildAddedEmbed,
   buildNowPlayingEmbed,
-} from './player';
+  recoverVoiceSessions,
+} from './manager';
 export type { Track, MusicQueue, TrackSource } from './types';
 export { formatDuration, sourceLabel } from './types';

@@ -23,6 +23,20 @@ interface SpotifyTokenResponse {
 }
 
 let tokenCache: { access_token: string; expires_at: number } | null = null;
+let spotifySearchDisabled = false;
+
+export function isSpotifySearchAvailable(): boolean {
+  return spotifyConfigured() && !spotifySearchDisabled;
+}
+
+function markSpotifySearchUnavailable(err: unknown): void {
+  const msg = err instanceof Error ? err.message : String(err);
+  if (!/premium subscription/i.test(msg)) return;
+  if (!spotifySearchDisabled) {
+    spotifySearchDisabled = true;
+    console.warn('[music] Spotify search disabled for this session (premium required on app owner account). Using YouTube search.');
+  }
+}
 
 export function spotifyConfigured(): boolean {
   return Boolean(config.spotifyClientId && config.spotifyClientSecret);
@@ -77,7 +91,9 @@ async function spotifyApi<T>(path: string): Promise<T> {
     throw new Error(`Spotify API returned invalid JSON (${res.status}): ${raw.slice(0, 120)}`);
   }
   if (!res.ok) {
-    throw new Error(data.error?.message ?? `Spotify API error (${res.status})`);
+    const err = new Error(data.error?.message ?? `Spotify API error (${res.status})`);
+    markSpotifySearchUnavailable(err);
+    throw err;
   }
   return data;
 }

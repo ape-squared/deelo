@@ -2,6 +2,7 @@ import type { Message } from 'discord.js';
 import type { CommandDef } from '../types';
 import { handleInformationCommand } from '../information';
 import { replyError, replyInfo, replySuccess, resolveUserId, deeloEmbed } from '../lib/helpers';
+import { replyWithMediaEffect, resolveImageUrl } from '../../lib/reply-media';
 import { config } from '../../config';
 
 export async function handleInformationCog(cmd: CommandDef, message: Message, args: string[]): Promise<boolean> {
@@ -27,14 +28,16 @@ export async function handleInformationCog(cmd: CommandDef, message: Message, ar
   if (name.startsWith('sticker')) return handleSticker(name, message, args);
   if (name.startsWith('emoji')) return handleEmoji(name, message, args);
 
-  if (name === 'rotate' && message.attachments.first()) {
-    await replyInfo(message, 'Rotate', 'Image rotated 90° (attach image).');
-    return true;
+  if (name === 'rotate') {
+    const url = resolveImageUrl(message, args);
+    if (!url) { await replyError(message, 'Attach an image to rotate.'); return true; }
+    return replyWithMediaEffect(message, 'spin', url);
   }
 
-  if (['compress', 'invert', 'blur'].includes(name) && message.attachments.first()) {
-    await replyInfo(message, name, `Applied **${name}** to attachment.`);
-    return true;
+  if (name === 'compress' || name === 'invert' || name === 'blur') {
+    const url = resolveImageUrl(message, args);
+    if (!url) { await replyError(message, `Attach an image for **${name}**.`); return true; }
+    return replyWithMediaEffect(message, name, url);
   }
 
   if (name === 'urbandictionary' || name === 'ud') {

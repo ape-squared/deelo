@@ -37,6 +37,8 @@ async function main() {
     } catch (err) {
       console.warn('Slash command registration failed (may need time):', err);
     }
+    const { recoverVoiceSessions } = await import('./services/music');
+    await recoverVoiceSessions(client!);
   });
 }
 

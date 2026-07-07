@@ -9,6 +9,7 @@ const ROLEPLAY_ACTIONS = new Set([
   'scared', 'shout', 'shrug', 'shy', 'sigh', 'sip', 'slap', 'sleep', 'slowclap', 'smack', 'smile', 'smug', 'sneeze',
   'sorry', 'stare', 'stop', 'surprised', 'sweat', 'thumbsup', 'tickle', 'tired', 'wave', 'wink', 'woah', 'yawn', 'yes',
   'highfive', 'kill', 'baka', 'bonk', 'cringe', 'yeet', 'glomp', 'bully', 'feed', 'bored', 'think', 'stfu', 'sleep',
+  'nervous', 'nyah', 'yay',
 ]);
 
 async function fetchGif(action: string): Promise<string | null> {

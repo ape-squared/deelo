@@ -1,14 +1,19 @@
-import { AttachmentBuilder, type Message } from 'discord.js';
+import type { Message } from 'discord.js';
 import type { CommandDef } from '../types';
-import { replyError, replyInfo, deeloEmbed } from '../lib/helpers';
+import { replyError, replyInfo } from '../lib/helpers';
 import { generateMediaEffect, MEDIA_EFFECT_NAMES } from '../../services/media-effects';
+import { replyWithMediaEffect, resolveImageUrl } from '../../lib/reply-media';
 
-function resolveImageUrl(message: Message, args: string[]): string | undefined {
-  return (
-    message.attachments.first()?.url ??
-    message.mentions.users.first()?.displayAvatarURL({ extension: 'png', size: 512 }) ??
-    args.find((a) => /^https?:\/\//i.test(a))
-  );
+function parseMediaOptions(effect: string, args: string[]) {
+  const text = args.join(' ').trim();
+  if (effect === 'meme') {
+    const parts = text.split('|').map((s) => s.trim());
+    return { topText: parts[0], bottomText: parts[1] ?? parts[0], text };
+  }
+  if (['flag', 'flag2'].includes(effect)) {
+    return { flag: args[0], text: args[0] };
+  }
+  return { text: text || undefined, topText: args[0], bottomText: args.slice(1).join(' ') };
 }
 
 export async function handleManipulationCog(cmd: CommandDef, message: Message, args: string[]): Promise<boolean> {
@@ -19,7 +24,7 @@ export async function handleManipulationCog(cmd: CommandDef, message: Message, a
     await replyInfo(
       message,
       'Media',
-      `Image effects for avatars and attachments.\n\n**Usage:** \`,media <effect>\` with an image attached, a user mention, or image URL.\n\n**Examples:** \`,media blur\`, \`,media deepfry\`, \`,media magik\`\n\n**Effects:** ${MEDIA_EFFECT_NAMES.slice(0, 18).join(', ')}, …`,
+      `Image effects for avatars and attachments.\n\n**Usage:** \`,media <effect>\` with an image attached, a user mention, or image URL.\n\n**Examples:** \`,media blur\`, \`,media deepfry\`, \`,media meme | top | bottom\`\n\n**Effects:** ${MEDIA_EFFECT_NAMES.join(', ')}`,
     );
     return true;
   }
@@ -34,24 +39,6 @@ export async function handleManipulationCog(cmd: CommandDef, message: Message, a
     return true;
   }
 
-  try {
-    const result = await generateMediaEffect(effect, imageUrl);
-    if (result.buffer) {
-      const file = new AttachmentBuilder(result.buffer, { name: result.filename });
-      await message.reply({
-        embeds: [deeloEmbed(effect, '').setImage(`attachment://${result.filename}`)],
-        files: [file],
-      });
-      return true;
-    }
-    if (result.url) {
-      await message.reply({ embeds: [deeloEmbed(effect, '').setImage(result.url)] });
-      return true;
-    }
-    await replyError(message, `Could not generate **${effect}**.`);
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : 'Image effect failed.';
-    await replyError(message, msg.replace(/\*\*/g, ''));
-  }
-  return true;
+  const mediaArgs = name.startsWith('media ') ? args : [];
+  return replyWithMediaEffect(message, effect, imageUrl, parseMediaOptions(effect, mediaArgs));
 }
