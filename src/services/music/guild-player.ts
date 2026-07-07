@@ -354,6 +354,12 @@ export class GuildPlayer {
     this.state.voiceChannelId = voiceChannelId;
     this.state.textChannelId = textChannelId;
 
+    if (tracks.some((t) => t.live)) {
+      this.clearLiveReconnectTimer();
+      this.liveRetries = 0;
+      this.livePlayStartedAt = 0;
+    }
+
     const shouldStart = !this.inPlaybackSession();
     this.state.queue.push(...tracks);
     const track = tracks[tracks.length - 1];
@@ -412,7 +418,11 @@ export class GuildPlayer {
         return;
       }
 
-      const resource = createAudioResource(stream, { inputType, inlineVolume });
+      const resource = createAudioResource(stream, {
+        inputType,
+        inlineVolume,
+        silencePaddingFrames: next.live ? 5 : 0,
+      });
       resource.volume?.setVolume(this.state.volume / 100);
       this.ensureVoiceSubscription();
       this.livePlayStartedAt = Date.now();

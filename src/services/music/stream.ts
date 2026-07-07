@@ -1,4 +1,4 @@
-import { StreamType } from '@discordjs/voice';
+import { demuxProbe, StreamType } from '@discordjs/voice';
 import type { Readable } from 'node:stream';
 import { Readable as NodeReadable } from 'node:stream';
 import prism from 'prism-media';
@@ -11,7 +11,11 @@ const FETCH_HEADERS = {
   Referer: 'https://www.youtube.com/',
 };
 
-const RADIO_USER_AGENT = 'Mozilla/5.0 (compatible; DeeloBot/1.0; +https://deelo.nikkithewikki.top)';
+const RADIO_FETCH_HEADERS = {
+  'User-Agent': 'Mozilla/5.0 (compatible; DeeloBot/1.0; +https://deelo.nikkithewikki.top)',
+  Accept: '*/*',
+  'Icy-MetaData': '1',
+};
 
 function attachErrorLogging(stream: Readable, track: Track, label: string): Readable {
   stream.on('error', (err) => {
@@ -20,11 +24,21 @@ function attachErrorLogging(stream: Readable, track: Track, label: string): Read
   return stream;
 }
 
+function attachFfmpegStderr(ffmpeg: InstanceType<typeof prism.FFmpeg>, track: Track): void {
+  ffmpeg.process?.stderr?.on('data', (chunk: Buffer) => {
+    const lines = chunk.toString().split('\n').map((l) => l.trim()).filter(Boolean);
+    for (const line of lines) {
+      if (/^frame=|^size=/i.test(line)) continue;
+      console.warn(`[music] radio ffmpeg [${track.title}]: ${line}`);
+    }
+  });
+}
+
 function createFfmpegStream(input: Readable, afilter: string): Readable {
   const ffmpeg = new prism.FFmpeg({
     args: [
       '-analyzeduration', '0',
-      '-loglevel', '0',
+      '-loglevel', 'error',
       '-i', 'pipe:0',
       '-af', afilter,
       '-f', 's16le',
@@ -39,18 +53,18 @@ function createFfmpegStream(input: Readable, afilter: string): Readable {
   return ffmpeg;
 }
 
-function createRadioStream(url: string, presetId: string, track: Track): Readable {
+/** FFmpeg pulls the URL directly — fallback when fetch/demuxProbe fails. */
+function createRadioStreamFfmpeg(url: string, presetId: string, track: Track): Readable {
   const filter = getPresetFilter(presetId);
   const isHls = /\.m3u8(\?|$)/i.test(url);
   const args = [
     '-nostdin',
+    '-loglevel', 'error',
     '-reconnect', '1',
     '-reconnect_streamed', '1',
     '-reconnect_delay_max', '5',
     '-reconnect_at_eof', '1',
-    '-rw_timeout', '15000000',
-    '-user_agent', RADIO_USER_AGENT,
-    '-headers', 'Icy-MetaData: 0\r\n',
+    '-user_agent', RADIO_FETCH_HEADERS['User-Agent'],
     ...(isHls
       ? ['-protocol_whitelist', 'file,http,https,tcp,tls,crypto']
       : ['-analyzeduration', '5000000', '-probesize', '5000000']),
@@ -66,6 +80,7 @@ function createRadioStream(url: string, presetId: string, track: Track): Readabl
   args.push('-f', 's16le', '-ar', '48000', '-ac', '2');
 
   const ffmpeg = new prism.FFmpeg({ args });
+  attachFfmpegStderr(ffmpeg, track);
   ffmpeg.on('error', (err) => {
     console.error(`[music] radio ffmpeg error for ${track.title}:`, err.message);
   });
@@ -74,7 +89,61 @@ function createRadioStream(url: string, presetId: string, track: Track): Readabl
       console.warn(`[music] radio ffmpeg exited (${code}) for ${track.title}`);
     }
   });
-  return attachErrorLogging(ffmpeg, track, 'radio');
+  return attachErrorLogging(ffmpeg, track, 'radio-ffmpeg');
+}
+
+async function createRadioStream(
+  url: string,
+  presetId: string,
+  track: Track,
+): Promise<{ stream: Readable; inputType: StreamType; inlineVolume: boolean }> {
+  const filter = getPresetFilter(presetId);
+
+  const res = await fetch(url, { headers: RADIO_FETCH_HEADERS, redirect: 'follow' });
+  if (!res.ok || !res.body) {
+    throw new Error(`Radio stream HTTP ${res.status}. Check the URL is a direct stream link.`);
+  }
+
+  const input = attachErrorLogging(
+    NodeReadable.fromWeb(res.body as import('stream/web').ReadableStream),
+    track,
+    'radio-fetch',
+  );
+
+  if (filter) {
+    const ffmpeg = new prism.FFmpeg({
+      args: [
+        '-analyzeduration', '0',
+        '-loglevel', 'error',
+        '-i', 'pipe:0',
+        '-af', filter,
+        '-f', 's16le',
+        '-ar', '48000',
+        '-ac', '2',
+      ],
+    });
+    input.pipe(ffmpeg);
+    attachFfmpegStderr(ffmpeg, track);
+    ffmpeg.on('error', (err) => {
+      console.error(`[music] radio ffmpeg error for ${track.title}:`, err.message);
+    });
+    return { stream: attachErrorLogging(ffmpeg, track, 'radio-filter'), inputType: StreamType.Raw, inlineVolume: true };
+  }
+
+  try {
+    const probed = await demuxProbe(input);
+    attachErrorLogging(probed.stream, track, 'radio-probe');
+    return {
+      stream: probed.stream,
+      inputType: probed.type,
+      inlineVolume: probed.type !== StreamType.WebmOpus,
+    };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.warn(`[music] demuxProbe failed for ${track.title}, using ffmpeg URL input: ${msg}`);
+    const stream = createRadioStreamFfmpeg(url, presetId, track);
+    return { stream, inputType: StreamType.Raw, inlineVolume: true };
+  }
 }
 
 export async function createTrackStream(
@@ -86,8 +155,7 @@ export async function createTrackStream(
   inlineVolume: boolean;
 }> {
   if (track.live || track.source === 'radio') {
-    const stream = createRadioStream(track.url, presetId, track);
-    return { stream, inputType: StreamType.Raw, inlineVolume: true };
+    return createRadioStream(track.url, presetId, track);
   }
 
   const directUrl = await getDirectAudioUrl(track.url);
