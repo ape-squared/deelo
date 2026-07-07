@@ -68,12 +68,22 @@ function truncate(text: string, max: number): string {
   return `${trimmed.slice(0, max - 1)}…`;
 }
 
+function embedTitleMatches(entry: ChangelogEntry, embedTitle: string | undefined): boolean {
+  if (!embedTitle) return false;
+  const normalized = embedTitle.replace(/^[^\s]+\s+/, '').trim().toLowerCase();
+  return normalized === entry.title.trim().toLowerCase();
+}
+
 async function loadSyncState(): Promise<SyncState> {
-  const { data } = await getSupabase()
+  const { data, error } = await getSupabase()
     .from('site_settings')
     .select('value')
     .eq('key', SYNC_KEY)
     .maybeSingle();
+
+  if (error) {
+    console.warn('[changelog] Failed to load sync state:', error.message);
+  }
 
   const value = data?.value as SyncState | undefined;
   if (value && Array.isArray(value.posted)) {
@@ -83,18 +93,45 @@ async function loadSyncState(): Promise<SyncState> {
 }
 
 async function saveSyncState(state: SyncState): Promise<void> {
-  await getSupabase()
+  const { error } = await getSupabase()
     .from('site_settings')
-    .upsert({
-      key: SYNC_KEY,
-      value: state,
-      updated_at: new Date().toISOString(),
-    });
+    .upsert(
+      {
+        key: SYNC_KEY,
+        value: state,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: 'key' },
+    );
+
+  if (error) {
+    console.warn('[changelog] Failed to save sync state:', error.message);
+  }
+}
+
+async function fetchPublishedChangelogFromDb(): Promise<ChangelogEntry[]> {
+  const { data, error } = await getSupabase()
+    .from('site_changelog')
+    .select('*')
+    .eq('status', 'published')
+    .order('published_at', { ascending: false })
+    .limit(50);
+
+  if (error) {
+    console.warn('[changelog] DB fetch failed:', error.message);
+    return [];
+  }
+
+  return (data ?? []) as ChangelogEntry[];
 }
 
 async function fetchPublishedChangelog(): Promise<ChangelogEntry[]> {
   const data = await fetchAppJson<{ entries: ChangelogEntry[] }>('/api/changelog');
-  return (data?.entries ?? []).filter((e) => e.status === 'published');
+  const fromApi = (data?.entries ?? []).filter((e) => e.status === 'published');
+  if (fromApi.length) return fromApi;
+
+  console.warn('[changelog] Web API returned no entries — falling back to Supabase');
+  return fetchPublishedChangelogFromDb();
 }
 
 function buildChangelogEmbed(entry: ChangelogEntry): EmbedBuilder {
@@ -133,7 +170,46 @@ async function resolveChangelogChannel(client: Client): Promise<TextChannel | nu
     return null;
   }
 
+  const me = channel.guild.members.me;
+  if (me && !channel.permissionsFor(me)?.has(['ViewChannel', 'SendMessages', 'EmbedLinks'])) {
+    console.warn('[changelog] Missing permissions in #changelogs — need View Channel, Send Messages, Embed Links');
+    return null;
+  }
+
   return channel;
+}
+
+async function getChannelPostedKeys(
+  channel: TextChannel,
+  botId: string,
+  entries: ChangelogEntry[],
+): Promise<Set<string>> {
+  const posted = new Set<string>();
+  const messages = await channel.messages.fetch({ limit: 50 }).catch(() => null);
+  if (!messages) return posted;
+
+  for (const message of messages.values()) {
+    if (message.author.id !== botId || !message.embeds.length) continue;
+
+    const embed = message.embeds[0];
+    const footer = embed.footer?.text ?? '';
+    if (!footer.includes('/changelog')) continue;
+
+    const versionField = embed.fields?.find((field) => field.name === 'Version')?.value;
+
+    for (const entry of entries) {
+      const key = entryKey(entry);
+      if (posted.has(key)) continue;
+
+      const versionMatch = !!entry.version && versionField === entry.version;
+      const titleMatch = embedTitleMatches(entry, embed.title ?? undefined);
+      if (versionMatch || titleMatch) {
+        posted.add(key);
+      }
+    }
+  }
+
+  return posted;
 }
 
 export async function syncChangelogAnnouncements(client: Client): Promise<void> {
@@ -143,7 +219,10 @@ export async function syncChangelogAnnouncements(client: Client): Promise<void> 
   if (!channel) return;
 
   const entries = await fetchPublishedChangelog();
-  if (!entries.length) return;
+  if (!entries.length) {
+    console.warn('[changelog] No published changelog entries found');
+    return;
+  }
 
   const sorted = [...entries].sort((a, b) => {
     const ta = new Date(a.published_at ?? a.id).getTime();
@@ -151,31 +230,29 @@ export async function syncChangelogAnnouncements(client: Client): Promise<void> 
     return ta - tb;
   });
 
-  let state = await loadSyncState();
-  const posted = new Set(state.posted);
-
-  if (!state.initialized) {
-    for (const entry of sorted) posted.add(entryKey(entry));
-    state = { posted: [...posted], initialized: true };
-    await saveSyncState(state);
-    console.log(`[changelog] Baseline set — tracking ${posted.size} existing entries without reposting`);
-    return;
-  }
+  const inChannel = await getChannelPostedKeys(channel, client.user.id, sorted);
+  const posted = new Set(inChannel);
 
   let postedCount = 0;
   for (const entry of sorted) {
     const key = entryKey(entry);
     if (posted.has(key)) continue;
 
-    await channel.send({ embeds: [buildChangelogEmbed(entry)] });
-    posted.add(key);
-    postedCount++;
+    try {
+      await channel.send({ embeds: [buildChangelogEmbed(entry)] });
+      posted.add(key);
+      postedCount++;
+    } catch (err) {
+      console.error(`[changelog] Failed to post "${entry.title}":`, err);
+    }
   }
 
+  await saveSyncState({ posted: [...posted], initialized: true });
+
   if (postedCount > 0) {
-    state = { posted: [...posted], initialized: true };
-    await saveSyncState(state);
-    console.log(`[changelog] Posted ${postedCount} new changelog entr${postedCount === 1 ? 'y' : 'ies'} to #changelogs`);
+    console.log(`[changelog] Posted ${postedCount} changelog entr${postedCount === 1 ? 'y' : 'ies'} to #changelogs`);
+  } else {
+    console.log(`[changelog] Up to date — ${posted.size} entr${posted.size === 1 ? 'y' : 'ies'} in #changelogs`);
   }
 }
 
