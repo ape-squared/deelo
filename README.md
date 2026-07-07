@@ -55,7 +55,7 @@ Deelo replaces a stack of single-purpose bots with one toolkit:
 | 🛡️ **Moderation & security** | Ban, kick, warn, timeout, automod, antinuke, antiraid |
 | 📈 **Engagement** | XP, levels, giveaways, reaction roles, vanity roles |
 | 🎫 **Support** | Ticket panels, forms, transcripts *(Premium)* |
-| 🎵 **Music** | YouTube, Spotify, SoundCloud, Apple Music, Deezer via `@discordjs/voice` + `play-dl` |
+| 🎵 **Music** | Spotify search, playlists & albums — audio via yt-dlp (`@discordjs/voice` + `play-dl`) |
 | 🎙️ **Voice** | Voicemaster — auto voice channels with join-to-create |
 | 🌐 **Dashboard** | Next.js web app for guild settings, admin CMS, OAuth login |
 
@@ -271,8 +271,8 @@ Plan definitions: `src/config/plans.ts`
 | `SUPABASE_URL` | ✅ | Supabase project URL |
 | `SUPABASE_SERVICE_ROLE_KEY` | ✅ | Service role key (backend only) |
 | `OWNER_IDS` | | Comma-separated owner user IDs |
-| `SPOTIFY_CLIENT_ID` | | Spotify playlist/album resolution |
-| `SPOTIFY_CLIENT_SECRET` | | Spotify playlist/album resolution |
+| `SPOTIFY_CLIENT_ID` | ✅* | Spotify search, playlists, albums *(music)* |
+| `SPOTIFY_CLIENT_SECRET` | ✅* | Spotify API secret *(music)* |
 | `LASTFM_API_KEY` | | Last.fm now playing |
 | `OPENAI_API_KEY` | | ChatGPT command |
 | `DEFAULT_PREFIX` | | Default `,` |
@@ -285,7 +285,7 @@ See `web/.env.local.example` for Discord OAuth, session secret, and public URLs.
 
 ## Production notes
 
-- **Music** — `@discordjs/voice` + `play-dl` with yt-dlp streaming fallback; optional Spotify credentials for playlist links
+- **Music** — Spotify-first search & metadata (`@discordjs/voice` + `play-dl` + yt-dlp audio streaming); YouTube/SoundCloud URLs still supported
 - **Schema isolation** — all bot tables live in the `deelo` Postgres schema
 - **Translation / TTS** — require external API keys
 - **Social feeds** — need a polling worker (cron or Edge Function)

@@ -20,7 +20,7 @@ const music: Command[] = [
   {
     name: 'play',
     aliases: ['p'],
-    description: 'Play music from YouTube, Spotify, SoundCloud, Apple Music, or search',
+    description: 'Play music — Spotify search, playlists & albums (YouTube, SoundCloud URLs also supported)',
     category: 'music',
     usage: 'play <query|url>',
     premiumFeature: 'music',

@@ -16,6 +16,7 @@ import type { Guild, TextChannel, VoiceBasedChannel } from 'discord.js';
 import { deeloEmbed } from '../../utils/embeds';
 import type { Track, MusicQueue } from './types';
 import { formatDuration, sourceLabel } from './types';
+import { trackDisplayUrl } from './spotify';
 import { streamYoutube } from './ytdlp';
 
 const IDLE_LEAVE_MS = 120_000;
@@ -284,19 +285,21 @@ export function shuffleQueue(guildId: string): void {
 }
 
 export function buildNowPlayingEmbed(track: Track) {
+  const link = trackDisplayUrl(track);
   return deeloEmbed(
     '🎵 Now Playing',
-    `**[${track.title}](${track.url})**\n` +
+    `**[${track.title}](${link})**\n` +
       `Duration: \`${formatDuration(track.duration)}\` · Source: **${sourceLabel(track.source)}**\n` +
       `Requested by <@${track.requestedBy}>`,
   );
 }
 
 export function buildAddedEmbed(track: Track, position: number, started: boolean) {
+  const link = trackDisplayUrl(track);
   const status = started ? 'Now playing' : `Queued · position **${position}**`;
   return deeloEmbed(
     started ? '🎵 Now Playing' : '🎵 Added to Queue',
-    `**[${track.title}](${track.url})**\n` +
+    `**[${track.title}](${link})**\n` +
       `${status} · \`${formatDuration(track.duration)}\` · **${sourceLabel(track.source)}**`,
   );
 }

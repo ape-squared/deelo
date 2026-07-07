@@ -200,7 +200,7 @@ const FREE_FEATURES: PlanFeatures = {
   ticketStats: false,
   music: true,
   musicFilters: false,
-  musicSpotify: false,
+  musicSpotify: true,
   lastfm: true,
   lastfmCustomMode: false,
   socialNotifications: false,

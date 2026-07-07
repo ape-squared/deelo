@@ -2,7 +2,11 @@ export type TrackSource = 'youtube' | 'spotify' | 'soundcloud' | 'apple' | 'deez
 
 export interface Track {
   title: string;
+  /** Stream URL (YouTube or SoundCloud) */
   url: string;
+  /** Spotify page when resolved via Spotify */
+  spotifyUrl?: string;
+  artist?: string;
   duration: number;
   thumbnail?: string;
   source: TrackSource;
@@ -37,7 +41,7 @@ export function sourceLabel(source: TrackSource): string {
     soundcloud: 'SoundCloud',
     apple: 'Apple Music',
     deezer: 'Deezer',
-    search: 'Search',
+    search: 'Spotify',
   };
   return labels[source];
 }

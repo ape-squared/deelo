@@ -1,6 +1,11 @@
 import play from 'play-dl';
-import type { SpotifyTrack, SoundCloudTrack, SoundCloudPlaylist, SpotifyPlaylist, SpotifyAlbum, DeezerAlbum, DeezerPlaylist } from 'play-dl';
+import type { SoundCloudTrack, SoundCloudPlaylist, SpotifyPlaylist, SpotifyAlbum, SpotifyTrack } from 'play-dl';
 import type { Track, TrackSource } from './types';
+import {
+  resolveSpotifyTrack,
+  searchSpotifyTracks,
+  spotifyConfigured,
+} from './spotify';
 
 const MAX_PLAYLIST_TRACKS = 50;
 
@@ -9,22 +14,87 @@ export async function resolveQuery(query: string, requestedBy: string): Promise<
   if (!trimmed) return [];
 
   if (/^https?:\/\//i.test(trimmed)) {
+    if (trimmed.includes('open.spotify.com') || trimmed.includes('spotify:')) {
+      return resolveSpotifyUrl(trimmed, requestedBy);
+    }
     if (trimmed.includes('music.apple.com') || trimmed.includes('itunes.apple.com')) {
       return resolveAppleMusic(trimmed, requestedBy);
     }
 
     const kind = await play.validate(trimmed);
-    if (kind === 'yt_video') return [await youtubeUrlToTrack(trimmed, requestedBy)];
-    if (kind === 'yt_playlist') return resolveYouTubePlaylist(trimmed, requestedBy);
-    if (kind === 'so_track') return [await soundcloudUrlToTrack(trimmed, requestedBy)];
-    if (kind === 'so_playlist') return resolveSoundCloudPlaylist(trimmed, requestedBy);
     if (kind === 'sp_track') return [await spotifyUrlToTrack(trimmed, requestedBy)];
     if (kind === 'sp_album' || kind === 'sp_playlist') return resolveSpotifyCollection(trimmed, requestedBy);
-    if (kind === 'dz_track') return [await deezerUrlToTrack(trimmed, requestedBy)];
+    if (kind === 'so_track') return [await soundcloudUrlToTrack(trimmed, requestedBy)];
+    if (kind === 'so_playlist') return resolveSoundCloudPlaylist(trimmed, requestedBy);
+    if (kind === 'yt_video') return [await youtubeUrlToTrack(trimmed, requestedBy)];
+    if (kind === 'yt_playlist') return resolveYouTubePlaylist(trimmed, requestedBy);
+    if (kind === 'dz_track') return resolveDeezerViaSpotify(trimmed, requestedBy);
     if (kind === 'dz_album' || kind === 'dz_playlist') return resolveDeezerCollection(trimmed, requestedBy);
   }
 
-  return resolveYouTubeSearch(trimmed, requestedBy);
+  return resolveSpotifySearch(trimmed, requestedBy);
+}
+
+async function resolveSpotifyUrl(url: string, requestedBy: string): Promise<Track[]> {
+  requireSpotify();
+  const data = await play.spotify(url);
+  if (data.type === 'track') return [await resolveSpotifyTrack(data as SpotifyTrack, requestedBy)];
+  if (data.type === 'album' || data.type === 'playlist') return resolveSpotifyCollection(url, requestedBy);
+  throw new Error('Unsupported Spotify link.');
+}
+
+function requireSpotify(): void {
+  if (!spotifyConfigured()) {
+    throw new Error('Spotify is not configured. Set `SPOTIFY_CLIENT_ID` and `SPOTIFY_CLIENT_SECRET` in `.env`.');
+  }
+}
+
+async function resolveSpotifySearch(query: string, requestedBy: string): Promise<Track[]> {
+  if (!spotifyConfigured()) {
+    return resolveYouTubeSearch(query, requestedBy);
+  }
+
+  try {
+    const results = await searchSpotifyTracks(query, 1);
+    if (results.length) {
+      return [await resolveSpotifyTrack(results[0], requestedBy)];
+    }
+  } catch (err) {
+    console.warn('[music] Spotify search failed, falling back to YouTube:', err);
+  }
+
+  return resolveYouTubeSearch(query, requestedBy);
+}
+
+async function spotifyUrlToTrack(url: string, requestedBy: string): Promise<Track> {
+  requireSpotify();
+  const data = await play.spotify(url);
+  if (data.type !== 'track') throw new Error('Expected a Spotify track URL.');
+  return resolveSpotifyTrack(data as SpotifyTrack, requestedBy);
+}
+
+async function resolveSpotifyCollection(url: string, requestedBy: string): Promise<Track[]> {
+  requireSpotify();
+  const data = await play.spotify(url);
+  if (data.type === 'track') return [await resolveSpotifyTrack(data as SpotifyTrack, requestedBy)];
+
+  const collection = data as SpotifyPlaylist | SpotifyAlbum;
+  await collection.fetch();
+  const tracks = await collection.all_tracks();
+  const resolved: Track[] = [];
+
+  for (const track of tracks.slice(0, MAX_PLAYLIST_TRACKS)) {
+    try {
+      resolved.push(await resolveSpotifyTrack(track, requestedBy));
+    } catch {
+      // skip unresolvable tracks
+    }
+  }
+
+  if (!resolved.length) {
+    throw new Error('Could not resolve any tracks from that Spotify link.');
+  }
+  return resolved;
 }
 
 async function youtubeUrlToTrack(url: string, requestedBy: string): Promise<Track> {
@@ -82,92 +152,32 @@ async function resolveSoundCloudPlaylist(url: string, requestedBy: string): Prom
   }));
 }
 
-async function spotifyUrlToTrack(url: string, requestedBy: string): Promise<Track> {
-  const data = await play.spotify(url);
-  if (data.type !== 'track') throw new Error('Expected a Spotify track URL.');
-  return spotifyTrackToYouTube(data as SpotifyTrack, requestedBy);
-}
-
-async function resolveSpotifyCollection(url: string, requestedBy: string): Promise<Track[]> {
-  const data = await play.spotify(url);
-  if (data.type === 'track') return [await spotifyTrackToYouTube(data as SpotifyTrack, requestedBy)];
-
-  const collection = data as SpotifyPlaylist | SpotifyAlbum;
-  await collection.fetch();
-  const tracks = await collection.all_tracks();
-  const resolved: Track[] = [];
-  for (const track of tracks.slice(0, MAX_PLAYLIST_TRACKS)) {
-    try {
-      resolved.push(await spotifyTrackToYouTube(track, requestedBy));
-    } catch {
-      // skip unresolvable tracks
-    }
-  }
-  if (!resolved.length) {
-    throw new Error('Could not resolve Spotify tracks. Add SPOTIFY_CLIENT_ID and SPOTIFY_CLIENT_SECRET to .env for playlists/albums.');
-  }
-  return resolved;
-}
-
-async function spotifyTrackToYouTube(spTrack: SpotifyTrack, requestedBy: string): Promise<Track> {
-  const artist = spTrack.artists?.[0]?.name ?? '';
-  const searchQuery = `${artist} ${spTrack.name}`.trim();
-  const results = await play.search(searchQuery, { limit: 1, source: { youtube: 'video' } });
-  if (!results.length) throw new Error(`Could not find **${spTrack.name}** on YouTube.`);
-
-  const video = results[0];
-  return {
-    title: `${spTrack.name}${artist ? ` — ${artist}` : ''}`,
-    url: video.url,
-    duration: video.durationInSec,
-    thumbnail: spTrack.thumbnail?.url ?? video.thumbnails[0]?.url,
-    source: 'spotify',
-    requestedBy,
-  };
-}
-
-async function deezerUrlToTrack(url: string, requestedBy: string): Promise<Track> {
+async function resolveDeezerViaSpotify(url: string, requestedBy: string): Promise<Track[]> {
   const data = await play.deezer(url);
   if (data.type !== 'track') throw new Error('Expected a Deezer track URL.');
   const track = data as import('play-dl').DeezerTrack;
   const searchQuery = `${track.artist?.name ?? ''} ${track.title}`.trim();
-  const results = await play.search(searchQuery, { limit: 1, source: { youtube: 'video' } });
-  if (!results.length) throw new Error(`Could not find **${track.title}** on YouTube.`);
-  const video = results[0];
-  return {
-    title: track.title,
-    url: video.url,
-    duration: video.durationInSec,
-    thumbnail: track.album?.cover?.medium ?? video.thumbnails[0]?.url,
-    source: 'deezer',
-    requestedBy,
-  };
+  return resolveExternalSearch(searchQuery, requestedBy, 'deezer');
 }
 
 async function resolveDeezerCollection(url: string, requestedBy: string): Promise<Track[]> {
   const data = await play.deezer(url);
-  if (data.type === 'track') return [await deezerUrlToTrack(url, requestedBy)];
+  if (data.type === 'track') return resolveDeezerViaSpotify(url, requestedBy);
 
-  const collection = data as DeezerAlbum | DeezerPlaylist;
+  const collection = data as import('play-dl').DeezerAlbum | import('play-dl').DeezerPlaylist;
   const tracks = await collection.all_tracks();
   const resolved: Track[] = [];
+
   for (const track of tracks.slice(0, MAX_PLAYLIST_TRACKS)) {
     try {
       const searchQuery = `${track.artist?.name ?? ''} ${track.title}`.trim();
-      const results = await play.search(searchQuery, { limit: 1, source: { youtube: 'video' } });
-      if (!results.length) continue;
-      resolved.push({
-        title: track.title,
-        url: results[0].url,
-        duration: results[0].durationInSec,
-        thumbnail: track.album?.cover?.medium,
-        source: 'deezer',
-        requestedBy,
-      });
+      const found = await resolveExternalSearch(searchQuery, requestedBy, 'deezer');
+      resolved.push(...found);
     } catch {
       // skip
     }
   }
+
   if (!resolved.length) throw new Error('Could not resolve any tracks from that Deezer link.');
   return resolved;
 }
@@ -175,18 +185,27 @@ async function resolveDeezerCollection(url: string, requestedBy: string): Promis
 async function resolveAppleMusic(url: string, requestedBy: string): Promise<Track[]> {
   const meta = await lookupAppleMusic(url);
   const searchQuery = meta.artist ? `${meta.artist} ${meta.title}` : meta.title;
-  const results = await play.search(searchQuery, { limit: 1, source: { youtube: 'video' } });
-  if (!results.length) throw new Error(`Could not find **${meta.title}** on YouTube.`);
+  return resolveExternalSearch(searchQuery, requestedBy, 'apple');
+}
 
-  const video = results[0];
-  return [{
-    title: meta.artist ? `${meta.title} — ${meta.artist}` : meta.title,
-    url: video.url,
-    duration: video.durationInSec,
-    thumbnail: video.thumbnails[0]?.url,
-    source: 'apple',
-    requestedBy,
-  }];
+async function resolveExternalSearch(
+  searchQuery: string,
+  requestedBy: string,
+  source: TrackSource,
+): Promise<Track[]> {
+  if (spotifyConfigured()) {
+    try {
+      const results = await searchSpotifyTracks(searchQuery, 1);
+      if (results.length) {
+        const track = await resolveSpotifyTrack(results[0], requestedBy);
+        return [{ ...track, source }];
+      }
+    } catch {
+      // fall through
+    }
+  }
+  const yt = await resolveYouTubeSearch(searchQuery, requestedBy);
+  return yt.map((t) => ({ ...t, source }));
 }
 
 async function lookupAppleMusic(url: string): Promise<{ title: string; artist: string }> {
@@ -221,7 +240,7 @@ async function resolveYouTubeSearch(query: string, requestedBy: string): Promise
     url: video.url,
     duration: video.durationInSec,
     thumbnail: video.thumbnails[0]?.url,
-    source: 'search',
+    source: 'youtube',
     requestedBy,
   }];
 }
