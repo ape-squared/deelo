@@ -6,13 +6,14 @@ import {
   NoSubscriberBehavior,
   entersState,
   VoiceConnectionStatus,
+  getVoiceConnection,
   StreamType,
   type AudioPlayer,
   type VoiceConnection,
 } from '@discordjs/voice';
 import play from 'play-dl';
 import type { Readable } from 'node:stream';
-import type { Guild, TextChannel, VoiceBasedChannel } from 'discord.js';
+import type { Guild, TextChannel } from 'discord.js';
 import { deeloEmbed } from '../../utils/embeds';
 import type { Track, MusicQueue } from './types';
 import { formatDuration, sourceLabel } from './types';
@@ -76,38 +77,63 @@ class GuildMusicSession implements MusicQueue {
   }
 
   async ensureConnection(guild: Guild, channelId: string): Promise<VoiceConnection> {
-    if (this.connection && this.voiceChannel === channelId) {
-      return this.connection;
+    const existing = getVoiceConnection(guild.id);
+    if (existing && this.connection === existing && this.voiceChannel === channelId) {
+      if (existing.state.status === VoiceConnectionStatus.Ready) return existing;
     }
 
     this.destroyConnection();
-    const channel = guild.channels.cache.get(channelId) as VoiceBasedChannel | undefined;
-    if (!channel?.isVoiceBased()) throw new Error('Voice channel not found.');
+
+    const channel =
+      guild.channels.cache.get(channelId) ??
+      (await guild.channels.fetch(channelId).catch(() => null));
+
+    if (!channel?.isVoiceBased()) {
+      throw new Error('Voice channel not found.');
+    }
+
+    if (!channel.joinable) {
+      throw new Error('I cannot join that voice channel. Check my permissions.');
+    }
 
     this.connection = joinVoiceChannel({
       channelId: channel.id,
       guildId: guild.id,
       adapterCreator: guild.voiceAdapterCreator,
-      selfDeaf: true,
+      selfDeaf: false,
+      selfMute: false,
+    });
+
+    this.voiceChannel = channelId;
+
+    this.connection.on('stateChange', (oldState, newState) => {
+      console.log(`[music:${this.guildId}] voice ${oldState.status} → ${newState.status}`);
+      if (newState.status !== VoiceConnectionStatus.Disconnected) return;
+
+      void (async () => {
+        try {
+          await Promise.race([
+            entersState(this.connection!, VoiceConnectionStatus.Signalling, 5_000),
+            entersState(this.connection!, VoiceConnectionStatus.Connecting, 5_000),
+          ]);
+        } catch {
+          if (this.connection?.state.status === VoiceConnectionStatus.Disconnected) {
+            console.warn(`[music:${this.guildId}] voice disconnected permanently`);
+            this.destroyConnection();
+          }
+        }
+      })();
     });
 
     this.connection.subscribe(this.player);
-    this.voiceChannel = channelId;
-
-    this.connection.on('stateChange', (_old, state) => {
-      if (state.status === VoiceConnectionStatus.Disconnected) {
-        console.warn(`[music:${this.guildId}] voice disconnected`);
-        try {
-          if (state.reason) this.connection?.destroy();
-        } catch { /* already gone */ }
-      }
-    });
 
     try {
-      await entersState(this.connection, VoiceConnectionStatus.Ready, 20_000);
-    } catch {
+      await entersState(this.connection, VoiceConnectionStatus.Ready, 30_000);
+    } catch (err) {
+      const status = this.connection.state.status;
+      console.error(`[music:${this.guildId}] voice ready timeout (status=${status}):`, err);
       this.destroyConnection();
-      throw new Error('Could not connect to voice channel.');
+      throw new Error('Could not connect to voice channel. Check bot permissions and try again.');
     }
 
     return this.connection;
@@ -115,7 +141,8 @@ class GuildMusicSession implements MusicQueue {
 
   destroyConnection(): void {
     this.clearIdleTimer();
-    this.connection?.destroy();
+    const conn = this.connection ?? getVoiceConnection(this.guildId);
+    conn?.destroy();
     this.connection = null;
   }
 
@@ -235,7 +262,7 @@ export async function enqueueTracks(
 
   if (wasIdle) {
     await session.ensureConnection(guild, voiceChannelId);
-    void session.playNext();
+    await session.playNext();
     return { position: 1, track, started: true };
   }
 

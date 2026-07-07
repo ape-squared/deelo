@@ -1,6 +1,7 @@
 import play from 'play-dl';
 import { config } from '../../config';
 import { initYtDlp } from './ytdlp';
+import { initVoiceDependencies } from './voice-deps';
 import { spotifyConfigured } from './spotify';
 
 let initialized = false;
@@ -28,6 +29,7 @@ export async function initMusicService(): Promise<void> {
     }
 
     await play.setToken(tokenOpts);
+    await initVoiceDependencies();
     await initYtDlp();
 
     initialized = true;
