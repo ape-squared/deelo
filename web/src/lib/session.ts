@@ -1,5 +1,6 @@
 import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
+import { discordAvatarUrl as buildDiscordAvatarUrl } from '@/lib/discord-avatar';
 import { getDiscordClientId, getDiscordClientSecret, getSessionSecret, resolveAppUrl } from '@/lib/runtime-env';
 
 const COOKIE = 'deelo_session';
@@ -55,8 +56,7 @@ const guildCache = new Map<string, { guilds: DiscordGuild[]; expires: number }>(
 const CACHE_MS = 60_000;
 
 export function discordAvatarUrl(user: { id: string; avatar: string | null }) {
-  if (!user.avatar) return `https://cdn.discordapp.com/embed/avatars/${Number(BigInt(user.id) >> BigInt(22)) % 6}.png`;
-  return `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=128`;
+  return buildDiscordAvatarUrl(user.id, user.avatar, 128);
 }
 
 export type DiscordGuild = {

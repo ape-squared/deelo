@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { setDashboardSession, DISCORD_API, discordAvatarUrl } from '@/lib/session';
+import { setDashboardSession, DISCORD_API } from '@/lib/session';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getDiscordClientId, getDiscordClientSecret, resolveAppUrl } from '@/lib/runtime-env';
 
@@ -46,7 +46,7 @@ export async function GET(req: NextRequest) {
   await setDashboardSession({
     discordId: user.id,
     username: user.username,
-    avatar: discordAvatarUrl(user),
+    avatar: user.avatar,
   });
 
   return NextResponse.redirect(new URL('/dashboard', appUrl));

@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { DashboardShell } from '@/components/dashboard/shell';
 import { LoadingScreen } from '@/components/ui/animate';
 import { GuildSettingsEditor } from '@/components/dashboard/guild-settings-editor';
+import { discordAvatarUrl } from '@/lib/discord-avatar';
 import type { GuildFullConfig } from '@/lib/guild-types';
 
 interface GuildMeta {
@@ -59,9 +60,7 @@ export default function GuildDashboardPage() {
       if (data.user) {
         setUser({
           username: data.user.username,
-          avatar: data.user.avatar
-            ? `https://cdn.discordapp.com/avatars/${data.user.id}/${data.user.avatar}.png?size=64`
-            : null,
+          avatar: discordAvatarUrl(data.user.id, data.user.avatar, 64),
         });
       }
       if (data.guilds) {

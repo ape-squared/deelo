@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { inviteApiPath } from '@/lib/invite';
+import { discordAvatarUrl } from '@/lib/discord-avatar';
 import { DashboardShell, GuildIcon, PageHeader } from '@/components/dashboard/shell';
 import { LoadingScreen, EmptyState } from '@/components/ui/animate';
 import { Server, Crown, Plus, Search } from 'lucide-react';
@@ -75,9 +76,7 @@ export default function DashboardPage() {
     );
   }
 
-  const userAvatar = user.avatar
-    ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=64`
-    : null;
+  const userAvatar = discordAvatarUrl(user.id, user.avatar, 64);
 
   const filtered = guilds.filter((g) => g.name.toLowerCase().includes(search.toLowerCase()));
   const withBot = filtered.filter((g) => g.botPresent);
