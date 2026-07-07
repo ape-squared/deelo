@@ -169,7 +169,7 @@ For real premium subscriptions, integrate:
 
 ## Notes
 
-- Music playback requires `@discordjs/voice` + `play-dl` — queue system is built; wire up voice connection for full playback
+- Music uses `@discordjs/voice` + `play-dl` (YouTube, Spotify, SoundCloud, Apple Music, Deezer) with yt-dlp streaming fallback
 - Translation/TTS need external API keys for production
 - Social feed notifications need polling workers (cron job or Edge Function)
 - The bot uses the isolated `deelo` Postgres schema so it won't conflict with other tables in your Supabase project
