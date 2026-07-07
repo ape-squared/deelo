@@ -2,7 +2,7 @@ import play from 'play-dl';
 import { config } from '../../config';
 import { initYtDlp } from './ytdlp';
 import { initVoiceDependencies } from './voice-deps';
-import { spotifyConfigured } from './spotify';
+import { ensureSpotifyAccessToken, spotifyConfigured } from './spotify';
 
 let initialized = false;
 
@@ -15,7 +15,7 @@ export async function initMusicService(): Promise<void> {
       soundcloud: { client_id: scId },
     };
 
-    if (spotifyConfigured()) {
+    if (config.spotifyClientId && config.spotifyClientSecret) {
       tokenOpts.spotify = {
         client_id: config.spotifyClientId,
         client_secret: config.spotifyClientSecret,
@@ -30,6 +30,9 @@ export async function initMusicService(): Promise<void> {
 
     await play.setToken(tokenOpts);
     await initVoiceDependencies();
+    if (spotifyConfigured()) {
+      await ensureSpotifyAccessToken();
+    }
     await initYtDlp();
 
     initialized = true;

@@ -9,6 +9,12 @@ export async function initVoiceDependencies(): Promise<void> {
   await sodium.ready;
 
   try {
+    await import('@snazzah/davey');
+  } catch {
+    console.warn('[music] @snazzah/davey not available — voice may fail on encrypted channels');
+  }
+
+  try {
     const ffmpegStatic = await import('ffmpeg-static');
     const ffmpegPath = ffmpegStatic.default;
     if (ffmpegPath) {

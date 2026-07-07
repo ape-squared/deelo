@@ -1,7 +1,11 @@
 import play from 'play-dl';
-import type { SoundCloudTrack, SoundCloudPlaylist, SpotifyPlaylist, SpotifyAlbum, SpotifyTrack } from 'play-dl';
+import type { SoundCloudPlaylist, SoundCloudTrack } from 'play-dl';
 import type { Track, TrackSource } from './types';
 import {
+  fetchSpotifyAlbumTracks,
+  fetchSpotifyPlaylistTracks,
+  fetchSpotifyTrack,
+  parseSpotifyUrl,
   resolveSpotifyTrack,
   searchSpotifyTracks,
   spotifyConfigured,
@@ -14,16 +18,14 @@ export async function resolveQuery(query: string, requestedBy: string): Promise<
   if (!trimmed) return [];
 
   if (/^https?:\/\//i.test(trimmed)) {
-    if (trimmed.includes('open.spotify.com') || trimmed.includes('spotify:')) {
-      return resolveSpotifyUrl(trimmed, requestedBy);
-    }
+    const spotify = parseSpotifyUrl(trimmed);
+    if (spotify) return resolveSpotifyLink(spotify.type, spotify.id, requestedBy);
+
     if (trimmed.includes('music.apple.com') || trimmed.includes('itunes.apple.com')) {
       return resolveAppleMusic(trimmed, requestedBy);
     }
 
     const kind = await play.validate(trimmed);
-    if (kind === 'sp_track') return [await spotifyUrlToTrack(trimmed, requestedBy)];
-    if (kind === 'sp_album' || kind === 'sp_playlist') return resolveSpotifyCollection(trimmed, requestedBy);
     if (kind === 'so_track') return [await soundcloudUrlToTrack(trimmed, requestedBy)];
     if (kind === 'so_playlist') return resolveSoundCloudPlaylist(trimmed, requestedBy);
     if (kind === 'yt_video') return [await youtubeUrlToTrack(trimmed, requestedBy)];
@@ -35,12 +37,23 @@ export async function resolveQuery(query: string, requestedBy: string): Promise<
   return resolveSpotifySearch(trimmed, requestedBy);
 }
 
-async function resolveSpotifyUrl(url: string, requestedBy: string): Promise<Track[]> {
+async function resolveSpotifyLink(
+  type: 'track' | 'album' | 'playlist',
+  id: string,
+  requestedBy: string,
+): Promise<Track[]> {
   requireSpotify();
-  const data = await play.spotify(url);
-  if (data.type === 'track') return [await resolveSpotifyTrack(data as SpotifyTrack, requestedBy)];
-  if (data.type === 'album' || data.type === 'playlist') return resolveSpotifyCollection(url, requestedBy);
-  throw new Error('Unsupported Spotify link.');
+
+  if (type === 'track') {
+    return [await resolveSpotifyTrack(await fetchSpotifyTrack(id), requestedBy)];
+  }
+
+  const tracks =
+    type === 'album'
+      ? await fetchSpotifyAlbumTracks(id, MAX_PLAYLIST_TRACKS)
+      : await fetchSpotifyPlaylistTracks(id, MAX_PLAYLIST_TRACKS);
+
+  return resolveSpotifyCollection(tracks, requestedBy);
 }
 
 function requireSpotify(): void {
@@ -66,24 +79,13 @@ async function resolveSpotifySearch(query: string, requestedBy: string): Promise
   return resolveYouTubeSearch(query, requestedBy);
 }
 
-async function spotifyUrlToTrack(url: string, requestedBy: string): Promise<Track> {
-  requireSpotify();
-  const data = await play.spotify(url);
-  if (data.type !== 'track') throw new Error('Expected a Spotify track URL.');
-  return resolveSpotifyTrack(data as SpotifyTrack, requestedBy);
-}
-
-async function resolveSpotifyCollection(url: string, requestedBy: string): Promise<Track[]> {
-  requireSpotify();
-  const data = await play.spotify(url);
-  if (data.type === 'track') return [await resolveSpotifyTrack(data as SpotifyTrack, requestedBy)];
-
-  const collection = data as SpotifyPlaylist | SpotifyAlbum;
-  await collection.fetch();
-  const tracks = await collection.all_tracks();
+async function resolveSpotifyCollection(
+  tracks: Awaited<ReturnType<typeof searchSpotifyTracks>>,
+  requestedBy: string,
+): Promise<Track[]> {
   const resolved: Track[] = [];
 
-  for (const track of tracks.slice(0, MAX_PLAYLIST_TRACKS)) {
+  for (const track of tracks) {
     try {
       resolved.push(await resolveSpotifyTrack(track, requestedBy));
     } catch {

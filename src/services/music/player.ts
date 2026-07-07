@@ -13,7 +13,7 @@ import {
 } from '@discordjs/voice';
 import play from 'play-dl';
 import type { Readable } from 'node:stream';
-import type { Guild, TextChannel } from 'discord.js';
+import { ChannelType, type Guild, type TextChannel, type VoiceBasedChannel } from 'discord.js';
 import { deeloEmbed } from '../../utils/embeds';
 import type { Track, MusicQueue } from './types';
 import { formatDuration, sourceLabel } from './types';
@@ -82,24 +82,44 @@ class GuildMusicSession implements MusicQueue {
       if (existing.state.status === VoiceConnectionStatus.Ready) return existing;
     }
 
+    let lastError: unknown;
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        return await this.connectOnce(guild, channelId, attempt);
+      } catch (err) {
+        lastError = err;
+        this.destroyConnection();
+        if (attempt < 3) {
+          await new Promise((resolve) => setTimeout(resolve, attempt * 750));
+        }
+      }
+    }
+
+    throw lastError instanceof Error
+      ? lastError
+      : new Error('Could not connect to voice channel. Check bot permissions and try again.');
+  }
+
+  private async connectOnce(guild: Guild, channelId: string, attempt: number): Promise<VoiceConnection> {
     this.destroyConnection();
 
+    const fullGuild = await guild.client.guilds.fetch(guild.id);
     const channel =
-      guild.channels.cache.get(channelId) ??
-      (await guild.channels.fetch(channelId).catch(() => null));
+      fullGuild.channels.cache.get(channelId) ??
+      ((await fullGuild.channels.fetch(channelId).catch(() => null)) as VoiceBasedChannel | null);
 
     if (!channel?.isVoiceBased()) {
       throw new Error('Voice channel not found.');
     }
 
     if (!channel.joinable) {
-      throw new Error('I cannot join that voice channel. Check my permissions.');
+      throw new Error('I cannot join that voice channel. Check Connect and Speak permissions.');
     }
 
     this.connection = joinVoiceChannel({
       channelId: channel.id,
-      guildId: guild.id,
-      adapterCreator: guild.voiceAdapterCreator,
+      guildId: fullGuild.id,
+      adapterCreator: fullGuild.voiceAdapterCreator,
       selfDeaf: false,
       selfMute: false,
     });
@@ -107,35 +127,35 @@ class GuildMusicSession implements MusicQueue {
     this.voiceChannel = channelId;
 
     this.connection.on('stateChange', (oldState, newState) => {
-      console.log(`[music:${this.guildId}] voice ${oldState.status} → ${newState.status}`);
-      if (newState.status !== VoiceConnectionStatus.Disconnected) return;
-
-      void (async () => {
-        try {
-          await Promise.race([
-            entersState(this.connection!, VoiceConnectionStatus.Signalling, 5_000),
-            entersState(this.connection!, VoiceConnectionStatus.Connecting, 5_000),
-          ]);
-        } catch {
-          if (this.connection?.state.status === VoiceConnectionStatus.Disconnected) {
-            console.warn(`[music:${this.guildId}] voice disconnected permanently`);
-            this.destroyConnection();
-          }
-        }
-      })();
+      console.log(`[music:${this.guildId}] voice ${oldState.status} → ${newState.status} (attempt ${attempt})`);
     });
 
-    this.connection.subscribe(this.player);
+    this.connection.on(VoiceConnectionStatus.Disconnected, async (_oldState, newState) => {
+      try {
+        await Promise.race([
+          entersState(this.connection!, VoiceConnectionStatus.Signalling, 5_000),
+          entersState(this.connection!, VoiceConnectionStatus.Connecting, 5_000),
+        ]);
+      } catch {
+        if (this.connection?.state.status === VoiceConnectionStatus.Disconnected) {
+          this.destroyConnection();
+        }
+      }
+    });
 
     try {
       await entersState(this.connection, VoiceConnectionStatus.Ready, 30_000);
     } catch (err) {
       const status = this.connection.state.status;
-      console.error(`[music:${this.guildId}] voice ready timeout (status=${status}):`, err);
-      this.destroyConnection();
+      console.error(`[music:${this.guildId}] voice ready timeout (status=${status}, attempt=${attempt}):`, err);
       throw new Error('Could not connect to voice channel. Check bot permissions and try again.');
     }
 
+    if (channel.type === ChannelType.GuildStageVoice) {
+      await fullGuild.members.me?.voice.setSuppressed(false).catch(() => {});
+    }
+
+    this.connection.subscribe(this.player);
     return this.connection;
   }
 
