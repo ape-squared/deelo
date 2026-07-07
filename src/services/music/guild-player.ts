@@ -37,8 +37,9 @@ export class GuildPlayer {
     return getAudioPlayer(this.guildId);
   }
 
-  /** True when the audio player is actually outputting audio. */
+  /** True when the audio player is actually outputting audio for a known track. */
   isPlayingAudio(): boolean {
+    if (!this.state.current) return false;
     const status = this.player.state.status;
     return (
       status === AudioPlayerStatus.Playing ||
@@ -57,9 +58,19 @@ export class GuildPlayer {
 
   /** Drop ghost state left by hot reloads (current set but player idle, etc.). */
   private pruneStaleState(): void {
-    if (this.isPlayingAudio()) return;
+    const status = this.player.state.status;
 
-    if (this.state.current && this.player.state.status === AudioPlayerStatus.Idle && !this.state.queue.length) {
+    if (
+      !this.state.current &&
+      (status === AudioPlayerStatus.Playing ||
+        status === AudioPlayerStatus.Paused ||
+        status === AudioPlayerStatus.Buffering)
+    ) {
+      console.log(`[music:${this.guildId}] resetting orphaned player (${status})`);
+      this.player.stop(true);
+    }
+
+    if (this.state.current && status === AudioPlayerStatus.Idle && !this.state.queue.length && !this.busy) {
       console.log(`[music:${this.guildId}] clearing stale current track`);
       this.state.current = null;
     }
@@ -147,6 +158,9 @@ export class GuildPlayer {
       return existing;
     }
 
+    // Bot may appear in VC after restart while this process has no voice connection yet
+    getVoiceConnection(guild.id)?.destroy();
+
     const fullGuild = await guild.client.guilds.fetch(guild.id);
     const channel =
       fullGuild.channels.cache.get(channelId) ??
@@ -229,7 +243,10 @@ export class GuildPlayer {
       return { position: 1, track, started: true };
     }
 
-    return { position: this.state.queue.length, track, started: true };
+    console.log(
+      `[music:${this.guildId}] queued ${tracks.length} track(s) at position ${this.state.queue.length} (already playing)`,
+    );
+    return { position: this.state.queue.length, track, started: false };
   }
 
   async playNext(): Promise<void> {
@@ -384,6 +401,7 @@ export class GuildPlayer {
   /** Re-link voice after bot restart while still in a channel. */
   async recover(guild: Guild, voiceChannelId: string): Promise<void> {
     this.init();
+    this.pruneStaleState();
     this.state.voiceChannelId = voiceChannelId;
     const conn = getVoiceConnection(guild.id);
     if (conn && conn.state.status !== VoiceConnectionStatus.Destroyed) {
@@ -391,7 +409,7 @@ export class GuildPlayer {
       conn.subscribe(this.player);
     }
     console.log(
-      `[music:${this.guildId}] recovered (channel=${voiceChannelId}, status=${this.player.state.status})`,
+      `[music:${this.guildId}] recovered (channel=${voiceChannelId}, status=${this.player.state.status}, current=${this.state.current?.title ?? 'none'})`,
     );
   }
 }

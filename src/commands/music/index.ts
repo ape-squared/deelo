@@ -64,8 +64,10 @@ const music: Command[] = [
           await message.reply({
             embeds: [deeloEmbed('🎵 Playlist Added', `Added **${tracks.length}** tracks to the queue.\nFirst up: **${track.title}**`)],
           });
+        } else if (!started) {
+          await message.reply({ embeds: [buildAddedEmbed(track, position, false)] });
         } else {
-          await message.reply({ embeds: [buildAddedEmbed(track, position, started)] });
+          await message.reply({ embeds: [buildAddedEmbed(track, position, true)] });
         }
       } catch (err) {
         const msg = err instanceof Error ? err.message : 'Could not play that track.';
