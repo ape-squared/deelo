@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requirePlatformStaff } from '@/lib/platform-staff';
+import { requirePlatformOperator } from '@/lib/platform-operator';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { platformRoleLabel } from '@/lib/platform-roles';
 
 export async function GET() {
-  const auth = await requirePlatformStaff('staff.manage');
-  if (auth.error) return auth.error;
+  const auth = await requirePlatformOperator({ manageStaff: true });
+  if ('error' in auth) return auth.error;
 
   const { data, error } = await createAdminClient()
     .from('platform_staff')
@@ -17,8 +17,8 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  const auth = await requirePlatformStaff('staff.manage');
-  if (auth.error) return auth.error;
+  const auth = await requirePlatformOperator({ manageStaff: true });
+  if ('error' in auth) return auth.error;
 
   const body = await req.json();
   const discordId = String(body.discord_id ?? '').trim();
@@ -30,6 +30,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid role' }, { status: 400 });
   }
 
+  const grantedBy =
+    auth.operator.kind === 'discord' ? auth.operator.id : auth.operator.label;
+
   const { data, error } = await createAdminClient()
     .from('platform_staff')
     .upsert({
@@ -37,7 +40,7 @@ export async function POST(req: NextRequest) {
       role,
       display_name: body.display_name ? String(body.display_name).slice(0, 64) : null,
       notes: body.notes ? String(body.notes).slice(0, 500) : null,
-      granted_by: auth.staff.discordId,
+      granted_by: grantedBy,
     }, { onConflict: 'discord_id' })
     .select()
     .single();
@@ -50,8 +53,8 @@ export async function POST(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-  const auth = await requirePlatformStaff('staff.manage');
-  if (auth.error) return auth.error;
+  const auth = await requirePlatformOperator({ manageStaff: true });
+  if ('error' in auth) return auth.error;
 
   const discordId = new URL(req.url).searchParams.get('discord_id');
   if (!discordId) return NextResponse.json({ error: 'discord_id required' }, { status: 400 });

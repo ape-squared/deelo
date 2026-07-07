@@ -55,7 +55,7 @@ export default function AdminLoginForm() {
           </div>
           <h1 className="text-4xl font-bold mb-4">Admin</h1>
           <p className="text-muted leading-relaxed max-w-md">
-            Manage guilds, subscriptions, dashboard users, and audit logs across the entire Deelo platform.
+            Manage guilds, subscriptions, staff, and platform settings. Sign in with email or Discord staff access.
           </p>
         </div>
         <p className="text-xs text-muted">Authorized personnel only</p>
@@ -91,9 +91,18 @@ export default function AdminLoginForm() {
                 </div>
               )}
               <button type="submit" className="btn-primary w-full" disabled={loading}>
-                {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Signing in...</> : 'Sign in'}
+                {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Signing in...</> : 'Sign in with email'}
               </button>
             </form>
+
+            <div className="relative my-8">
+              <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-border" /></div>
+              <div className="relative flex justify-center text-xs uppercase"><span className="bg-card px-2 text-muted">or</span></div>
+            </div>
+
+            <a href="/api/auth/discord?return=/admin" className="btn-secondary w-full text-center">
+              Sign in with Discord (staff)
+            </a>
           </div>
         </div>
       </div>

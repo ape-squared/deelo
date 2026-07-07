@@ -3,36 +3,62 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  LayoutDashboard, Server, Users, CreditCard, ScrollText, Shield, LogOut, ExternalLink, Ticket, BarChart3, Activity, Globe,
+  LayoutDashboard, Server, Users, CreditCard, ScrollText, Shield, LogOut, ExternalLink, Ticket,
+  BarChart3, Activity, Globe, Code2, UserCog, Search,
 } from 'lucide-react';
 import { DeeloIcon, DeeloWordmark } from '@/components/brand/logo';
-import { adminHasPermission, type AdminPermission, type AdminUserRole } from '@/lib/platform-roles';
+import {
+  operatorCanManageStaff,
+  operatorCanReadGuilds,
+  operatorCanUseDevTools,
+  operatorHasAdminPermission,
+  type PlatformOperator,
+} from '@/lib/platform-operator-shared';
+import { platformRoleLabel } from '@/lib/platform-roles';
 
-const NAV: { href: string; label: string; icon: typeof LayoutDashboard; permission: AdminPermission; exact?: boolean }[] = [
-  { href: '/admin', label: 'Overview', icon: LayoutDashboard, permission: 'analytics', exact: true },
-  { href: '/admin/analytics', label: 'Analytics', icon: BarChart3, permission: 'analytics' },
-  { href: '/admin/website', label: 'Website', icon: Globe, permission: 'website.read' },
-  { href: '/admin/guilds', label: 'Guilds', icon: Server, permission: 'guilds.write' },
-  { href: '/admin/users', label: 'Users', icon: Users, permission: 'users.read' },
-  { href: '/admin/subscriptions', label: 'Subscriptions', icon: CreditCard, permission: 'subscriptions.write' },
-  { href: '/admin/redeem-codes', label: 'Redeem Codes', icon: Ticket, permission: 'redeem.write' },
-  { href: '/admin/audit', label: 'Audit Log', icon: ScrollText, permission: 'audit.read' },
+type NavItem = {
+  href: string;
+  label: string;
+  icon: typeof LayoutDashboard;
+  exact?: boolean;
+  show: (op: PlatformOperator) => boolean;
+};
+
+const NAV: NavItem[] = [
+  { href: '/admin', label: 'Overview', icon: LayoutDashboard, exact: true, show: () => true },
+  { href: '/admin/analytics', label: 'Analytics', icon: BarChart3, show: (op) => operatorHasAdminPermission(op, 'analytics') },
+  { href: '/admin/guild-lookup', label: 'Guild lookup', icon: Search, show: (op) => operatorCanReadGuilds(op) },
+  { href: '/admin/website', label: 'Website', icon: Globe, show: (op) => operatorHasAdminPermission(op, 'website.read') },
+  { href: '/admin/guilds', label: 'Guild plans', icon: Server, show: (op) => operatorHasAdminPermission(op, 'guilds.write') },
+  { href: '/admin/users', label: 'Users', icon: Users, show: (op) => operatorHasAdminPermission(op, 'users.read') },
+  { href: '/admin/subscriptions', label: 'Subscriptions', icon: CreditCard, show: (op) => operatorHasAdminPermission(op, 'subscriptions.write') },
+  { href: '/admin/redeem-codes', label: 'Redeem codes', icon: Ticket, show: (op) => operatorHasAdminPermission(op, 'redeem.write') },
+  { href: '/admin/team', label: 'Platform team', icon: UserCog, show: (op) => operatorCanManageStaff(op) },
+  { href: '/admin/developers', label: 'Developer', icon: Code2, show: (op) => operatorCanUseDevTools(op) },
+  { href: '/admin/audit', label: 'Audit log', icon: ScrollText, show: (op) => operatorHasAdminPermission(op, 'audit.read') },
 ];
 
 export function AdminShell({
   children,
-  email,
-  role,
+  operator,
 }: {
   children: React.ReactNode;
-  email: string;
-  role: AdminUserRole;
+  operator: PlatformOperator;
 }) {
   const pathname = usePathname();
-  const visibleNav = NAV.filter((item) => adminHasPermission(role, item.permission));
+  const visibleNav = NAV.filter((item) => item.show(operator));
+
+  const roleLabel =
+    operator.kind === 'email'
+      ? operator.role
+      : platformRoleLabel(operator.role);
 
   async function logout() {
-    await fetch('/api/admin/logout', { method: 'POST' });
+    if (operator.kind === 'email') {
+      await fetch('/api/admin/logout', { method: 'POST' });
+    } else {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    }
     window.location.href = '/admin/login';
   }
 
@@ -43,16 +69,17 @@ export function AdminShell({
           <DeeloIcon size={36} className="shadow-lg shadow-accent/25" />
           <div>
             <DeeloWordmark height={18} />
-            <p className="text-[10px] uppercase tracking-widest text-muted">Admin v3</p>
+            <p className="text-[10px] uppercase tracking-widest text-muted">Admin</p>
           </div>
         </div>
 
         <div className="admin-sidebar-user">
           <div className="flex items-center gap-2">
             <Shield className="h-3.5 w-3.5 text-accent" />
-            <span className="text-xs font-semibold capitalize text-accent">{role}</span>
+            <span className="text-xs font-semibold capitalize text-accent">{roleLabel}</span>
           </div>
-          <p className="truncate text-xs text-muted mt-1">{email}</p>
+          <p className="truncate text-xs text-muted mt-1">{operator.label}</p>
+          <p className="text-[10px] text-muted mt-0.5 capitalize">{operator.kind === 'email' ? 'Email login' : 'Discord staff'}</p>
         </div>
 
         <nav className="admin-nav flex-1 overflow-y-auto px-3 py-2">
@@ -69,9 +96,9 @@ export function AdminShell({
         </nav>
 
         <div className="admin-sidebar-footer">
-          <Link href="/staff" className="admin-nav-link text-xs">
-            <Shield className="h-3.5 w-3.5" />
-            Staff portal
+          <Link href="/dashboard" className="admin-nav-link text-xs">
+            <Server className="h-3.5 w-3.5" />
+            Server dashboard
           </Link>
           <Link href="/status" className="admin-nav-link text-xs">
             <Activity className="h-3.5 w-3.5" />

@@ -1,14 +1,10 @@
 import { redirect } from 'next/navigation';
-import { getAdminUser } from '@/lib/admin';
+import { getPlatformOperator } from '@/lib/platform-operator';
 import { AdminShell } from '@/components/admin/shell';
 
 export default async function AdminPanelLayout({ children }: { children: React.ReactNode }) {
-  const admin = await getAdminUser();
-  if (!admin) redirect('/admin/login');
+  const operator = await getPlatformOperator();
+  if (!operator) redirect('/admin/login');
 
-  return (
-    <AdminShell email={admin.email} role={admin.role}>
-      {children}
-    </AdminShell>
-  );
+  return <AdminShell operator={operator}>{children}</AdminShell>;
 }

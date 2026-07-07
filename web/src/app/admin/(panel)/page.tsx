@@ -2,9 +2,40 @@ import Link from 'next/link';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { groupSubscriptionsByGuild, subscriptionStats } from '@/lib/admin-subscriptions';
 import { AdminPageHeader, AdminStatCard, AdminCard, AdminTable, formatRelative } from '@/components/admin/ui';
-import { ArrowRight, ScrollText, CreditCard, AlertTriangle, BarChart3 } from 'lucide-react';
+import { ArrowRight, ScrollText, CreditCard, AlertTriangle, BarChart3, Search } from 'lucide-react';
+import { getPlatformOperator } from '@/lib/platform-operator';
+import { platformRoleLabel } from '@/lib/platform-roles';
+
+function StaffWelcome({
+  label,
+  role,
+}: {
+  label: string;
+  role: string;
+}) {
+  return (
+    <div className="p-6 lg:p-10">
+      <h1 className="text-3xl font-bold tracking-tight">Welcome, {label}</h1>
+      <p className="text-muted mt-2">
+        Signed in as <span className="text-foreground font-medium">{platformRoleLabel(role as import('@/lib/platform-roles').PlatformStaffRole)}</span> via Discord.
+      </p>
+      <div className="mt-10 grid gap-4 sm:grid-cols-2">
+        <Link href="/admin/guild-lookup" className="card card-glow p-6 hover:border-accent/40 transition">
+          <Search className="h-8 w-8 text-accent mb-4" />
+          <h2 className="font-semibold text-lg">Guild lookup</h2>
+          <p className="text-sm text-muted mt-1">Search servers by ID and inspect plans.</p>
+        </Link>
+      </div>
+    </div>
+  );
+}
 
 export default async function AdminOverviewPage() {
+  const operator = await getPlatformOperator();
+  if (operator?.kind === 'discord') {
+    return <StaffWelcome label={operator.label} role={operator.role} />;
+  }
+
   const db = createAdminClient();
 
   const [
