@@ -5,20 +5,25 @@ import { FadeUp } from '@/components/ui/animate';
 import { DiscordWidget } from '@/components/discord-widget';
 import { DeeloIcon } from '@/components/brand/logo';
 import { CHANGELOG_CATEGORY_LABELS } from '@/lib/site-content';
+import { TYPICAL_STACK_COST } from '@/lib/plans';
 import { MarketingLayout } from '@/components/marketing/site-layout';
 import {
   ArrowRight, Sparkles, ScrollText, Check,
 } from 'lucide-react';
 import {
+  BotStackComparison,
+  PricingFaqSection,
+  PricingPlanCards,
+  PricingStatsBar,
+  SwitchBenefitsSection,
+} from '@/components/marketing/pricing-sections';
+import {
   CommandPreview,
-  CompareSection,
   DashboardPreviewSection,
-  FaqSectionWrapper,
-  FinalCta,
+  HomeFinalCta,
+  HomePricingLink,
   HowItWorksSection,
   ModulesSection,
-  PricingTeaser,
-  TrustBar,
 } from '@/components/marketing/home-sections';
 
 export const dynamic = 'force-dynamic';
@@ -31,7 +36,7 @@ export default async function HomePage() {
   ]);
 
   return (
-    <MarketingLayout>
+    <MarketingLayout banner={false}>
       <main className="flex-1">
         <section className="site-hero">
           <div className="grid-pattern pointer-events-none absolute inset-0" />
@@ -48,19 +53,20 @@ export default async function HomePage() {
               </FadeUp>
               <FadeUp delay={100}>
                 <h1 className="mt-4 text-4xl font-bold leading-[1.1] tracking-tight sm:text-5xl lg:text-6xl">
-                  The Discord bot
-                  <span className="gradient-text mt-2 block">built for serious servers</span>
+                  Replace your bot stack
+                  <span className="gradient-text mt-2 block">for a fraction of the cost</span>
                 </h1>
               </FadeUp>
               <FadeUp delay={200}>
                 <p className="mt-5 max-w-lg text-base text-muted leading-relaxed sm:text-lg">
-                  Moderation, music, levels, tickets, automod, and 1,144 commands — unified under one prefix,
-                  one dashboard, and one brand you can trust.
+                  Most servers run {TYPICAL_STACK_COST.bots.slice(0, 3).join(', ')}, and more — paying{' '}
+                  {TYPICAL_STACK_COST.label} across multiple dashboards. Deelo gives you 1,144 commands, one prefix,
+                  and one dashboard starting free.
                 </p>
               </FadeUp>
               <FadeUp delay={300}>
                 <ul className="mt-5 space-y-2 text-sm text-muted">
-                  {['Anti-nuke & anti-raid protection', 'Professional web dashboard', 'Free tier with no time limit'].map((item) => (
+                  {['Anti-nuke, music, levels & tickets in one bot', 'Professional web dashboard', 'Premium at $5/mo vs $27+/mo typical stack'].map((item) => (
                     <li key={item} className="flex items-start gap-2.5">
                       <Check className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
                       <span>{item}</span>
@@ -71,10 +77,10 @@ export default async function HomePage() {
               <FadeUp delay={400}>
                 <div className="hero-actions">
                   <a href={getInviteUrl()} className="btn-primary w-full px-8 text-base sm:w-auto" target="_blank" rel="noreferrer">
-                    Add to Discord
+                    Switch to Deelo — free
                     <ArrowRight className="h-4 w-4" />
                   </a>
-                  <Link href="/dashboard" className="btn-secondary w-full text-base sm:w-auto">Open dashboard</Link>
+                  <Link href="/pricing" className="btn-secondary w-full text-base sm:w-auto">View pricing</Link>
                 </div>
               </FadeUp>
 
@@ -108,11 +114,13 @@ export default async function HomePage() {
           </div>
         </section>
 
-        <TrustBar />
+        <PricingStatsBar />
         <ModulesSection />
+        <BotStackComparison />
+        <SwitchBenefitsSection />
         <HowItWorksSection />
         <DashboardPreviewSection />
-        <CompareSection />
+        <PricingPlanCards />
 
         <section className="site-section site-section-alt">
           <div className="mx-auto max-w-6xl lg:px-6">
@@ -120,9 +128,9 @@ export default async function HomePage() {
           </div>
         </section>
 
-        <PricingTeaser />
-        <FaqSectionWrapper />
-        <FinalCta discordInvite={discord.invite_url} />
+        <HomePricingLink />
+        <PricingFaqSection />
+        <HomeFinalCta discordInvite={discord.invite_url} />
       </main>
     </MarketingLayout>
   );

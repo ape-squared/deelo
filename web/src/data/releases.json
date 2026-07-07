@@ -1,13 +1,23 @@
 {
-  "generated_at": "2026-07-07T23:23:25.120Z",
+  "generated_at": "2026-07-07T23:35:16.906Z",
   "latest": {
     "id": "release-2026-07-07",
-    "version": "50d2fff",
-    "published_at": "2026-07-07T19:21:44-04:00",
+    "version": "c40f0f6",
+    "published_at": "2026-07-07T19:26:09-04:00",
     "title": "Updates for July 7, 2026",
     "category": "fix",
-    "body": "- Fix duplicate command replies across bot instances\n- Add ,stream command for Icecast and Shoutcast radio playback\n- Overhaul pricing page with bot stack comparison and switch incentives\n- Prevent duplicate changelog embeds on bot startup\n- Remove false-negative changelog permission preflight check\n- Fix changelog embed sync skipping posts on first bot run\n- Fix bot crash by excluding .d.ts files from command loader\n- Use public app URL for status embeds instead of localhost\n- Fix ticket panel Discord sync and redesign the admin control panel\n- Sync site changelog to official #changelogs and fix status embed\n- Rebuild /staff as a role-based portal with dedicated dashboards\n- Ship reaction/button roles, ticket management, and stat counters end-to-end",
+    "body": "- Fix duplicate command replies using site_settings dedup\n- Update July 7 changelog with stream, pricing, and dedup fixes\n- Fix duplicate command replies across bot instances\n- Add ,stream command for Icecast and Shoutcast radio playback\n- Overhaul pricing page with bot stack comparison and switch incentives\n- Prevent duplicate changelog embeds on bot startup\n- Remove false-negative changelog permission preflight check\n- Fix changelog embed sync skipping posts on first bot run\n- Fix bot crash by excluding .d.ts files from command loader\n- Use public app URL for status embeds instead of localhost\n- Fix ticket panel Discord sync and redesign the admin control panel\n- Sync site changelog to official #changelogs and fix status embed",
     "items": [
+      {
+        "title": "Fix duplicate command replies using site_settings dedup",
+        "category": "fix",
+        "hash": "c40f0f6"
+      },
+      {
+        "title": "Update July 7 changelog with stream, pricing, and dedup fixes",
+        "category": "improvement",
+        "hash": "0b26928"
+      },
       {
         "title": "Fix duplicate command replies across bot instances",
         "category": "fix",
@@ -57,16 +67,6 @@
         "title": "Sync site changelog to official #changelogs and fix status embed",
         "category": "improvement",
         "hash": "d5e8295"
-      },
-      {
-        "title": "Rebuild /staff as a role-based portal with dedicated dashboards",
-        "category": "improvement",
-        "hash": "047b9a0"
-      },
-      {
-        "title": "Ship reaction/button roles, ticket management, and stat counters end-to-end",
-        "category": "improvement",
-        "hash": "758cca9"
       }
     ],
     "source": "git"
@@ -74,12 +74,22 @@
   "releases": [
     {
       "id": "release-2026-07-07",
-      "version": "50d2fff",
-      "published_at": "2026-07-07T19:21:44-04:00",
+      "version": "c40f0f6",
+      "published_at": "2026-07-07T19:26:09-04:00",
       "title": "Updates for July 7, 2026",
       "category": "fix",
-      "body": "- Fix duplicate command replies across bot instances\n- Add ,stream command for Icecast and Shoutcast radio playback\n- Overhaul pricing page with bot stack comparison and switch incentives\n- Prevent duplicate changelog embeds on bot startup\n- Remove false-negative changelog permission preflight check\n- Fix changelog embed sync skipping posts on first bot run\n- Fix bot crash by excluding .d.ts files from command loader\n- Use public app URL for status embeds instead of localhost\n- Fix ticket panel Discord sync and redesign the admin control panel\n- Sync site changelog to official #changelogs and fix status embed\n- Rebuild /staff as a role-based portal with dedicated dashboards\n- Ship reaction/button roles, ticket management, and stat counters end-to-end",
+      "body": "- Fix duplicate command replies using site_settings dedup\n- Update July 7 changelog with stream, pricing, and dedup fixes\n- Fix duplicate command replies across bot instances\n- Add ,stream command for Icecast and Shoutcast radio playback\n- Overhaul pricing page with bot stack comparison and switch incentives\n- Prevent duplicate changelog embeds on bot startup\n- Remove false-negative changelog permission preflight check\n- Fix changelog embed sync skipping posts on first bot run\n- Fix bot crash by excluding .d.ts files from command loader\n- Use public app URL for status embeds instead of localhost\n- Fix ticket panel Discord sync and redesign the admin control panel\n- Sync site changelog to official #changelogs and fix status embed",
       "items": [
+        {
+          "title": "Fix duplicate command replies using site_settings dedup",
+          "category": "fix",
+          "hash": "c40f0f6"
+        },
+        {
+          "title": "Update July 7 changelog with stream, pricing, and dedup fixes",
+          "category": "improvement",
+          "hash": "0b26928"
+        },
         {
           "title": "Fix duplicate command replies across bot instances",
           "category": "fix",
@@ -129,16 +139,6 @@
           "title": "Sync site changelog to official #changelogs and fix status embed",
           "category": "improvement",
           "hash": "d5e8295"
-        },
-        {
-          "title": "Rebuild /staff as a role-based portal with dedicated dashboards",
-          "category": "improvement",
-          "hash": "047b9a0"
-        },
-        {
-          "title": "Ship reaction/button roles, ticket management, and stat counters end-to-end",
-          "category": "improvement",
-          "hash": "758cca9"
         }
       ],
       "source": "git"

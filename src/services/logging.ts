@@ -87,12 +87,14 @@ export async function sendEventLog(
   event: LogEvent,
   title: string,
   description: string,
-  opts?: { userId?: string; channelId?: string },
+  opts?: { userId?: string; channelId?: string; sourceChannelId?: string },
 ): Promise<void> {
   if (opts?.userId && (await isLogIgnored(guild.id, opts.userId))) return;
   if (opts?.channelId && (await isLogIgnored(guild.id, opts.channelId))) return;
   const channel = await resolveLogChannel(guild, event);
   if (!channel) return;
+  // Avoid a second embed in the channel where the mod command was run.
+  if (opts?.sourceChannelId && channel.id === opts.sourceChannelId) return;
   await channel.send({ embeds: [deeloEmbed(title, description)] }).catch(() => {});
 }
 
@@ -100,6 +102,7 @@ export async function sendModLog(
   guild: Guild,
   title: string,
   description: string,
+  opts?: { sourceChannelId?: string },
 ): Promise<void> {
-  await sendEventLog(guild, 'moderation', title, description);
+  await sendEventLog(guild, 'moderation', title, description, opts);
 }

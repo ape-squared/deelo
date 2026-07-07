@@ -1,11 +1,10 @@
 import Link from 'next/link';
 import {
-  Shield, Zap, Music, Ticket, Bot, Layers, BarChart3, Check, X, ArrowRight,
+  Shield, Zap, Music, Ticket, Bot, Layers, BarChart3, Check, ArrowRight,
   Settings, UserPlus, TrendingUp, Terminal, Hash, Mic, Star,
 } from 'lucide-react';
-import { FEATURE_SECTIONS, PLANS, STATS } from '@/lib/plans';
+import { FEATURE_SECTIONS, TYPICAL_STACK_COST } from '@/lib/plans';
 import { getInviteUrl } from '@/lib/invite';
-import { FaqSection } from './faq';
 
 const MODULE_ICONS = [Shield, Zap, Music, Ticket, Bot, Layers];
 
@@ -13,29 +12,18 @@ const STEPS = [
   {
     icon: UserPlus,
     title: 'Invite Deelo',
-    desc: 'Add Deelo to your server with one click. No setup wizard required — you\'re live instantly.',
+    desc: 'Add Deelo with one click. No setup wizard — you\'re live instantly with one prefix for everything.',
   },
   {
     icon: Settings,
-    title: 'Configure modules',
-    desc: 'Use the dashboard to set up moderation, welcome messages, tickets, levels, and more in minutes.',
+    title: 'Configure from the dashboard',
+    desc: 'Set up moderation, welcome messages, tickets, levels, and automod in minutes. One dashboard replaces five.',
   },
   {
     icon: TrendingUp,
-    title: 'Grow your community',
-    desc: 'Automate the busywork. Focus on your members while Deelo handles moderation, engagement, and utilities.',
+    title: 'Drop the extra bots',
+    desc: 'Run Deelo alongside your current stack, then remove MEE6, Dyno, and the rest when you\'re ready.',
   },
-];
-
-const COMPARE_ROWS = [
-  { feature: 'Moderation & cases', deelo: true, others: true },
-  { feature: 'Music & voice', deelo: true, others: false },
-  { feature: 'Levels & XP', deelo: true, others: false },
-  { feature: 'Tickets & starboard', deelo: true, others: false },
-  { feature: 'Anti-nuke & anti-raid', deelo: true, others: false },
-  { feature: 'Social feed integrations', deelo: true, others: false },
-  { feature: '1,144 commands', deelo: true, others: false },
-  { feature: 'Unified dashboard', deelo: true, others: false },
 ];
 
 const DASH_MODULES = [
@@ -49,12 +37,14 @@ const DASH_MODULES = [
 
 export function HowItWorksSection() {
   return (
-    <section className="site-section site-section-alt">
+    <section className="site-section">
       <div className="mx-auto max-w-6xl lg:px-6">
         <div className="mb-16 text-center">
           <span className="section-label">How it works</span>
-          <h2 className="section-heading">Up and running in minutes</h2>
-          <p className="section-sub mx-auto">No complicated onboarding. Invite, configure, done.</p>
+          <h2 className="section-heading">Switch in an afternoon</h2>
+          <p className="section-sub mx-auto">
+            No risky cutover. Invite Deelo, configure once, then retire the bots you&apos;re paying for.
+          </p>
         </div>
         <div className="grid gap-6 md:grid-cols-3">
           {STEPS.map((step, i) => {
@@ -76,34 +66,34 @@ export function HowItWorksSection() {
 
 export function ModulesSection() {
   return (
-    <section className="site-section">
+    <section className="site-section site-section-alt">
       <div className="mx-auto max-w-6xl lg:px-6">
-      <div className="mb-16 text-center">
-        <span className="section-label">Modules</span>
-        <h2 className="section-heading">Every tool your server needs</h2>
-        <p className="section-sub mx-auto">
-          Six core systems. One bot. Fully configurable from the dashboard or with commands.
-        </p>
-      </div>
-      <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-        {FEATURE_SECTIONS.map((f, i) => {
-          const Icon = MODULE_ICONS[i % MODULE_ICONS.length];
-          return (
-            <div key={f.title} className="feature-module animate-fade-up" style={{ animationDelay: `${i * 70}ms` }}>
-              <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-accent text-white shadow-lg shadow-accent/30">
-                <Icon className="h-6 w-6" />
+        <div className="mb-16 text-center">
+          <span className="section-label">Modules</span>
+          <h2 className="section-heading">One bot. Every tool your server needs.</h2>
+          <p className="section-sub mx-auto">
+            Six core systems with 1,144 commands — moderation, music, levels, tickets, automod, and utilities under one prefix.
+          </p>
+        </div>
+        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+          {FEATURE_SECTIONS.map((f, i) => {
+            const Icon = MODULE_ICONS[i % MODULE_ICONS.length];
+            return (
+              <div key={f.title} className="feature-module animate-fade-up" style={{ animationDelay: `${i * 70}ms` }}>
+                <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-accent/15 text-accent">
+                  <Icon className="h-6 w-6" />
+                </div>
+                <h3 className="text-xl font-semibold mb-2">{f.title}</h3>
+                <p className="text-sm text-muted leading-relaxed mb-5">{f.description}</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {f.tags.map((t) => (
+                    <span key={t} className="badge badge-muted text-[11px]">{t}</span>
+                  ))}
+                </div>
               </div>
-              <h3 className="text-xl font-semibold mb-2">{f.title}</h3>
-              <p className="text-sm text-muted leading-relaxed mb-5">{f.description}</p>
-              <div className="flex flex-wrap gap-1.5">
-                {f.tags.map((t) => (
-                  <span key={t} className="badge badge-muted text-[11px]">{t}</span>
-                ))}
-              </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
       </div>
     </section>
   );
@@ -111,15 +101,14 @@ export function ModulesSection() {
 
 export function DashboardPreviewSection() {
   return (
-    <section className="site-section site-section-alt relative overflow-hidden">
+    <section className="site-section relative overflow-hidden">
       <div className="brand-hero-glow -left-32 top-1/2 h-96 w-96 -translate-y-1/2" />
       <div className="relative mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-2 lg:px-6">
         <div>
           <span className="section-label">Dashboard</span>
-          <h2 className="section-heading">Control everything from one place</h2>
+          <h2 className="section-heading">One dashboard instead of five</h2>
           <p className="section-sub">
-            A professional web dashboard built for server owners. Toggle modules, edit welcome messages,
-            manage automod filters, ticket panels, and premium settings — all synced live with your bot.
+            Toggle modules, edit welcome messages, manage automod, ticket panels, and premium settings — all synced live with your bot.
           </p>
           <ul className="mt-8 space-y-3 text-sm">
             {['Real-time guild sync', 'Module-based navigation', 'Role & channel pickers', 'Plan management & redeem codes'].map((item) => (
@@ -185,40 +174,6 @@ export function DashboardPreviewSection() {
   );
 }
 
-export function CompareSection() {
-  return (
-    <section className="site-section">
-      <div className="mx-auto max-w-4xl lg:px-6">
-      <div className="mb-12 text-center">
-        <span className="section-label">Why Deelo</span>
-        <h2 className="section-heading">One bot instead of five</h2>
-        <p className="section-sub mx-auto">
-          Stop stacking single-purpose bots. Deelo bundles everything with one prefix and one dashboard.
-        </p>
-      </div>
-      <div className="card overflow-hidden">
-        <div className="grid grid-cols-3 border-b border-border bg-white/[0.02] px-6 py-4 text-sm font-semibold">
-          <span className="text-muted">Feature</span>
-          <span className="text-center text-accent">Deelo</span>
-          <span className="text-center text-muted">Typical stack</span>
-        </div>
-        {COMPARE_ROWS.map((row) => (
-          <div key={row.feature} className="grid grid-cols-3 items-center border-b border-border/50 px-6 py-3.5 text-sm last:border-0">
-            <span>{row.feature}</span>
-            <div className="flex justify-center">
-              {row.deelo ? <span className="compare-check"><Check className="h-3 w-3" /></span> : <span className="compare-x"><X className="h-3 w-3" /></span>}
-            </div>
-            <div className="flex justify-center">
-              {row.others ? <span className="compare-check"><Check className="h-3 w-3" /></span> : <span className="compare-x"><X className="h-3 w-3" /></span>}
-            </div>
-          </div>
-        ))}
-      </div>
-      </div>
-    </section>
-  );
-}
-
 export function CommandPreview() {
   return (
     <div className="command-preview">
@@ -235,8 +190,8 @@ export function CommandPreview() {
       <div className="space-y-3 p-5">
         <p><span className="command-line-user">riq</span> <span className="text-foreground/80">,ban @user spam</span></p>
         <p className="command-line-bot pl-4">→ 🔨 Banned user · Case #42 logged</p>
-        <p><span className="command-line-user">riq</span> <span className="text-foreground/80">,play lofi beats</span></p>
-        <p className="command-line-bot pl-4">→ 🎵 Now playing in General VC</p>
+        <p><span className="command-line-user">riq</span> <span className="text-foreground/80">,stream https://radio.example/live</span></p>
+        <p className="command-line-bot pl-4">→ 📻 Now playing live radio in General VC</p>
         <p><span className="command-line-user">riq</span> <span className="text-foreground/80">,rank</span></p>
         <p className="command-line-bot pl-4">→ Level 24 · 12,450 XP · #3 on leaderboard</p>
       </div>
@@ -244,76 +199,23 @@ export function CommandPreview() {
   );
 }
 
-export function TrustBar() {
-  return (
-    <div className="trust-bar">
-      <div className="mx-auto grid max-w-5xl grid-cols-2 gap-6 px-4 sm:grid-cols-4 lg:px-6">
-        {STATS.map((s) => (
-          <div key={s.label} className="text-center">
-            <p className="stat-value text-2xl sm:text-3xl">{s.value}</p>
-            <p className="mt-1 text-xs font-medium uppercase tracking-widest text-muted">{s.label}</p>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-export function PricingTeaser() {
-  return (
-    <section className="site-section site-section-alt">
-      <div className="mx-auto max-w-6xl lg:px-6">
-        <div className="mb-14 text-center">
-          <span className="section-label">Pricing</span>
-          <h2 className="section-heading">Start free. Scale when you grow.</h2>
-          <p className="section-sub mx-auto">Transparent plans with no hidden fees. Upgrade from the dashboard anytime.</p>
-        </div>
-        <div className="grid gap-6 lg:grid-cols-3">
-          {(Object.entries(PLANS) as [keyof typeof PLANS, typeof PLANS.free][]).map(([key, plan]) => (
-            <div key={key} className={`card p-8 ${key === 'premium' ? 'gradient-border' : ''}`}>
-              {key === 'premium' && <span className="badge badge-accent mb-4">Most popular</span>}
-              <h3 className="text-xl font-bold">{plan.name}</h3>
-              <p className="mt-3 text-4xl font-bold">
-                {plan.price}
-                <span className="text-base font-normal text-muted">{plan.period}</span>
-              </p>
-              <p className="mt-2 text-sm text-muted">{plan.description}</p>
-              <ul className="mt-6 space-y-2.5 text-sm text-muted">
-                {plan.highlights.slice(0, 4).map((h) => (
-                  <li key={h} className="flex gap-2">
-                    <Check className="h-4 w-4 shrink-0 text-accent mt-0.5" />
-                    {h}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-        <div className="mt-10 text-center">
-          <Link href="/pricing" className="btn-secondary text-sm">
-            View full pricing
-            <ArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-export function FaqSectionWrapper() {
-  return <FaqSection />;
-}
-
-export function FinalCta({ discordInvite }: { discordInvite: string }) {
+export function HomeFinalCta({ discordInvite }: { discordInvite: string }) {
   return (
     <section className="site-section px-4">
       <div className="relative mx-auto max-w-3xl">
         <div className="cta-panel animate-fade-up">
-          <h2 className="mb-4 text-balance text-2xl font-bold sm:text-3xl lg:text-4xl">Ready to run your server on Deelo?</h2>
-          <p className="mx-auto mb-8 max-w-lg text-base text-muted sm:text-lg">Join thousands of communities. Free to start, powerful at scale.</p>
+          <h2 className="mb-4 text-balance text-2xl font-bold sm:text-3xl lg:text-4xl">
+            Ready to ditch the bot stack?
+          </h2>
+          <p className="mx-auto mb-2 max-w-lg text-base text-muted sm:text-lg">
+            Join thousands of communities running Deelo as their only bot. Free forever — upgrade only when you need more.
+          </p>
+          <p className="mx-auto mb-8 text-sm font-medium text-green-400">
+            Premium saves ~$22/mo vs a typical {TYPICAL_STACK_COST.bots.length}-bot setup
+          </p>
           <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-center">
             <a href={getInviteUrl()} className="btn-primary w-full px-10 text-base sm:w-auto" target="_blank" rel="noreferrer">
-              Add to Discord
+              Add Deelo free
               <ArrowRight className="h-4 w-4" />
             </a>
             <a href={discordInvite} className="btn-secondary w-full text-base sm:w-auto" target="_blank" rel="noreferrer">
@@ -321,6 +223,23 @@ export function FinalCta({ discordInvite }: { discordInvite: string }) {
             </a>
           </div>
         </div>
+      </div>
+    </section>
+  );
+}
+
+export function HomePricingLink() {
+  return (
+    <section className="site-section-alt px-4 py-10">
+      <div className="mx-auto flex max-w-4xl flex-col items-center justify-between gap-4 text-center sm:flex-row sm:text-left lg:px-6">
+        <div>
+          <p className="text-sm font-semibold">Compare plans & bot-stack savings</p>
+          <p className="mt-1 text-sm text-muted">See how Deelo Premium stacks up against MEE6, Dyno, and the rest.</p>
+        </div>
+        <Link href="/pricing" className="btn-secondary shrink-0 text-sm">
+          View pricing
+          <ArrowRight className="h-4 w-4" />
+        </Link>
       </div>
     </section>
   );

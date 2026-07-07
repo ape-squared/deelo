@@ -41,14 +41,22 @@ function createFfmpegStream(input: Readable, afilter: string): Readable {
 
 function createRadioStream(url: string, presetId: string, track: Track): Readable {
   const filter = getPresetFilter(presetId);
+  const isHls = /\.m3u8(\?|$)/i.test(url);
   const args = [
+    '-nostdin',
     '-reconnect', '1',
     '-reconnect_streamed', '1',
     '-reconnect_delay_max', '5',
     '-reconnect_at_eof', '1',
+    '-rw_timeout', '15000000',
     '-user_agent', RADIO_USER_AGENT,
     '-headers', 'Icy-MetaData: 0\r\n',
+    ...(isHls
+      ? ['-protocol_whitelist', 'file,http,https,tcp,tls,crypto']
+      : ['-analyzeduration', '5000000', '-probesize', '5000000']),
     '-i', url,
+    '-vn',
+    '-sn',
   ];
 
   if (filter) {
@@ -60,6 +68,11 @@ function createRadioStream(url: string, presetId: string, track: Track): Readabl
   const ffmpeg = new prism.FFmpeg({ args });
   ffmpeg.on('error', (err) => {
     console.error(`[music] radio ffmpeg error for ${track.title}:`, err.message);
+  });
+  ffmpeg.on('close', (code: number | null) => {
+    if (code !== 0 && code !== null) {
+      console.warn(`[music] radio ffmpeg exited (${code}) for ${track.title}`);
+    }
   });
   return attachErrorLogging(ffmpeg, track, 'radio');
 }

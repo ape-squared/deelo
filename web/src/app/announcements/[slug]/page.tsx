@@ -20,7 +20,7 @@ export default async function AnnouncementDetailPage({ params }: { params: Promi
   if (!post) notFound();
 
   return (
-    <MarketingLayout>
+    <MarketingLayout banner={false}>
       <MarketingMain narrow className="!py-12 lg:!py-20">
         <article className="animate-fade-up">
           <Link href="/announcements" className="mb-8 inline-flex items-center gap-2 text-sm text-muted transition hover:text-foreground">

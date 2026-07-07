@@ -25,7 +25,7 @@ const moderation: Command[] = [
       await message.guild!.members.ban(userId, { reason });
       const caseId = await addModCase(message.guild!.id, userId, message.author.id, 'ban', reason);
       const { sendModLog } = await import('../../services/logging');
-      await sendModLog(message.guild!, '🔨 Member Banned', `**User:** <@${userId}>\n**Moderator:** ${message.author}\n**Reason:** ${reason}\n**Case:** #${caseId}`);
+      await sendModLog(message.guild!, '🔨 Member Banned', `**User:** <@${userId}>\n**Moderator:** ${message.author}\n**Reason:** ${reason}\n**Case:** #${caseId}`, { sourceChannelId: message.channel.id });
       await message.reply({ embeds: [successEmbed(`Banned <@${userId}> — Case #${caseId}\n**Reason:** ${reason}`)] });
     },
     slash: {
@@ -60,7 +60,7 @@ const moderation: Command[] = [
       await member.kick(reason);
       const caseId = await addModCase(message.guild!.id, userId, message.author.id, 'kick', reason);
       const { sendModLog } = await import('../../services/logging');
-      await sendModLog(message.guild!, '👢 Member Kicked', `**User:** ${member.user.tag} (\`${userId}\`)\n**Moderator:** ${message.author}\n**Reason:** ${reason}\n**Case:** #${caseId}`);
+      await sendModLog(message.guild!, '👢 Member Kicked', `**User:** ${member.user.tag} (\`${userId}\`)\n**Moderator:** ${message.author}\n**Reason:** ${reason}\n**Case:** #${caseId}`, { sourceChannelId: message.channel.id });
       await message.reply({ embeds: [successEmbed(`Kicked **${member.user.tag}** — Case #${caseId}`)] });
     },
   },
@@ -126,7 +126,7 @@ const moderation: Command[] = [
       try {
         const caseId = await muteMember(member, message.author.id, reason);
         const { sendModLog } = await import('../../services/logging');
-        await sendModLog(message.guild!, '🔇 Member Muted', `**User:** ${member.user.tag}\n**Moderator:** ${message.author}\n**Reason:** ${reason}\n**Case:** #${caseId}`);
+        await sendModLog(message.guild!, '🔇 Member Muted', `**User:** ${member.user.tag}\n**Moderator:** ${message.author}\n**Reason:** ${reason}\n**Case:** #${caseId}`, { sourceChannelId: message.channel.id });
         await message.reply({ embeds: [successEmbed(`Muted **${member.user.tag}** — Case #${caseId}`)] });
       } catch (err) {
         const { MuteError } = await import('../../services/mute');

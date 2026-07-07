@@ -59,16 +59,8 @@ export function StatusView() {
   const meta = STATUS_META[overall];
 
   return (
-    <main className="site-main flex-1">
-      <div className="mx-auto max-w-4xl px-4 py-16 lg:px-6 lg:py-24">
-        <header className="page-hero page-hero-center mb-10 animate-fade-in">
-          <div className="page-hero-icon">
-            <Activity className="h-8 w-8" />
-          </div>
-          <h1 className="section-heading mt-4">System status</h1>
-          <p className="section-sub">Real-time health for Deelo bot and services</p>
-        </header>
-
+    <section className="site-section site-section-alt !pt-0">
+      <div className="mx-auto max-w-4xl lg:px-6">
         <div className={`status-hero mb-8 rounded-2xl border p-6 sm:p-8 animate-fade-up ${meta.ring}`}>
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-3">
@@ -140,7 +132,7 @@ export function StatusView() {
           </a>
         </div>
       </div>
-    </main>
+    </section>
   );
 }
 

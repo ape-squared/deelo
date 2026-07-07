@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { ContentBody } from '@/components/content-body';
 import { MarketingLayout, MarketingMain } from '@/components/marketing/site-layout';
-import { SitePageHero } from '@/components/marketing/page-hero';
+import { MarketingSubHero } from '@/components/marketing/page-hero';
 import { getPublishedChangelog } from '@/lib/site-data';
 import { CHANGELOG_CATEGORY_COLORS, CHANGELOG_CATEGORY_LABELS, formatContentDate } from '@/lib/site-content';
 import { isAutoChangelogEntry } from '@/lib/releases';
@@ -14,15 +14,14 @@ export default async function ChangelogPage() {
   const entries = await getPublishedChangelog();
 
   return (
-    <MarketingLayout>
+    <MarketingLayout banner={false}>
+      <MarketingSubHero
+        icon={ScrollText}
+        label="Release notes"
+        title="Changelog"
+        description="Everything new, improved, and fixed in Deelo."
+      />
       <MarketingMain narrow className="!py-12 lg:!py-20">
-        <SitePageHero
-          icon={ScrollText}
-          label="Release notes"
-          title="Changelog"
-          description="Everything new, improved, and fixed in Deelo."
-        />
-
         <div className="relative space-y-0">
           <div className="timeline-line" aria-hidden />
           {entries.map((entry, i) => (

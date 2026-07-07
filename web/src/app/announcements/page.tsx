@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { MarketingLayout, MarketingMain } from '@/components/marketing/site-layout';
-import { SitePageHero } from '@/components/marketing/page-hero';
+import { MarketingSubHero } from '@/components/marketing/page-hero';
 import { getPublishedAnnouncements } from '@/lib/site-data';
 import { formatContentDate } from '@/lib/site-content';
 import { Megaphone, Pin, ArrowRight } from 'lucide-react';
@@ -12,15 +12,14 @@ export default async function AnnouncementsPage() {
   const announcements = await getPublishedAnnouncements();
 
   return (
-    <MarketingLayout>
+    <MarketingLayout banner={false}>
+      <MarketingSubHero
+        icon={Megaphone}
+        label="Official updates"
+        title="Announcements"
+        description="News, maintenance notices, and product updates from the Deelo team."
+      />
       <MarketingMain narrow className="!py-12 lg:!py-20">
-        <SitePageHero
-          icon={Megaphone}
-          label="Official updates"
-          title="Announcements"
-          description="News, maintenance notices, and product updates from the Deelo team."
-        />
-
         <div className="space-y-4">
           {announcements.map((a, i) => (
             <Link

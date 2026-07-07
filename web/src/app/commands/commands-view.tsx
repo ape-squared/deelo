@@ -9,7 +9,7 @@ import {
   type CommandImplementationStatus,
 } from '@/lib/command-implementation';
 import { SearchField } from '@/components/search-field';
-import { ChevronDown, ChevronUp, Terminal } from 'lucide-react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 
 type Cog = {
   cog_name: string;
@@ -46,8 +46,6 @@ export function CommandsView() {
       .filter((cog) => cog.commands.length > 0);
   }, [cogs, search]);
 
-  const totalCommands = cogs.reduce((n, c) => n + c.commands.length, 0);
-
   const statusCounts = useMemo(() => {
     const counts: Record<CommandImplementationStatus, number> = {
       supported: 0,
@@ -61,27 +59,10 @@ export function CommandsView() {
   }, [cogs]);
 
   return (
-    <main className="site-main flex-1">
-      <div className="mx-auto max-w-6xl px-4 py-16 lg:px-6 lg:py-24">
-        <header className="page-hero page-hero-center mb-12 animate-fade-up">
-          <div className="page-hero-icon">
-            <Terminal className="h-8 w-8" />
-          </div>
-          <span className="section-label">Command reference</span>
-          <h1 className="section-heading mt-4">
-            <span className="gradient-text">{totalCommands.toLocaleString()}</span> commands
-          </h1>
-          <p className="section-sub">
-            Browse {cogs.length} categories. Default prefix is <code className="font-mono text-accent">,</code>
-          </p>
-          <p className="mt-4 text-sm text-muted max-w-2xl mx-auto">
-            {statusCounts.supported.toLocaleString()} supported · {statusCounts.partial.toLocaleString()} partial ·{' '}
-            {statusCounts['coming-soon'].toLocaleString()} coming soon. Unmarked catalog commands return a coming-soon message in Discord.
-          </p>
-        </header>
-
+    <section className="site-section !pt-0">
+      <div className="mx-auto max-w-6xl lg:px-6">
         <SearchField
-          className="mb-10 max-w-md mx-auto animate-fade-up delay-100"
+          className="mb-10 max-w-md mx-auto animate-fade-up"
           placeholder="Search commands..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -152,7 +133,12 @@ export function CommandsView() {
             No commands match &ldquo;{search}&rdquo;
           </div>
         )}
+
+        <p className="mt-10 text-center text-sm text-muted">
+          {statusCounts.supported.toLocaleString()} supported · {statusCounts.partial.toLocaleString()} partial ·{' '}
+          {statusCounts['coming-soon'].toLocaleString()} coming soon
+        </p>
       </div>
-    </main>
+    </section>
   );
 }

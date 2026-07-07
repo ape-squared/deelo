@@ -20,6 +20,9 @@ import {
 } from './store';
 
 const IDLE_LEAVE_MS = 120_000;
+const MAX_LIVE_RETRIES = 5;
+const MIN_LIVE_PLAY_MS = 3_000;
+const LIVE_RECONNECT_BASE_MS = 2_000;
 
 export class GuildPlayer {
   readonly state: import('./store').GuildMusicState;
@@ -29,6 +32,9 @@ export class GuildPlayer {
   private pendingIdle = false;
   private playGeneration = 0;
   private idleTimer: ReturnType<typeof setTimeout> | null = null;
+  private liveRetries = 0;
+  private livePlayStartedAt = 0;
+  private liveReconnectTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(readonly guildId: string) {
     this.state = getGuildState(guildId);
@@ -120,6 +126,49 @@ export class GuildPlayer {
     }
   }
 
+  private clearLiveReconnectTimer(): void {
+    if (this.liveReconnectTimer) {
+      clearTimeout(this.liveReconnectTimer);
+      this.liveReconnectTimer = null;
+    }
+  }
+
+  /** Back off live reconnects — instant idle means the upstream/ffmpeg failed, not a clean EOF. */
+  private scheduleLiveReconnect(liveTrack: Track, fromError: boolean): void {
+    if (this.liveReconnectTimer) return;
+
+    const playedMs = this.livePlayStartedAt ? Date.now() - this.livePlayStartedAt : 0;
+    const shortPlay = playedMs < MIN_LIVE_PLAY_MS;
+
+    if (shortPlay || fromError) {
+      this.liveRetries++;
+    } else if (this.liveRetries > 0) {
+      this.liveRetries--;
+    }
+
+    if (this.liveRetries > MAX_LIVE_RETRIES) {
+      console.warn(
+        `[music:${this.guildId}] live stream gave up after ${MAX_LIVE_RETRIES} retries: ${liveTrack.title}`,
+      );
+      this.state.current = null;
+      this.livePlayStartedAt = 0;
+      this.scheduleLeave();
+      return;
+    }
+
+    const delay = LIVE_RECONNECT_BASE_MS * 2 ** Math.min(this.liveRetries - 1, 4);
+    console.log(
+      `[music:${this.guildId}] live reconnect in ${(delay / 1000).toFixed(1)}s (${this.liveRetries}/${MAX_LIVE_RETRIES}): ${liveTrack.title}`,
+    );
+
+    this.liveReconnectTimer = setTimeout(() => {
+      this.liveReconnectTimer = null;
+      if (!this.state.current?.live || this.state.queue.length || this.state.repeat) return;
+      this.state.queue.unshift(liveTrack);
+      void this.playNext();
+    }, delay);
+  }
+
   private scheduleLeave(): void {
     this.clearIdleTimer();
     this.idleTimer = setTimeout(() => {
@@ -139,15 +188,10 @@ export class GuildPlayer {
       console.warn(`[music:${this.guildId}] track failed: ${this.state.current.title}`);
     }
 
-    // Reconnect live radio when the upstream drops without a hard error
-    if (
-      !fromError &&
-      this.state.current?.live &&
-      !this.state.repeat &&
-      !this.state.queue.length
-    ) {
-      console.log(`[music:${this.guildId}] reconnecting live stream: ${this.state.current.title}`);
-      this.state.queue.unshift(this.state.current);
+    const liveTrack = this.state.current?.live ? this.state.current : null;
+    if (liveTrack && !this.state.repeat && !this.state.queue.length) {
+      this.scheduleLiveReconnect(liveTrack, fromError);
+      return;
     }
 
     try {
@@ -193,6 +237,7 @@ export class GuildPlayer {
 
   private async destroyVoice(): Promise<void> {
     this.clearIdleTimer();
+    this.clearLiveReconnectTimer();
     try {
       this.connection?.destroy();
     } catch {
@@ -370,6 +415,7 @@ export class GuildPlayer {
       const resource = createAudioResource(stream, { inputType, inlineVolume });
       resource.volume?.setVolume(this.state.volume / 100);
       this.ensureVoiceSubscription();
+      this.livePlayStartedAt = Date.now();
       this.player.play(resource);
     } catch (err) {
       if (generation !== this.playGeneration) return;
@@ -441,6 +487,9 @@ export class GuildPlayer {
 
   stop(): void {
     this.playGeneration++;
+    this.clearLiveReconnectTimer();
+    this.liveRetries = 0;
+    this.livePlayStartedAt = 0;
     this.state.queue = [];
     this.state.current = null;
     this.player.stop(true);
@@ -501,8 +550,14 @@ export class GuildPlayer {
 
     const me = guild.members.me;
     if (me?.voice.channelId) {
-      console.log(`[music:${this.guildId}] clearing stale voice from previous session`);
-      await me.voice.disconnect().catch(() => {});
+      try {
+        await this.connect(guild, me.voice.channelId);
+        console.log(`[music:${this.guildId}] rejoined voice after restart`);
+        return;
+      } catch (err) {
+        console.warn(`[music:${this.guildId}] voice rejoin failed, disconnecting:`, err);
+        await me.voice.disconnect().catch(() => {});
+      }
     }
   }
 }

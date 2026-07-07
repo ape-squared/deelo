@@ -58,7 +58,12 @@ export async function resolveStreamUrl(input: string): Promise<string> {
     throw new Error('Invalid stream URL. Use a direct http(s) link or .pls / .m3u playlist.');
   }
 
-  if (!/\.(pls|m3u|m3u8)(\?|$)/i.test(trimmed)) {
+  // HLS playlists must stay intact — resolving to the first segment ends playback in ~30s
+  if (/\.m3u8(\?|$)/i.test(trimmed)) {
+    return trimmed;
+  }
+
+  if (!/\.(pls|m3u)(\?|$)/i.test(trimmed)) {
     return trimmed;
   }
 
