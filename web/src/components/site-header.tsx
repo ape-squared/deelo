@@ -47,22 +47,24 @@ export function SiteHeader() {
 
   return (
     <header className="site-header-v3">
-      <div className="mx-auto flex h-[4.25rem] max-w-6xl items-center justify-between px-4 lg:px-6">
-        <DeeloLogoLink />
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 lg:px-6">
+        <div className="site-header-brand min-w-0">
+          <DeeloLogoLink />
+        </div>
 
-        <nav className="hidden items-center gap-0.5 lg:flex" aria-label="Main">
+        <nav className="hidden min-w-0 items-center gap-0.5 lg:flex" aria-label="Main">
           {NAV.map(({ href, label }) => (
             <NavLink key={href} href={href} label={label} />
           ))}
         </nav>
 
-        <div className="flex items-center gap-2">
-          <Link href="/dashboard" className="btn-ghost hidden sm:inline-flex text-sm">
+        <div className="site-header-actions">
+          <Link href="/dashboard" className="btn-ghost hidden text-sm md:inline-flex">
             Dashboard
           </Link>
           <a
             href={inviteApiPath()}
-            className="btn-primary hidden text-sm py-2.5 px-5 sm:inline-flex"
+            className="btn-primary hidden py-2.5 px-4 text-sm md:inline-flex lg:px-5"
             target="_blank"
             rel="noreferrer"
           >

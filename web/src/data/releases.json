@@ -1,0 +1,163 @@
+{
+  "generated_at": "2026-07-07T21:57:06.600Z",
+  "latest": {
+    "id": "release-2026-07-07",
+    "version": "cee0dd4",
+    "published_at": "2026-07-07T17:55:26-04:00",
+    "title": "Updates for July 7, 2026",
+    "category": "feature",
+    "body": "- Implement Fortnite and social feeds using free public data sources\n- V3 public site overhaul with unified marketing layout\n- Merge admin and staff portals into unified /admin\n- Deelo v3: staff portal, RBAC, and dashboard overhaul\n- Apply dashboard bot customization to Discord on save\n- Fix embed colors for dashboard sends and bot replies\n- Fix dashboard bot presence detection after redeploy\n- Add embed builder, fix fun commands, and resolve embed/Last.fm routing clash\n- Add premium bot appearance settings and fix web client bundle\n- Add Discord channel dropdowns to the guild dashboard\n- Fix dashboard layout overlap and animation glitches\n- Fix dashboard profile avatars showing broken image icon",
+    "items": [
+      {
+        "title": "Implement Fortnite and social feeds using free public data sources",
+        "category": "feature",
+        "hash": "cee0dd4"
+      },
+      {
+        "title": "V3 public site overhaul with unified marketing layout",
+        "category": "feature",
+        "hash": "9859767"
+      },
+      {
+        "title": "Merge admin and staff portals into unified /admin",
+        "category": "feature",
+        "hash": "15335f5"
+      },
+      {
+        "title": "Deelo v3: staff portal, RBAC, and dashboard overhaul",
+        "category": "feature",
+        "hash": "5546f85"
+      },
+      {
+        "title": "Apply dashboard bot customization to Discord on save",
+        "category": "improvement",
+        "hash": "c5a4718"
+      },
+      {
+        "title": "Fix embed colors for dashboard sends and bot replies",
+        "category": "fix",
+        "hash": "020a49a"
+      },
+      {
+        "title": "Fix dashboard bot presence detection after redeploy",
+        "category": "fix",
+        "hash": "e86d5a0"
+      },
+      {
+        "title": "Add embed builder, fix fun commands, and resolve embed/Last.fm routing clash",
+        "category": "feature",
+        "hash": "37d42c2"
+      },
+      {
+        "title": "Add premium bot appearance settings and fix web client bundle",
+        "category": "feature",
+        "hash": "6af1f36"
+      },
+      {
+        "title": "Add Discord channel dropdowns to the guild dashboard",
+        "category": "feature",
+        "hash": "1c02e5b"
+      },
+      {
+        "title": "Fix dashboard layout overlap and animation glitches",
+        "category": "fix",
+        "hash": "8a88059"
+      },
+      {
+        "title": "Fix dashboard profile avatars showing broken image icon",
+        "category": "fix",
+        "hash": "3adf73d"
+      }
+    ],
+    "source": "git"
+  },
+  "releases": [
+    {
+      "id": "release-2026-07-07",
+      "version": "cee0dd4",
+      "published_at": "2026-07-07T17:55:26-04:00",
+      "title": "Updates for July 7, 2026",
+      "category": "feature",
+      "body": "- Implement Fortnite and social feeds using free public data sources\n- V3 public site overhaul with unified marketing layout\n- Merge admin and staff portals into unified /admin\n- Deelo v3: staff portal, RBAC, and dashboard overhaul\n- Apply dashboard bot customization to Discord on save\n- Fix embed colors for dashboard sends and bot replies\n- Fix dashboard bot presence detection after redeploy\n- Add embed builder, fix fun commands, and resolve embed/Last.fm routing clash\n- Add premium bot appearance settings and fix web client bundle\n- Add Discord channel dropdowns to the guild dashboard\n- Fix dashboard layout overlap and animation glitches\n- Fix dashboard profile avatars showing broken image icon",
+      "items": [
+        {
+          "title": "Implement Fortnite and social feeds using free public data sources",
+          "category": "feature",
+          "hash": "cee0dd4"
+        },
+        {
+          "title": "V3 public site overhaul with unified marketing layout",
+          "category": "feature",
+          "hash": "9859767"
+        },
+        {
+          "title": "Merge admin and staff portals into unified /admin",
+          "category": "feature",
+          "hash": "15335f5"
+        },
+        {
+          "title": "Deelo v3: staff portal, RBAC, and dashboard overhaul",
+          "category": "feature",
+          "hash": "5546f85"
+        },
+        {
+          "title": "Apply dashboard bot customization to Discord on save",
+          "category": "improvement",
+          "hash": "c5a4718"
+        },
+        {
+          "title": "Fix embed colors for dashboard sends and bot replies",
+          "category": "fix",
+          "hash": "020a49a"
+        },
+        {
+          "title": "Fix dashboard bot presence detection after redeploy",
+          "category": "fix",
+          "hash": "e86d5a0"
+        },
+        {
+          "title": "Add embed builder, fix fun commands, and resolve embed/Last.fm routing clash",
+          "category": "feature",
+          "hash": "37d42c2"
+        },
+        {
+          "title": "Add premium bot appearance settings and fix web client bundle",
+          "category": "feature",
+          "hash": "6af1f36"
+        },
+        {
+          "title": "Add Discord channel dropdowns to the guild dashboard",
+          "category": "feature",
+          "hash": "1c02e5b"
+        },
+        {
+          "title": "Fix dashboard layout overlap and animation glitches",
+          "category": "fix",
+          "hash": "8a88059"
+        },
+        {
+          "title": "Fix dashboard profile avatars showing broken image icon",
+          "category": "fix",
+          "hash": "3adf73d"
+        }
+      ],
+      "source": "git"
+    },
+    {
+      "id": "release-2026-07-06",
+      "version": "5318d13",
+      "published_at": "2026-07-06T23:59:23-04:00",
+      "title": "Fix Vercel workflow: checkout before steps that need the web directory",
+      "category": "fix",
+      "body": "- Fix Vercel workflow: checkout before steps that need the web directory",
+      "items": [
+        {
+          "title": "Fix Vercel workflow: checkout before steps that need the web directory",
+          "category": "fix",
+          "hash": "5318d13"
+        }
+      ],
+      "source": "git"
+    }
+  ]
+}

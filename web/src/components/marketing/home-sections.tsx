@@ -309,14 +309,14 @@ export function FinalCta({ discordInvite }: { discordInvite: string }) {
     <section className="site-section px-4">
       <div className="relative mx-auto max-w-3xl">
         <div className="cta-panel animate-fade-up">
-          <h2 className="mb-4 text-3xl font-bold sm:text-4xl">Ready to run your server on Deelo?</h2>
-          <p className="mx-auto mb-8 max-w-lg text-lg text-muted">Join thousands of communities. Free to start, powerful at scale.</p>
-          <div className="flex flex-wrap justify-center gap-3">
-            <a href={getInviteUrl()} className="btn-primary px-10 text-base" target="_blank" rel="noreferrer">
+          <h2 className="mb-4 text-balance text-2xl font-bold sm:text-3xl lg:text-4xl">Ready to run your server on Deelo?</h2>
+          <p className="mx-auto mb-8 max-w-lg text-base text-muted sm:text-lg">Join thousands of communities. Free to start, powerful at scale.</p>
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-center">
+            <a href={getInviteUrl()} className="btn-primary w-full px-10 text-base sm:w-auto" target="_blank" rel="noreferrer">
               Add to Discord
               <ArrowRight className="h-4 w-4" />
             </a>
-            <a href={discordInvite} className="btn-secondary text-base" target="_blank" rel="noreferrer">
+            <a href={discordInvite} className="btn-secondary w-full text-base sm:w-auto" target="_blank" rel="noreferrer">
               Join community
             </a>
           </div>

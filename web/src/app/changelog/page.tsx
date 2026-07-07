@@ -4,6 +4,7 @@ import { MarketingLayout, MarketingMain } from '@/components/marketing/site-layo
 import { SitePageHero } from '@/components/marketing/page-hero';
 import { getPublishedChangelog } from '@/lib/site-data';
 import { CHANGELOG_CATEGORY_COLORS, CHANGELOG_CATEGORY_LABELS, formatContentDate } from '@/lib/site-content';
+import { isAutoChangelogEntry } from '@/lib/releases';
 import { ScrollText } from 'lucide-react';
 
 export const metadata = { title: 'Changelog — Deelo' };
@@ -30,11 +31,14 @@ export default async function ChangelogPage() {
               <div className="card p-6">
                 <div className="mb-3 flex flex-wrap items-center gap-2">
                   {entry.version && (
-                    <span className="font-mono text-sm font-semibold text-accent">v{entry.version}</span>
+                    <span className="font-mono text-sm font-semibold text-accent">{entry.version}</span>
                   )}
                   <span className={`badge border text-xs ${CHANGELOG_CATEGORY_COLORS[entry.category]}`}>
                     {CHANGELOG_CATEGORY_LABELS[entry.category]}
                   </span>
+                  {isAutoChangelogEntry(entry) && (
+                    <span className="badge badge-muted text-[10px]">Auto from git</span>
+                  )}
                   <span className="text-xs text-muted">{formatContentDate(entry.published_at)}</span>
                 </div>
                 <h2 className="mb-3 text-lg font-semibold">{entry.title}</h2>

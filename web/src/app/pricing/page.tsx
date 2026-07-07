@@ -16,7 +16,7 @@ export default function PricingPage() {
           description="Start free, upgrade when you need more. Manage everything from your dashboard after inviting Deelo."
         />
 
-        <div className="grid gap-6 md:grid-cols-3 lg:gap-8">
+        <div className="pricing-grid">
           {(Object.entries(PLANS) as [keyof typeof PLANS, typeof PLANS.free][]).map(([key, plan], i) => {
             const Icon = ICONS[key];
             const featured = key === 'premium';
@@ -24,11 +24,11 @@ export default function PricingPage() {
             return (
               <div
                 key={key}
-                className={`card relative flex flex-col p-8 animate-fade-up ${featured ? 'gradient-border ring-1 ring-accent/30 lg:scale-[1.03]' : ''}`}
+                className={`card relative flex flex-col p-8 animate-fade-up ${featured ? 'pricing-card-featured gradient-border' : ''}`}
                 style={{ animationDelay: `${i * 100}ms` }}
               >
                 {featured && (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 badge badge-accent">
+                  <span className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 badge badge-accent">
                     Most popular
                   </span>
                 )}

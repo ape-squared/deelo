@@ -23,7 +23,7 @@ export function SitePageHero({
         </div>
       )}
       {label && <span className="section-label">{label}</span>}
-      <h1 className="section-heading mt-4">{title}</h1>
+      <h1 className="section-heading mt-3 sm:mt-4">{title}</h1>
       {description && <p className="section-sub">{description}</p>}
       {children}
     </header>

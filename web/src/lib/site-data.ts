@@ -72,7 +72,7 @@ export async function getBannerAnnouncement(): Promise<SiteAnnouncement | null> 
 }
 
 export async function getPublishedChangelog(limit = 50): Promise<SiteChangelogEntry[]> {
-  return safeQuery(async () => {
+  const dbEntries = await safeQuery(async () => {
     const db = createAdminClient();
     const { data, error } = await db
       .from('site_changelog')
@@ -83,6 +83,10 @@ export async function getPublishedChangelog(limit = 50): Promise<SiteChangelogEn
     if (error) handleDbError(error);
     return (data ?? []) as SiteChangelogEntry[];
   }, []);
+
+  const { getMergedChangelog } = await import('@/lib/releases');
+  const merged = await getMergedChangelog(dbEntries);
+  return merged.slice(0, limit);
 }
 
 export async function getLatestChangelog(): Promise<SiteChangelogEntry | null> {
@@ -119,7 +123,7 @@ export async function getHeroSettings(): Promise<HeroSiteSettings> {
       show_latest_changelog: v.show_latest_changelog !== false,
     };
   }, {
-    badge: 'Deelo v2 — live dashboard sync',
+    badge: 'Deelo v3 — unified dashboard & site',
     show_latest_changelog: true,
   });
 }
