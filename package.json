@@ -13,6 +13,7 @@
     "test:smoke": "tsx scripts/smoke-test.ts",
     "web:env": "node web/scripts/sync-env.mjs",
     "web:env:prod": "node web/scripts/sync-production-env.mjs",
+    "web:brand": "node web/scripts/process-brand-assets.mjs",
     "web:admin": "node web/scripts/setup-admin.mjs"
   },
   "keywords": [

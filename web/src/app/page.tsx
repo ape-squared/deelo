@@ -107,8 +107,8 @@ export default async function HomePage() {
 
             <FadeUp delay={200}>
               <div className="relative">
-                <div className="absolute -left-6 -top-6 z-10 hidden lg:block">
-                  <DeeloIcon size={56} className="shadow-2xl shadow-accent/40 animate-float" />
+                <div className="brand-logo-mark absolute -left-4 -top-4 z-10 hidden lg:flex h-14 w-14 items-center justify-center rounded-2xl border border-accent/20 bg-accent/10 backdrop-blur-sm">
+                  <DeeloIcon size={40} className="animate-float" />
                 </div>
                 <CommandPreview />
               </div>

@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { getInviteUrl } from '@/lib/invite';
 import { getBannerAnnouncement, getDiscordSettings } from '@/lib/site-data';
 import { SiteAnnouncementBanner } from '@/components/site-announcement-banner';
-import { DeeloLogoLink, DeeloWordmark } from '@/components/brand/logo';
+import { DeeloLogoLink, DeeloWordmark, DeeloIcon } from '@/components/brand/logo';
 
 const NAV = [
   { href: '/commands', label: 'Commands' },
@@ -53,7 +53,10 @@ export async function SiteFooter() {
       <div className="mx-auto max-w-6xl px-4 py-20 lg:px-6">
         <div className="grid gap-12 lg:grid-cols-12">
           <div className="lg:col-span-5">
-            <DeeloWordmark height={26} className="mb-5" />
+            <div className="mb-5 flex items-center gap-3">
+              <DeeloIcon size={40} />
+              <DeeloWordmark height={26} />
+            </div>
             <p className="max-w-sm text-sm text-muted leading-relaxed">
               The all-in-one Discord bot for moderation, music, levels, tickets, and community growth.
               Built for server owners who want one powerful tool — not a bot stack.

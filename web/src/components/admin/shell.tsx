@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard, Server, Users, CreditCard, ScrollText, Shield, LogOut, ExternalLink, Ticket, BarChart3, Activity, Globe,
 } from 'lucide-react';
+import { DeeloIcon, DeeloWordmark } from '@/components/brand/logo';
 
 const NAV = [
   { href: '/admin', label: 'Overview', icon: LayoutDashboard, exact: true },
@@ -37,9 +38,9 @@ export function AdminShell({
     <div className="admin-app mesh-bg flex min-h-screen">
       <aside className="admin-sidebar">
         <div className="admin-sidebar-brand">
-          <img src="/brand/logo-icon.png" alt="Deelo" className="h-9 w-9 rounded-xl shadow-lg shadow-accent/30" />
+          <DeeloIcon size={36} className="shadow-lg shadow-accent/25" />
           <div>
-            <p className="text-sm font-bold leading-tight">Deelo</p>
+            <DeeloWordmark height={18} />
             <p className="text-[10px] uppercase tracking-widest text-muted">Admin</p>
           </div>
         </div>

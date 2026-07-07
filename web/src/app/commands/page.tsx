@@ -50,7 +50,9 @@ export default function CommandsPage() {
       <main className="flex-1">
         <div className="mx-auto max-w-6xl px-4 py-16 lg:py-24">
           <div className="mb-12 text-center animate-fade-up">
-            <DeeloIcon size={56} className="mx-auto mb-6 shadow-xl shadow-accent/30" />
+            <div className="brand-logo-mark mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl border border-accent/25 bg-accent/10">
+              <DeeloIcon size={48} />
+            </div>
             <span className="section-label">Command reference</span>
             <h1 className="section-heading">
               <span className="gradient-text">{totalCommands.toLocaleString()}</span> commands

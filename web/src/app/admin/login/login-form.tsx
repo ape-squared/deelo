@@ -3,7 +3,8 @@
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import Link from 'next/link';
-import { Shield, ArrowLeft, Loader2 } from 'lucide-react';
+import { ArrowLeft, Loader2 } from 'lucide-react';
+import { DeeloIcon, DeeloWordmark } from '@/components/brand/logo';
 
 export default function AdminLoginForm() {
   const router = useRouter();
@@ -46,10 +47,13 @@ export default function AdminLoginForm() {
           Back to site
         </Link>
         <div>
-          <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-accent shadow-lg shadow-accent/30">
-            <Shield className="h-7 w-7 text-white" />
+          <div className="mb-6 flex items-center gap-3">
+            <span className="brand-logo-mark flex h-14 w-14 items-center justify-center rounded-2xl border border-accent/30 bg-accent/15">
+              <DeeloIcon size={40} />
+            </span>
+            <DeeloWordmark height={28} />
           </div>
-          <h1 className="text-4xl font-bold mb-4">Deelo Admin</h1>
+          <h1 className="text-4xl font-bold mb-4">Admin</h1>
           <p className="text-muted leading-relaxed max-w-md">
             Manage guilds, subscriptions, dashboard users, and audit logs across the entire Deelo platform.
           </p>
@@ -61,9 +65,10 @@ export default function AdminLoginForm() {
       <div className="flex flex-1 items-center justify-center px-6 py-12">
         <div className="w-full max-w-md animate-scale-in">
           <div className="lg:hidden mb-8 text-center">
-            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-accent">
-              <Shield className="h-6 w-6 text-white" />
+            <div className="mx-auto mb-4 brand-logo-mark flex h-12 w-12 items-center justify-center rounded-xl border border-accent/30 bg-accent/15">
+              <DeeloIcon size={32} />
             </div>
+            <DeeloWordmark height={22} className="mx-auto mb-2" />
             <h1 className="text-2xl font-bold">Admin Panel</h1>
           </div>
 

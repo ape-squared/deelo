@@ -1,12 +1,12 @@
 'use client';
 
-import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard, CreditCard, BookOpen, LogOut, ExternalLink,
   ChevronRight, Plus, Home,
 } from 'lucide-react';
+import { DeeloIcon, DeeloWordmark } from '@/components/brand/logo';
 import { getInviteUrl } from '@/lib/invite';
 
 export interface DashboardGuild {
@@ -44,10 +44,12 @@ export function DashboardShell({
       <header className="dashboard-topbar shrink-0">
         <div className="flex items-center gap-4">
           <Link href="/dashboard" className="flex items-center gap-2.5 font-bold transition hover:opacity-90">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg overflow-hidden shadow-md shadow-accent/40">
-              <img src="/brand/logo-icon.png" alt="Deelo" className="h-8 w-8" />
+            <span className="brand-logo-mark">
+              <DeeloIcon size={32} />
             </span>
-            <span className="hidden sm:inline">Deelo</span>
+            <span className="hidden sm:inline pt-0.5">
+              <DeeloWordmark height={20} />
+            </span>
           </Link>
           {currentGuild && (
             <div className="hidden items-center gap-2 border-l border-border pl-4 md:flex">

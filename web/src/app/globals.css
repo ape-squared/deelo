@@ -559,6 +559,18 @@ body {
   @apply border-accent/20 bg-card/80;
 }
 
+/* Brand logos — white transparent PNGs on dark UI */
+.brand-logo {
+  @apply object-contain select-none;
+}
+.brand-logo-invert {
+  @apply object-contain select-none;
+  filter: brightness(0) invert(1);
+}
+.brand-logo-mark {
+  @apply flex shrink-0 items-center justify-center;
+}
+
 .trust-bar {
   @apply border-y border-border bg-white/[0.02] py-8;
 }

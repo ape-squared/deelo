@@ -26,7 +26,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Deelo — All-in-One Discord Bot',
     description: 'Moderation, music, levels, tickets & more. Built for serious Discord communities.',
-    images: ['/brand/logo-wordmark.png'],
+    images: ['/brand/logo-icon-og.png'],
   },
 };
 
