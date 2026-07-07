@@ -49,6 +49,7 @@ export async function initMusicService(): Promise<void> {
 
 export { spotifyConfigured, trackDisplayUrl } from './spotify';
 export { resolveQuery } from './resolver';
+export { resolveRadioStream, isStreamableRadioUrl } from './radio';
 export {
   getMusicQueue,
   getOrCreateQueue,

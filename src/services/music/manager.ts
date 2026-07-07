@@ -144,22 +144,24 @@ export async function applyPreset(
 
 export function buildNowPlayingEmbed(track: Track) {
   const link = trackDisplayUrl(track);
+  const duration = formatDuration(track.duration, track.live);
   return deeloEmbed(
-    '🎵 Now Playing',
+    track.live ? '📻 Now Streaming' : '🎵 Now Playing',
     `**[${track.title}](${link})**\n` +
-      `Duration: \`${formatDuration(track.duration)}\` · Source: **${sourceLabel(track.source)}**\n` +
+      `${track.live ? 'Status' : 'Duration'}: \`${duration}\` · Source: **${sourceLabel(track.source)}**\n` +
       `Requested by <@${track.requestedBy}>`,
   );
 }
 
 export function buildAddedEmbed(track: Track, position: number, started: boolean) {
   const link = trackDisplayUrl(track);
-  const status = started ? 'Now playing' : `Queued · position **${position}**`;
+  const status = started ? (track.live ? 'Now streaming' : 'Now playing') : `Queued · position **${position}**`;
   const source = track.spotifyUrl ? 'Spotify' : sourceLabel(track.source);
+  const duration = formatDuration(track.duration, track.live);
   return deeloEmbed(
-    started ? '🎵 Now Playing' : '🎵 Added to Queue',
+    started ? (track.live ? '📻 Now Streaming' : '🎵 Now Playing') : (track.live ? '📻 Stream Queued' : '🎵 Added to Queue'),
     `**[${track.title}](${link})**\n` +
-      `${status} · \`${formatDuration(track.duration)}\` · **${source}**`,
+      `${status} · \`${duration}\` · **${source}**`,
   );
 }
 

@@ -11,6 +11,8 @@ const FETCH_HEADERS = {
   Referer: 'https://www.youtube.com/',
 };
 
+const RADIO_USER_AGENT = 'Mozilla/5.0 (compatible; DeeloBot/1.0; +https://deelo.nikkithewikki.top)';
+
 function attachErrorLogging(stream: Readable, track: Track, label: string): Readable {
   stream.on('error', (err) => {
     console.error(`[music] ${label} error for ${track.title}:`, err.message);
@@ -37,6 +39,31 @@ function createFfmpegStream(input: Readable, afilter: string): Readable {
   return ffmpeg;
 }
 
+function createRadioStream(url: string, presetId: string, track: Track): Readable {
+  const filter = getPresetFilter(presetId);
+  const args = [
+    '-reconnect', '1',
+    '-reconnect_streamed', '1',
+    '-reconnect_delay_max', '5',
+    '-reconnect_at_eof', '1',
+    '-user_agent', RADIO_USER_AGENT,
+    '-headers', 'Icy-MetaData: 0\r\n',
+    '-i', url,
+  ];
+
+  if (filter) {
+    args.push('-af', filter);
+  }
+
+  args.push('-f', 's16le', '-ar', '48000', '-ac', '2');
+
+  const ffmpeg = new prism.FFmpeg({ args });
+  ffmpeg.on('error', (err) => {
+    console.error(`[music] radio ffmpeg error for ${track.title}:`, err.message);
+  });
+  return attachErrorLogging(ffmpeg, track, 'radio');
+}
+
 export async function createTrackStream(
   track: Track,
   presetId = 'off',
@@ -45,6 +72,11 @@ export async function createTrackStream(
   inputType: StreamType;
   inlineVolume: boolean;
 }> {
+  if (track.live || track.source === 'radio') {
+    const stream = createRadioStream(track.url, presetId, track);
+    return { stream, inputType: StreamType.Raw, inlineVolume: true };
+  }
+
   const directUrl = await getDirectAudioUrl(track.url);
   const res = await fetch(directUrl, { headers: FETCH_HEADERS });
   if (!res.ok || !res.body) {

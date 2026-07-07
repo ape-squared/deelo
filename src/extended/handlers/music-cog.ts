@@ -3,7 +3,7 @@ import type { CommandDef } from '../types';
 import { replySuccess } from '../lib/helpers';
 
 const NATIVE_MUSIC = new Set([
-  'play', 'p', 'skip', 's', 'next', 'sk', 'stop', 'dc', 'disconnect',
+  'play', 'p', 'stream', 'radio', 'listen', 'skip', 's', 'next', 'sk', 'stop', 'dc', 'disconnect',
   'nowplaying', 'np', 'pause', 'resume', 'volume', 'vol', 'shuffle',
   'repeat', 'loop', 'preset', 'presets', 'queue', 'q',
 ]);

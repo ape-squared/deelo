@@ -138,6 +138,18 @@ export class GuildPlayer {
     if (fromError && this.state.current) {
       console.warn(`[music:${this.guildId}] track failed: ${this.state.current.title}`);
     }
+
+    // Reconnect live radio when the upstream drops without a hard error
+    if (
+      !fromError &&
+      this.state.current?.live &&
+      !this.state.repeat &&
+      !this.state.queue.length
+    ) {
+      console.log(`[music:${this.guildId}] reconnecting live stream: ${this.state.current.title}`);
+      this.state.queue.unshift(this.state.current);
+    }
+
     try {
       await this.playNext();
     } catch (err) {
