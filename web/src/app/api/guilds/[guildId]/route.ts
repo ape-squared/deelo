@@ -5,6 +5,7 @@ import { normalizeGuildPatch } from '@/lib/guild-patch';
 import { loadGuildWithPlan } from '@/lib/guild-plan-loader';
 import { resolveEffectivePlan } from '@/lib/plan-resolve';
 import { appearanceConfigTouched, syncBotCustomizationToDiscord } from '@/lib/discord-guild-sync';
+import { isValidModuleId, type ModuleId } from '@/lib/dashboard-modules';
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ guildId: string }> }) {
   const { guildId } = await params;
@@ -44,7 +45,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ gui
     db.from('autoroles').select('*').eq('guild_id', guildId),
     db.from('reaction_roles').select('*').eq('guild_id', guildId).order('id'),
     db.from('button_roles').select('*').eq('guild_id', guildId).order('id'),
-    db.from('tickets').select('id, channel_id, user_id, panel_name, status, created_at').eq('guild_id', guildId).order('created_at', { ascending: false }).limit(50),
+    db.from('tickets').select('id, channel_id, user_id, panel_name, status, claimed_by, created_at, closed_at').eq('guild_id', guildId).order('created_at', { ascending: false }).limit(50),
     db.from('saved_embeds').select('id, guild_id, name, embed_json, created_by').eq('guild_id', guildId).order('name'),
   ]);
 
@@ -72,10 +73,16 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ gui
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ guildId: string }> }) {
   const { guildId } = await params;
-  const auth = await requireGuildAccess(guildId, { module: 'general', write: true });
-  if ('error' in auth) return auth.error;
-
   const body = (await req.json()) as Record<string, unknown>;
+  const moduleParam = body._module;
+  const module: ModuleId =
+    typeof moduleParam === 'string' && isValidModuleId(moduleParam) && moduleParam !== 'overview'
+      ? moduleParam
+      : 'general';
+  delete body._module;
+
+  const auth = await requireGuildAccess(guildId, { module, write: true });
+  if ('error' in auth) return auth.error;
   const db = createAdminClient();
 
   const { data: existing } = await db.from('guilds').select('plan, extra_config, plan_expires_at').eq('id', guildId).maybeSingle();
@@ -118,7 +125,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ gu
     });
   }
 
-  await logGuildDashboardAction(guildId, auth.access.discordId, 'settings.patch', 'general', {
+  await logGuildDashboardAction(guildId, auth.access.discordId, 'settings.patch', module, {
     fields: Object.keys(updates),
   });
 

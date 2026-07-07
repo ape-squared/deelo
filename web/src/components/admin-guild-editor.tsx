@@ -1,7 +1,8 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Check, Loader2, Search, ExternalLink } from 'lucide-react';
+import { Check, Loader2, ExternalLink } from 'lucide-react';
+import { SearchField } from '@/components/search-field';
 import Link from 'next/link';
 import { AdminCard, AdminEmpty, AdminStatCard } from '@/components/admin/ui';
 
@@ -72,10 +73,13 @@ export function GuildPlanEditor({ guilds }: { guilds: Guild[] }) {
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
-        <div className="relative flex-1 min-w-[200px] max-w-md">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
-          <input className="input pl-9" placeholder="Search guild ID or prefix..." value={search} onChange={(e) => setSearch(e.target.value)} />
-        </div>
+        <SearchField
+          className="flex-1 min-w-[200px] max-w-md"
+          fieldSize="sm"
+          placeholder="Search guild ID or prefix..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
         <div className="flex gap-1 rounded-lg border border-border bg-background/50 p-1">
           {['all', ...PLANS.map((p) => p.id)].map((p) => (
             <button key={p} type="button" onClick={() => setPlanFilter(p)} className={`rounded-md px-3 py-1.5 text-xs font-medium capitalize transition ${planFilter === p ? 'bg-accent text-white' : 'text-muted hover:text-foreground'}`}>

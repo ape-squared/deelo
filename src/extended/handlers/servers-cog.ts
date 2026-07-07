@@ -3,6 +3,7 @@ import type { CommandDef } from '../types';
 import { getGuild, updateGuild, getPrefix } from '../../database';
 import { getSupabase } from '../../database/supabase';
 import { replyError, replyInfo, replySuccess, needManageGuild, mentionChannel, mentionRole, mentionMember } from '../lib/helpers';
+import { replyComingSoon } from '../../lib/coming-soon';
 import { setExtraConfig, getConfigValue, listConfigSection } from '../lib/guild-config';
 
 export async function handleServersCog(cmd: CommandDef, message: Message, args: string[]): Promise<boolean> {
@@ -43,8 +44,7 @@ export async function handleServersCog(cmd: CommandDef, message: Message, args: 
       return true;
     }
     if (needManageGuild(member) && args.length > 0) {
-      await setExtraConfig(guildId, `servers.${name.replace(/ /g, '.')}`, args.join(' '));
-      await replySuccess(message, `**${name}** saved.`);
+      await replyComingSoon(message, name, `**,${name}** is not implemented yet. Use \`,help ${name.split(' ')[0]}\` for supported server commands.`);
       return true;
     }
   }

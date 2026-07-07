@@ -4,7 +4,7 @@
  * Run automatically before `next build` so /changelog and What's New stay in sync.
  */
 import { execSync } from 'node:child_process';
-import { writeFileSync, mkdirSync } from 'node:fs';
+import { writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -46,6 +46,14 @@ function parseCommits() {
 }
 
 const commits = parseCommits();
+
+if (!commits.length) {
+  if (existsSync(outFile)) {
+    console.log('[releases] No git history available — keeping existing releases.json');
+    process.exit(0);
+  }
+  console.warn('[releases] No git history and no existing releases.json');
+}
 const byDay = new Map();
 
 for (const commit of commits) {

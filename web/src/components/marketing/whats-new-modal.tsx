@@ -8,23 +8,29 @@ import { CHANGELOG_CATEGORY_LABELS } from '@/lib/site-content';
 
 const STORAGE_KEY = 'deelo-whats-new-seen';
 
+function releaseStorageKey(release: AutoRelease): string {
+  const lead = release.items[0]?.hash ?? release.version;
+  return `${release.id}:${lead}`;
+}
+
 export function WhatsNewModal({ release }: { release: AutoRelease | null }) {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
     if (!release?.version) return;
+    const key = releaseStorageKey(release);
     try {
       const seen = localStorage.getItem(STORAGE_KEY);
-      if (seen !== release.version) setOpen(true);
+      if (seen !== key) setOpen(true);
     } catch {
       setOpen(true);
     }
-  }, [release?.version]);
+  }, [release]);
 
   function dismiss() {
     if (release?.version) {
       try {
-        localStorage.setItem(STORAGE_KEY, release.version);
+        localStorage.setItem(STORAGE_KEY, releaseStorageKey(release));
       } catch {
         /* ignore */
       }

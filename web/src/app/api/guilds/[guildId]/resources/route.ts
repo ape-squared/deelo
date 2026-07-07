@@ -1,5 +1,12 @@
 import { NextResponse } from 'next/server';
 import { badRequest, guildRoute, snowflake } from '@/lib/guild-route';
+import {
+  addMessageReaction,
+  createButtonRolePanel,
+  fetchGuildCounterStats,
+  formatCounterChannelName,
+  renameDiscordChannel,
+} from '@/lib/discord-guild-actions';
 
 async function crudList(db: ReturnType<typeof import('@/lib/supabase/admin').createAdminClient>, table: string, guildId: string, key: string) {
   const { data, error } = await db.from(table).select('*').eq('guild_id', guildId).order('id');
@@ -24,6 +31,10 @@ export const GET = guildRoute(async (req, { guildId, db }) => {
       return crudList(db, 'command_aliases', guildId, 'commandAliases');
     case 'autoroles':
       return crudList(db, 'autoroles', guildId, 'autoroles');
+    case 'reaction-roles':
+      return crudList(db, 'reaction_roles', guildId, 'reactionRoles');
+    case 'button-roles':
+      return crudList(db, 'button_roles', guildId, 'buttonRoles');
     default:
       return badRequest('Unknown resource.');
   }
@@ -45,9 +56,17 @@ export const POST = guildRoute(async (req, { guildId, db }) => {
     case 'counters': {
       const channel_id = snowflake(body.channel_id);
       const type = String(body.type ?? 'members');
+      const format = String(body.format ?? '{count}');
       if (!channel_id) return badRequest('Channel ID required.');
-      const { data, error } = await db.from('counters').insert({ guild_id: guildId, channel_id, type, format: body.format ?? '{count}' }).select().single();
+      const { data, error } = await db.from('counters').insert({ guild_id: guildId, channel_id, type, format }).select().single();
       if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+      try {
+        const stats = await fetchGuildCounterStats(guildId);
+        const count = type === 'channels' ? stats.channels : type === 'bots' ? stats.bots : stats.members;
+        await renameDiscordChannel(channel_id, formatCounterChannelName(format, count));
+      } catch {
+        /* bot will sync on next event */
+      }
       return NextResponse.json({ item: data });
     }
     case 'social-feeds': {
@@ -90,6 +109,58 @@ export const POST = guildRoute(async (req, { guildId, db }) => {
       if (error) return NextResponse.json({ error: error.message }, { status: 500 });
       return NextResponse.json({ item: data });
     }
+    case 'reaction-roles': {
+      const channel_id = snowflake(body.channel_id);
+      const message_id = snowflake(body.message_id);
+      const emoji = String(body.emoji ?? '').trim();
+      const role_id = snowflake(body.role_id);
+      if (!channel_id || !message_id || !emoji || !role_id) {
+        return badRequest('Channel, message ID, emoji, and role ID are required.');
+      }
+      try {
+        await addMessageReaction(channel_id, message_id, emoji);
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : 'Failed to add reaction in Discord.';
+        return NextResponse.json({ error: msg }, { status: 502 });
+      }
+      const { data, error } = await db
+        .from('reaction_roles')
+        .insert({ guild_id: guildId, channel_id, message_id, emoji, role_id })
+        .select()
+        .single();
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ item: data });
+    }
+    case 'button-roles': {
+      const channel_id = snowflake(body.channel_id);
+      const label = String(body.label ?? '').trim();
+      const role_id = snowflake(body.role_id);
+      if (!channel_id || !label || !role_id) return badRequest('Channel, label, and role ID are required.');
+      let message_id: string;
+      try {
+        message_id = await createButtonRolePanel(channel_id, label, role_id, {
+          title: body.title ? String(body.title) : undefined,
+          description: body.description ? String(body.description) : undefined,
+        });
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : 'Failed to post button panel in Discord.';
+        return NextResponse.json({ error: msg }, { status: 502 });
+      }
+      const { data, error } = await db
+        .from('button_roles')
+        .insert({
+          guild_id: guildId,
+          channel_id,
+          message_id,
+          label,
+          role_id,
+          style: body.style ?? 'primary',
+        })
+        .select()
+        .single();
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ item: data });
+    }
     default:
       return badRequest('Unknown resource.');
   }
@@ -106,6 +177,8 @@ export const DELETE = guildRoute(async (req, { guildId, db }) => {
     case 'counters':
     case 'social-feeds':
     case 'reaction-triggers':
+    case 'reaction-roles':
+    case 'button-roles':
     case 'command-aliases': {
       const rowId = parseInt(id ?? '', 10);
       if (!rowId) return badRequest('Missing id.');
@@ -113,6 +186,8 @@ export const DELETE = guildRoute(async (req, { guildId, db }) => {
         : resource === 'counters' ? 'counters'
         : resource === 'social-feeds' ? 'social_feeds'
         : resource === 'reaction-triggers' ? 'reaction_triggers'
+        : resource === 'reaction-roles' ? 'reaction_roles'
+        : resource === 'button-roles' ? 'button_roles'
         : 'command_aliases';
       const { error } = await db.from(table).delete().eq('id', rowId).eq('guild_id', guildId);
       if (error) return NextResponse.json({ error: error.message }, { status: 500 });

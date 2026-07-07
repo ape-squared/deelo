@@ -2,7 +2,8 @@
 
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
-import { Plus, Ban, Loader2, Clock, History, ExternalLink, RefreshCw, Search } from 'lucide-react';
+import { Plus, Ban, Loader2, Clock, History, ExternalLink, RefreshCw } from 'lucide-react';
+import { SearchField } from '@/components/search-field';
 import { AdminCard, AdminEmpty, AdminStatCard, AdminTable, formatRelative } from '@/components/admin/ui';
 import type { SubscriptionRow, SubscriptionView } from '@/lib/admin-subscriptions';
 import { groupSubscriptionsByGuild, subscriptionStats } from '@/lib/admin-subscriptions';
@@ -174,10 +175,14 @@ export function SubscriptionManager({
 
       <AdminCard>
         <div className="flex flex-wrap items-center gap-3 border-b border-border px-5 py-4">
-          <div className="relative flex-1 min-w-[200px] max-w-sm">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
-            <input className="input pl-9 text-sm" placeholder="Search guild ID or plan..." value={search} onChange={(e) => setSearch(e.target.value)} />
-          </div>
+          <SearchField
+            className="flex-1 min-w-[200px] max-w-sm"
+            fieldSize="sm"
+            inputClassName="text-sm"
+            placeholder="Search guild ID or plan..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
           <div className="flex flex-wrap gap-1 rounded-lg border border-border bg-background/50 p-1">
             {(['all', 'active', 'expiring', 'cancelled'] as Filter[]).map((f) => (
               <button key={f} type="button" onClick={() => setFilter(f)} className={`rounded-md px-3 py-1.5 text-xs font-medium capitalize transition ${filter === f ? 'bg-accent text-white' : 'text-muted hover:text-foreground'}`}>

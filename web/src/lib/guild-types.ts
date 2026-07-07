@@ -125,7 +125,7 @@ export interface GuildFullConfig {
   autoroles: AutoroleRow[];
   reactionRoles: ReactionRoleRow[];
   buttonRoles: ButtonRoleRow[];
-  tickets: Array<{ id: number; channel_id: string; user_id: string; panel_name: string | null; status: string; created_at: string }>;
+  tickets: Array<{ id: number; channel_id: string; user_id: string; panel_name: string | null; status: string; claimed_by: string | null; created_at: string; closed_at?: string | null }>;
   embeds: SavedEmbedRow[];
 }
 

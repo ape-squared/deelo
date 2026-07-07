@@ -1,7 +1,8 @@
 import type { Message } from 'discord.js';
 import type { CommandDef } from '../types';
-import { deleteConfigPath, getConfigValue, listConfigSection, setExtraConfig } from '../lib/guild-config';
-import { cmdRoot, cmdTail, replyError, replyInfo, replySuccess, needManageGuild } from '../lib/helpers';
+import { deleteConfigPath, getConfigValue, listConfigSection } from '../lib/guild-config';
+import { cmdRoot, cmdTail, replyError, replyInfo, needManageGuild } from '../lib/helpers';
+import { replyComingSoon } from '../../lib/coming-soon';
 
 const LIST_ACTIONS = new Set(['list', 'view', 'config', 'show']);
 const ADD_ACTIONS = new Set(['add', 'set', 'create', 'enable', 'on', 'unlock']);
@@ -9,7 +10,7 @@ const REMOVE_ACTIONS = new Set(['remove', 'delete', 'del', 'disable', 'off', 'lo
 const TOGGLE_ON = new Set(['enable', 'on', 'unlock']);
 const TOGGLE_OFF = new Set(['disable', 'off', 'lock']);
 
-/** Smart fallback: config CRUD for any catalog command using extra_config storage */
+/** Smart fallback: read-only config views for catalog commands; mutations return coming soon */
 export async function handleUniversal(cmd: CommandDef, message: Message, args: string[]): Promise<boolean> {
   if (!message.guild || !message.member) return false;
   const guildId = message.guild.id;
@@ -17,7 +18,6 @@ export async function handleUniversal(cmd: CommandDef, message: Message, args: s
   const root = cmdRoot(name);
   const tail = cmdTail(name);
   const action = tail.split(' ').pop() ?? name;
-  const configPath = `${cmd.cog}.${name.replace(/ /g, '.')}`;
 
   if (LIST_ACTIONS.has(action) || name.endsWith(' list') || name.endsWith(' config') || name.endsWith(' view')) {
     const section = name.replace(/ (list|config|view|show)$/, '').replace(/ /g, '.');
@@ -33,35 +33,12 @@ export async function handleUniversal(cmd: CommandDef, message: Message, args: s
     return true;
   }
 
-  if (REMOVE_ACTIONS.has(action)) {
+  if (REMOVE_ACTIONS.has(action) || ADD_ACTIONS.has(action) || TOGGLE_ON.has(action) || TOGGLE_OFF.has(action)) {
     if (!needManageGuild(message.member)) {
       await replyError(message, 'You need **Manage Server** permission.');
       return true;
     }
-    const target = args[0] ?? tail.replace(/^(remove|delete|del|reset|clear|removeall) ?/, '');
-    if (target) {
-      await deleteConfigPath(guildId, `${cmd.cog}.${root}.${target}`);
-      await replySuccess(message, `Removed **${target}** from ${root}.`);
-    } else {
-      await deleteConfigPath(guildId, `${cmd.cog}.${root}`);
-      await replySuccess(message, `Reset **${root}** configuration.`);
-    }
-    return true;
-  }
-
-  if (ADD_ACTIONS.has(action) || TOGGLE_ON.has(action) || TOGGLE_OFF.has(action)) {
-    if (!needManageGuild(message.member)) {
-      await replyError(message, 'You need **Manage Server** permission.');
-      return true;
-    }
-    if (TOGGLE_ON.has(action) || TOGGLE_OFF.has(action)) {
-      await setExtraConfig(guildId, `${cmd.cog}.${name.replace(/ /g, '.')}`, TOGGLE_ON.has(action));
-      await replySuccess(message, `**${name}** ${TOGGLE_ON.has(action) ? 'enabled' : 'disabled'}.`);
-      return true;
-    }
-    const value = args.join(' ') || 'true';
-    await setExtraConfig(guildId, configPath, value);
-    await replySuccess(message, `Set **${name}** → ${value}`);
+    await replyComingSoon(message, name, `**,${name}** is not implemented yet. Check \`,help ${root}\` for supported commands.`);
     return true;
   }
 
@@ -71,7 +48,9 @@ export async function handleUniversal(cmd: CommandDef, message: Message, args: s
     await replyInfo(
       message,
       root,
-      val !== undefined ? `${desc}\n\n**Current:** ${formatVal(val)}` : `${desc}\n\nUse \`,${name} set <value>\` or \`,${name} list\` to configure.`
+      val !== undefined
+        ? `${desc}\n\n**Current:** ${formatVal(val)}`
+        : `${desc}\n\n🚧 Full support for **${name}** is **coming soon**.`,
     );
     return true;
   }
@@ -85,14 +64,11 @@ export async function handleUniversal(cmd: CommandDef, message: Message, args: s
       await replyError(message, 'You need **Manage Server** permission.');
       return true;
     }
-    await setExtraConfig(guildId, configPath, args.join(' '));
-    await replySuccess(message, `**${name}** applied: ${args.join(' ')}`);
+    await replyComingSoon(message, name, `**,${name}** is not implemented yet.`);
     return true;
   }
 
-  // Guaranteed handler — every catalog command gets a response
-  const desc = cmd.description || `**${name}** command executed.`;
-  await replyInfo(message, name, desc);
+  await replyComingSoon(message, name, cmd.description || `**,${name}** is coming soon.`);
   return true;
 }
 

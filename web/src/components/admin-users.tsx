@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Search } from 'lucide-react';
+import { SearchField } from '@/components/search-field';
 import { AdminCard, AdminEmpty, AdminStatCard } from '@/components/admin/ui';
 
 interface User {
@@ -40,10 +40,13 @@ export function AdminUsersTable({ users }: { users: User[] }) {
         <AdminStatCard label="With email" value={users.filter((u) => u.email).length} icon="users" />
       </div>
 
-      <div className="relative max-w-md">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
-        <input className="input pl-9" placeholder="Search username, ID, or email..." value={search} onChange={(e) => setSearch(e.target.value)} />
-      </div>
+      <SearchField
+        className="max-w-md"
+        fieldSize="sm"
+        placeholder="Search username, ID, or email..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+      />
 
       <AdminCard>
         <div className="overflow-x-auto">

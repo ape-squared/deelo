@@ -227,7 +227,14 @@ async function handleCounters(name: string, message: Message, args: string[]) {
     const ch = mentionChannel(message);
     const type = args[1] ?? 'members';
     if (!ch) { await replyError(message, 'Mention a channel.'); return true; }
-    await getSupabase().from('counters').insert({ guild_id: guildId, channel_id: ch.id, type, format: args[2] ?? '{count}' });
+    const { data, error } = await getSupabase()
+      .from('counters')
+      .insert({ guild_id: guildId, channel_id: ch.id, type, format: args[2] ?? '{count}' })
+      .select()
+      .single();
+    if (error) { await replyError(message, 'Failed to add counter.'); return true; }
+    const { updateGuildCounters } = await import('../../services/counters');
+    await updateGuildCounters(message.guild!).catch(() => {});
     await replySuccess(message, `Counter added to ${ch}.`);
     return true;
   }
@@ -245,7 +252,11 @@ async function handleCounters(name: string, message: Message, args: string[]) {
   if (name === 'counter set') {
     const id = parseInt(args[0], 10);
     const format = args.slice(1).join(' ');
-    if (id && format) await getSupabase().from('counters').update({ format }).eq('id', id);
+    if (id && format) {
+      await getSupabase().from('counters').update({ format }).eq('id', id);
+      const { updateGuildCounters } = await import('../../services/counters');
+      await updateGuildCounters(message.guild!).catch(() => {});
+    }
     await replySuccess(message, 'Counter format updated.');
     return true;
   }
@@ -357,6 +368,10 @@ async function handleFortnite(name: string, message: Message, args: string[]) {
   if (name === 'fortnite shop' || name === 'fortniteshop' || name === 'fnshop') {
     const ch = mentionChannel(message);
     if (ch) {
+      if (!needManageGuild(message.member!)) {
+        await replyError(message, 'You need **Manage Server** to set a shop channel.');
+        return true;
+      }
       await setExtraConfig(guildId, 'fortnite.shop_channel', ch.id);
       const shop = await getFortniteShop();
       if (shop) await setExtraConfig(guildId, 'fortnite.shop_hash', shop.hash);

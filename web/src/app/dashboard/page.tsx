@@ -8,7 +8,8 @@ import { discordAvatarUrl } from '@/lib/discord-avatar';
 import { DashboardShell, GuildIcon, PageHeader } from '@/components/dashboard/shell';
 import { LoadingScreen, EmptyState } from '@/components/ui/animate';
 import { DiscordIcon } from '@/components/icons/discord';
-import { Server, Crown, Plus, Search } from 'lucide-react';
+import { SearchField } from '@/components/search-field';
+import { Server, Crown, Plus } from 'lucide-react';
 
 interface Guild {
   id: string;
@@ -102,15 +103,12 @@ export default function DashboardPage() {
       />
 
       {guilds.length > 0 && (
-        <div className="relative mb-8 max-w-md">
-          <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
-          <input
-            className="input pl-11"
-            placeholder="Search servers..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
+        <SearchField
+          className="mb-8 max-w-md"
+          placeholder="Search servers..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
       )}
 
       {!guilds.length ? (

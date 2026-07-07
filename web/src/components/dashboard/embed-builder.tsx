@@ -372,8 +372,9 @@ function DiscordEmbedPreview({ template }: { template: EmbedTemplate }) {
             </div>
           )}
           {template.image && (
-            <div className="mt-2 rounded overflow-hidden bg-black/20 aspect-video flex items-center justify-center text-xs text-muted">
-              Image preview
+            <div className="mt-2 rounded overflow-hidden bg-black/20">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={template.image} alt="" className="max-h-48 w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
             </div>
           )}
           {template.thumbnail && (

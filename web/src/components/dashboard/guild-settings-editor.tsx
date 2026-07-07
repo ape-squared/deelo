@@ -86,7 +86,7 @@ export function GuildSettingsEditor({
     const res = await fetch(`/api/guilds/${guildId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({ ...payload, _module: tab }),
     });
     setSaving(false);
     const data = await res.json();
@@ -297,8 +297,8 @@ export function GuildSettingsEditor({
             </Section>
             <AutorolesList guildId={guildId} items={initial.autoroles} onReload={onReload} />
             <VanityList guildId={guildId} items={initial.vanityRoles} onReload={onReload} />
-            <ReadOnlyRoles title="Reaction roles" items={initial.reactionRoles} columns={['Channel', 'Message', 'Emoji', 'Role']} map={(r) => [r.channel_id, r.message_id, r.emoji, r.role_id]} />
-            <ReadOnlyRoles title="Button roles" items={initial.buttonRoles} columns={['Channel', 'Message', 'Label', 'Role']} map={(r) => [r.channel_id, r.message_id, r.label, r.role_id]} hint="Create via ,reactionrole / ,buttonrole in Discord" />
+            <ReactionRolesList guildId={guildId} items={initial.reactionRoles} onReload={onReload} setMessage={setMessage} />
+            <ButtonRolesList guildId={guildId} items={initial.buttonRoles} onReload={onReload} setMessage={setMessage} />
           </>
         )}
 
@@ -338,16 +338,7 @@ export function GuildSettingsEditor({
         {tab === 'tickets' && (
           <>
             <TicketPanelsTab guildId={guildId} panels={initial.ticketPanels} onReload={onReload} />
-            <CrudList
-              title="Open tickets"
-              desc="Read-only — manage in Discord with ,tickets"
-              items={initial.tickets}
-              columns={['ID', 'Channel', 'User', 'Panel', 'Status']}
-              renderRow={(t) => [String(t.id), t.channel_id, t.user_id, t.panel_name ?? '—', t.status]}
-              onDelete={async () => {}}
-              addForm={<p className="text-xs text-muted">Close or claim tickets with bot commands.</p>}
-              emptyText="No open tickets."
-            />
+            <OpenTicketsTab guildId={guildId} tickets={initial.tickets} onReload={onReload} setMessage={setMessage} />
           </>
         )}
 
@@ -467,13 +458,41 @@ function RespondersTab({ guildId, responders, onReload, setMessage }: { guildId:
   const [trigger, setTrigger] = useState('');
   const [response, setResponse] = useState('');
   const [match_type, setMatchType] = useState('contains');
+
+  async function toggleEnabled(id: number, enabled: boolean) {
+    const res = await fetch(`/api/guilds/${guildId}/responders`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, enabled }),
+    });
+    if (!res.ok) {
+      setMessage((await res.json()).error ?? 'Failed to update responder');
+      return;
+    }
+    await onReload();
+  }
+
   return (
     <CrudList
       title="Auto-responders"
       desc="Bot replies when a message matches a trigger"
       items={responders}
       columns={['Trigger', 'Response', 'Match', 'On']}
-      renderRow={(r) => [r.trigger, r.response.slice(0, 40), r.match_type, r.enabled ? 'yes' : 'no']}
+      renderRow={(r) => [
+        r.trigger,
+        r.response.slice(0, 40),
+        r.match_type,
+        <button
+          key={`toggle-${r.id}`}
+          type="button"
+          role="switch"
+          aria-checked={r.enabled}
+          onClick={() => toggleEnabled(r.id, !r.enabled)}
+          className={`toggle ${r.enabled ? 'toggle-on' : ''}`}
+        >
+          <span className="toggle-thumb" />
+        </button>,
+      ]}
       onDelete={async (r) => {
         await fetch(`/api/guilds/${guildId}/responders?id=${r.id}`, { method: 'DELETE' });
         await onReload();
@@ -557,14 +576,207 @@ function SocialFeedsList({ guildId, items, onReload }: { guildId: string; items:
 function CountersList({ guildId, items, onReload }: { guildId: string; items: GuildFullConfig['counters']; onReload: () => Promise<void> }) {
   const [channel_id, setChannelId] = useState('');
   const [type, setType] = useState('members');
+  const [format, setFormat] = useState('Members: {count}');
   return (
-    <CrudList title="Stat counters" items={items} columns={['Type', 'Channel', 'Format']} renderRow={(r) => [r.type, r.channel_id, r.format]}
+    <CrudList title="Stat counters" desc="Channel names update automatically when members join/leave or channels change." items={items} columns={['Type', 'Channel', 'Format']} renderRow={(r) => [r.type, r.channel_id, r.format]}
       onDelete={async (r) => { await fetch(`/api/guilds/${guildId}/resources?resource=counters&id=${r.id}`, { method: 'DELETE' }); await onReload(); }}
-      addForm={<AddRow label="Add counter" onAdd={async () => { await fetch(`/api/guilds/${guildId}/resources`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ resource: 'counters', channel_id, type }) }); setChannelId(''); await onReload(); }}>
+      addForm={<AddRow label="Add counter" onAdd={async () => { await fetch(`/api/guilds/${guildId}/resources`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ resource: 'counters', channel_id, type, format }) }); setChannelId(''); await onReload(); }}>
         <MiniSelect label="Type" value={type} onChange={setType} options={[{ value: 'members', label: 'Members' }, { value: 'bots', label: 'Bots' }, { value: 'channels', label: 'Channels' }]} />
         <MiniChannelSelect label="Channel" value={channel_id} onChange={setChannelId} />
+        <MiniInput label="Format" value={format} onChange={setFormat} placeholder="Members: {count}" />
       </AddRow>}
     />
+  );
+}
+
+function ReactionRolesList({
+  guildId,
+  items,
+  onReload,
+  setMessage,
+}: {
+  guildId: string;
+  items: GuildFullConfig['reactionRoles'];
+  onReload: () => Promise<void>;
+  setMessage: (m: string) => void;
+}) {
+  const [channel_id, setChannelId] = useState('');
+  const [message_id, setMessageId] = useState('');
+  const [emoji, setEmoji] = useState('');
+  const [role_id, setRoleId] = useState('');
+
+  return (
+    <CrudList
+      title="Reaction roles"
+      desc="Adds the emoji reaction on the message in Discord when you save."
+      items={items}
+      columns={['Channel', 'Message', 'Emoji', 'Role']}
+      renderRow={(r) => [r.channel_id, r.message_id, r.emoji, r.role_id]}
+      onDelete={async (r) => {
+        await fetch(`/api/guilds/${guildId}/resources?resource=reaction-roles&id=${r.id}`, { method: 'DELETE' });
+        await onReload();
+      }}
+      addForm={
+        <AddRow
+          label="Add reaction role"
+          onAdd={async () => {
+            const res = await fetch(`/api/guilds/${guildId}/resources`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ resource: 'reaction-roles', channel_id, message_id, emoji, role_id }),
+            });
+            if (!res.ok) { setMessage((await res.json()).error ?? 'Failed'); return; }
+            setMessageId(''); setEmoji(''); setRoleId('');
+            await onReload();
+          }}
+        >
+          <MiniChannelSelect label="Channel" value={channel_id} onChange={setChannelId} />
+          <MiniInput label="Message ID" value={message_id} onChange={setMessageId} />
+          <MiniInput label="Emoji" value={emoji} onChange={setEmoji} placeholder="👋" />
+          <MiniInput label="Role ID" value={role_id} onChange={setRoleId} />
+        </AddRow>
+      }
+    />
+  );
+}
+
+function ButtonRolesList({
+  guildId,
+  items,
+  onReload,
+  setMessage,
+}: {
+  guildId: string;
+  items: GuildFullConfig['buttonRoles'];
+  onReload: () => Promise<void>;
+  setMessage: (m: string) => void;
+}) {
+  const [channel_id, setChannelId] = useState('');
+  const [label, setLabel] = useState('');
+  const [role_id, setRoleId] = useState('');
+
+  return (
+    <CrudList
+      title="Button roles"
+      desc="Posts a button panel in the channel — members click to get the role."
+      items={items}
+      columns={['Channel', 'Message', 'Label', 'Role']}
+      renderRow={(r) => [r.channel_id, r.message_id, r.label, r.role_id]}
+      onDelete={async (r) => {
+        await fetch(`/api/guilds/${guildId}/resources?resource=button-roles&id=${r.id}`, { method: 'DELETE' });
+        await onReload();
+      }}
+      addForm={
+        <AddRow
+          label="Create button role"
+          onAdd={async () => {
+            const res = await fetch(`/api/guilds/${guildId}/resources`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ resource: 'button-roles', channel_id, label, role_id }),
+            });
+            if (!res.ok) { setMessage((await res.json()).error ?? 'Failed'); return; }
+            setLabel(''); setRoleId('');
+            await onReload();
+          }}
+        >
+          <MiniChannelSelect label="Channel" value={channel_id} onChange={setChannelId} />
+          <MiniInput label="Button label" value={label} onChange={setLabel} placeholder="Get role" />
+          <MiniInput label="Role ID" value={role_id} onChange={setRoleId} />
+        </AddRow>
+      }
+    />
+  );
+}
+
+function OpenTicketsTab({
+  guildId,
+  tickets,
+  onReload,
+  setMessage,
+}: {
+  guildId: string;
+  tickets: GuildFullConfig['tickets'];
+  onReload: () => Promise<void>;
+  setMessage: (m: string) => void;
+}) {
+  const [acting, setActing] = useState<number | null>(null);
+
+  async function ticketAction(id: number, action: 'claim' | 'close') {
+    setActing(id);
+    const res = await fetch(`/api/guilds/${guildId}/tickets`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, action }),
+    });
+    setActing(null);
+    if (!res.ok) {
+      setMessage((await res.json()).error ?? `Failed to ${action} ticket`);
+      return;
+    }
+    setMessage(action === 'claim' ? 'Ticket claimed' : 'Ticket closed');
+    await onReload();
+    setTimeout(() => setMessage(''), 3000);
+  }
+
+  const open = tickets.filter((t) => t.status === 'open');
+
+  return (
+    <div className="card p-6 lg:p-8 space-y-5">
+      <div>
+        <h3 className="font-semibold">Open tickets</h3>
+        <p className="text-sm text-muted mt-1">Claim or close tickets — closing deletes the Discord channel.</p>
+      </div>
+      {open.length === 0 ? (
+        <p className="text-sm text-muted">No open tickets.</p>
+      ) : (
+        <div className="overflow-x-auto rounded-xl border border-border">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-border bg-white/5 text-left text-muted">
+                <th className="px-4 py-2 font-medium">ID</th>
+                <th className="px-4 py-2 font-medium">Channel</th>
+                <th className="px-4 py-2 font-medium">User</th>
+                <th className="px-4 py-2 font-medium">Panel</th>
+                <th className="px-4 py-2 font-medium">Claimed</th>
+                <th className="px-4 py-2 font-medium">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {open.map((t) => (
+                <tr key={t.id} className="border-b border-border/50">
+                  <td className="px-4 py-2 font-mono text-xs">{t.id}</td>
+                  <td className="px-4 py-2 font-mono text-xs">{t.channel_id}</td>
+                  <td className="px-4 py-2 font-mono text-xs">{t.user_id}</td>
+                  <td className="px-4 py-2">{t.panel_name ?? '—'}</td>
+                  <td className="px-4 py-2 font-mono text-xs">{t.claimed_by ?? '—'}</td>
+                  <td className="px-4 py-2">
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        className="btn-secondary text-xs py-1.5 px-2"
+                        disabled={acting === t.id}
+                        onClick={() => ticketAction(t.id, 'claim')}
+                      >
+                        Claim
+                      </button>
+                      <button
+                        type="button"
+                        className="text-xs text-red-400 hover:text-red-300 px-2"
+                        disabled={acting === t.id}
+                        onClick={() => ticketAction(t.id, 'close')}
+                      >
+                        Close
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -621,13 +833,6 @@ function ReactionTriggersList({ guildId, items, onReload }: { guildId: string; i
         <MiniSelect label="Match" value={match_type} onChange={setMatchType} options={[{ value: 'contains', label: 'Contains' }, { value: 'exact', label: 'Exact' }, { value: 'startswith', label: 'Starts with' }]} />
       </AddRow>}
     />
-  );
-}
-
-function ReadOnlyRoles<T>({ title, items, columns, map, hint }: { title: string; items: T[]; columns: string[]; map: (item: T) => React.ReactNode[]; hint?: string }) {
-  return (
-    <CrudList title={title} desc={hint} items={items.map((r, i) => ({ ...(r as object), id: i })) as Array<T & { id: number }>} columns={columns} renderRow={map}
-      onDelete={async () => {}} addForm={<p className="text-xs text-muted">Managed via Discord commands.</p>} emptyText="None yet." />
   );
 }
 

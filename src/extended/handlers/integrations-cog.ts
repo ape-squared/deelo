@@ -4,6 +4,7 @@ import { getSupabase } from '../../database/supabase';
 import { config } from '../../config';
 import { replyError, replyInfo, replySuccess } from '../lib/helpers';
 import { getConfigValue, setExtraConfig } from '../lib/guild-config';
+import { replyComingSoon } from '../../lib/coming-soon';
 
 export async function handleIntegrationsCog(cmd: CommandDef, message: Message, args: string[]): Promise<boolean> {
   const cog = cmd.cog;
@@ -141,22 +142,20 @@ async function handleSpotify(name: string, message: Message, args: string[]): Pr
 
   if (name === 'spotify' || name.startsWith('spotify ')) {
     const action = name === 'spotify' ? args[0] : name.replace('spotify ', '');
+    const playbackActions = new Set(['play', 'pause', 'resume', 'next', 'previous', 'shuffle', 'repeat', 'like', 'queue', 'volume', 'seek']);
+    if (playbackActions.has(action)) {
+      await replyComingSoon(message, 'Spotify playback', 'Spotify playback control is **coming soon**. Link your account with `,spotify login`.');
+      return true;
+    }
     const actions: Record<string, string> = {
-      play: `Playing: **${args.slice(1).join(' ') || 'requested track'}**`,
-      pause: 'Playback **paused**.',
-      resume: 'Playback **resumed**.',
-      next: 'Skipped to **next** track.',
-      previous: 'Skipped to **previous** track.',
-      shuffle: 'Shuffle **toggled**.',
-      repeat: 'Repeat **toggled**.',
-      like: 'Track **liked**.',
-      queue: `Queued: **${args.slice(1).join(' ') || 'track'}**`,
-      volume: `Volume set to **${args[1] ?? '50'}%**`,
-      seek: `Seeked to **${args[1] ?? '0'}s**`,
       toptracks: `[Your top tracks on Spotify](https://open.spotify.com/collection/tracks)`,
     };
-    const msg = actions[action] ?? `Spotify **${action}** executed.`;
-    await replyInfo(message, 'Spotify', msg);
+    const msg = actions[action];
+    if (msg) {
+      await replyInfo(message, 'Spotify', msg);
+      return true;
+    }
+    await replyComingSoon(message, 'Spotify', `**,spotify ${action}** is not implemented yet.`);
     return true;
   }
   return false;

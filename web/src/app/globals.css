@@ -146,7 +146,14 @@ body {
 }
 
 .input {
-  @apply w-full rounded-xl border border-border bg-background/80 px-4 py-2.5 text-sm outline-none transition-all duration-200;
+  @apply w-full rounded-xl border border-border bg-background/80 py-2.5 pr-4 text-sm outline-none transition-all duration-200;
+  padding-left: 1rem;
+}
+.input-search {
+  padding-left: 3.25rem;
+}
+.input-search-sm {
+  padding-left: 2.75rem;
 }
 .input:focus {
   @apply border-accent/60 ring-2 ring-accent/20;

@@ -3,7 +3,13 @@
 import { useMemo, useState } from 'react';
 import commands from '@/data/commands-catalog.json';
 import { mergeNativeCommands } from '@/lib/deelo-native-commands';
-import { Search, ChevronDown, ChevronUp, Terminal } from 'lucide-react';
+import {
+  COG_STATUS_LABEL,
+  getCogImplementationStatus,
+  type CommandImplementationStatus,
+} from '@/lib/command-implementation';
+import { SearchField } from '@/components/search-field';
+import { ChevronDown, ChevronUp, Terminal } from 'lucide-react';
 
 type Cog = {
   cog_name: string;
@@ -42,6 +48,18 @@ export function CommandsView() {
 
   const totalCommands = cogs.reduce((n, c) => n + c.commands.length, 0);
 
+  const statusCounts = useMemo(() => {
+    const counts: Record<CommandImplementationStatus, number> = {
+      supported: 0,
+      partial: 0,
+      'coming-soon': 0,
+    };
+    for (const cog of cogs) {
+      counts[getCogImplementationStatus(cog.cog_name)] += cog.commands.length;
+    }
+    return counts;
+  }, [cogs]);
+
   return (
     <main className="site-main flex-1">
       <div className="mx-auto max-w-6xl px-4 py-16 lg:px-6 lg:py-24">
@@ -56,22 +74,24 @@ export function CommandsView() {
           <p className="section-sub">
             Browse {cogs.length} categories. Default prefix is <code className="font-mono text-accent">,</code>
           </p>
+          <p className="mt-4 text-sm text-muted max-w-2xl mx-auto">
+            {statusCounts.supported.toLocaleString()} supported · {statusCounts.partial.toLocaleString()} partial ·{' '}
+            {statusCounts['coming-soon'].toLocaleString()} coming soon. Unmarked catalog commands return a coming-soon message in Discord.
+          </p>
         </header>
 
-        <div className="relative mb-10 max-w-md mx-auto animate-fade-up delay-100">
-          <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
-          <input
-            className="input pl-11"
-            placeholder="Search commands..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
+        <SearchField
+          className="mb-10 max-w-md mx-auto animate-fade-up delay-100"
+          placeholder="Search commands..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
 
         <div className="space-y-4">
           {filtered.map((cog, i) => {
             const isOpen = expanded === cog.cog_name || !!search;
             const displayName = cog.alt_name || cog.cog_name;
+            const cogStatus = getCogImplementationStatus(cog.cog_name);
 
             return (
               <section
@@ -85,7 +105,14 @@ export function CommandsView() {
                   className="flex w-full items-center justify-between gap-4 p-6 text-left transition hover:bg-white/[0.02]"
                 >
                   <div>
-                    <h2 className="text-lg font-semibold capitalize">{displayName}</h2>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h2 className="text-lg font-semibold capitalize">{displayName}</h2>
+                      <span className={`badge text-[10px] ${
+                        cogStatus === 'supported' ? 'badge-accent' : cogStatus === 'partial' ? 'badge-warning' : 'border border-border text-muted'
+                      }`}>
+                        {COG_STATUS_LABEL[cogStatus]}
+                      </span>
+                    </div>
                     <p className="text-sm text-muted mt-0.5">{cog.commands.length} command{cog.commands.length !== 1 ? 's' : ''}</p>
                   </div>
                   <div className="flex items-center gap-3">

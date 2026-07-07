@@ -1,7 +1,8 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { ScrollText, Search } from 'lucide-react';
+import { ScrollText } from 'lucide-react';
+import { SearchField } from '@/components/search-field';
 import { AdminCard, AdminEmpty, AdminStatCard } from '@/components/admin/ui';
 
 interface AuditEntry {
@@ -51,10 +52,14 @@ export function AdminAuditLog({ logs }: { logs: AuditEntry[] }) {
       </div>
 
       <div className="flex flex-wrap gap-3">
-        <div className="relative flex-1 min-w-[200px] max-w-md">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
-          <input className="input pl-9 text-sm" placeholder="Search action or target..." value={search} onChange={(e) => setSearch(e.target.value)} />
-        </div>
+        <SearchField
+          className="flex-1 min-w-[200px] max-w-md"
+          fieldSize="sm"
+          inputClassName="text-sm"
+          placeholder="Search action or target..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
         <select className="input w-48 text-sm" value={actionFilter} onChange={(e) => setActionFilter(e.target.value)}>
           <option value="all">All actions</option>
           {actions.map((a) => <option key={a} value={a}>{a}</option>)}

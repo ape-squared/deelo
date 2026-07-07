@@ -8,6 +8,7 @@ import {
   getModuleStatus,
   type ModuleId,
 } from '@/lib/dashboard-modules';
+import { StatusBadge } from '@/components/dashboard/status-badges';
 
 export function ModuleOverview({
   guild,
@@ -65,6 +66,8 @@ export function ModuleOverview({
                     <div className="mt-4 flex items-center gap-2">
                       <p className="font-semibold">{mod.label}</p>
                       {mod.premium && <span className="badge badge-warning text-[10px]">Premium</span>}
+                      {mod.badge === 'partial' && <StatusBadge variant="partial">Partial</StatusBadge>}
+                      {mod.badge === 'coming-soon' && <StatusBadge variant="coming-soon">Coming soon</StatusBadge>}
                     </div>
                     <p className="mt-1 line-clamp-2 text-xs text-muted">{mod.description}</p>
                     <p className="mt-3 text-xs text-muted/80">{status.detail}</p>

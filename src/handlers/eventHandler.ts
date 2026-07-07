@@ -12,6 +12,7 @@ export function registerEvents(client: DeeloClient): void {
       syncAllGuildIdentities(client).catch((err) => console.warn('[guild-identity] sync failed:', err)),
     );
     void import('../services/social-poll').then(({ startSocialPollLoop }) => startSocialPollLoop(client));
+    void import('../services/counters').then(({ startCounterSyncLoop }) => startCounterSyncLoop(client));
   });
 
   client.on('messageCreate', async (message) => {
@@ -89,6 +90,9 @@ export function registerEvents(client: DeeloClient): void {
       const message = reaction.message.partial ? await reaction.message.fetch() : reaction.message;
       if (!message.guild || !message.author || message.author.bot) return;
 
+      const { handleReactionRole } = await import('../services/reaction-roles');
+      await handleReactionRole(reaction, user, true);
+
       const emoji = reaction.emoji.name;
       if (emoji !== '⭐' && emoji !== 'star') return;
 
@@ -98,7 +102,17 @@ export function registerEvents(client: DeeloClient): void {
       const { handleStarboardReaction } = await import('../services/starboard');
       await handleStarboardReaction(message, guild, count);
     } catch (err) {
-      console.error('starboard reaction:', err);
+      console.error('reaction handler:', err);
+    }
+  });
+
+  client.on('messageReactionRemove', async (reaction, user) => {
+    if (user.bot) return;
+    try {
+      const { handleReactionRole } = await import('../services/reaction-roles');
+      await handleReactionRole(reaction, user, false);
+    } catch (err) {
+      console.error('reaction remove handler:', err);
     }
   });
 
@@ -108,6 +122,15 @@ export function registerEvents(client: DeeloClient): void {
     const guild = await getGuild(channel.guild.id);
     const { handleAntiNuke } = await import('../services/antinuke');
     await handleAntiNuke(channel.guild, guild, 'channel', channel);
+
+    const { updateGuildCounters } = await import('../services/counters');
+    await updateGuildCounters(channel.guild).catch(() => {});
+  });
+
+  client.on('channelCreate', async (channel) => {
+    if (!('guild' in channel) || !channel.guild) return;
+    const { updateGuildCounters } = await import('../services/counters');
+    await updateGuildCounters(channel.guild).catch(() => {});
   });
 
   client.on('roleDelete', async (role) => {
@@ -213,6 +236,9 @@ export function registerEvents(client: DeeloClient): void {
       `**User:** ${member.user.tag} (${member})\n**Member count:** ${member.guild.memberCount}`,
       { userId: member.id },
     );
+
+    const { updateGuildCounters } = await import('../services/counters');
+    await updateGuildCounters(member.guild).catch(() => {});
   });
 
   client.on('guildMemberRemove', async (member) => {
@@ -243,14 +269,19 @@ export function registerEvents(client: DeeloClient): void {
       { userId: member.id },
     );
 
-    if (!guild.goodbye_channel || !guild.goodbye_message) return;
-    const channel = member.guild.channels.cache.get(guild.goodbye_channel);
-    if (!channel?.isTextBased()) return;
-    const msg = guild.goodbye_message
-      .replace(/{user}/g, member.user.username)
-      .replace(/{server}/g, member.guild.name)
-      .replace(/{membercount}/g, member.guild.memberCount.toString());
-    await channel.send(msg).catch(() => {});
+    if (guild.goodbye_channel && guild.goodbye_message) {
+      const channel = member.guild.channels.cache.get(guild.goodbye_channel);
+      if (channel?.isTextBased()) {
+        const msg = guild.goodbye_message
+          .replace(/{user}/g, member.user?.username ?? 'Unknown')
+          .replace(/{server}/g, member.guild.name)
+          .replace(/{membercount}/g, member.guild.memberCount.toString());
+        await channel.send(msg).catch(() => {});
+      }
+    }
+
+    const { updateGuildCounters } = await import('../services/counters');
+    await updateGuildCounters(member.guild).catch(() => {});
   });
 
   client.on('voiceStateUpdate', async (oldState, newState) => {

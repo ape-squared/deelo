@@ -4,6 +4,7 @@ import { getSupabase } from '../../database/supabase';
 import { replyError, replyInfo, replySuccess, mentionChannel, mentionRole } from '../lib/helpers';
 import { setExtraConfig, getConfigValue } from '../lib/guild-config';
 import { seedSocialFeed } from '../../services/social-poll';
+import { replyComingSoon } from '../../lib/coming-soon';
 
 const SOCIAL_COGS = new Set([
   'instagram', 'twitter', 'tiktok', 'youtube', 'twitch', 'kick', 'pinterest', 'reddit', 'soundcloud',
@@ -89,14 +90,12 @@ export async function handleSocialPlatformCog(cmd: CommandDef, message: Message,
   }
 
   if (name.includes('story') || name.includes('stories') || name.includes('highlights') || name.includes('live') || name.includes('retweets')) {
-    await setExtraConfig(guildId, `${platform}.${name.replace(`${root} `, '').replace(/ /g, '.')}`, true);
-    await replySuccess(message, `**${name}** tracking enabled for ${platform}.`);
+    await replyComingSoon(message, name, `**,${name}** is coming soon. Basic feed tracking works with \`,${root} add #channel <username>\`.`);
     return true;
   }
 
   if (name.startsWith(root) || name.startsWith(platform)) {
-    await setExtraConfig(guildId, `${platform}.${name.replace(`${root} `, '').replace(/ /g, '.')}`, args.join(' ') || true);
-    await replySuccess(message, `${platform} setting updated.`);
+    await replyComingSoon(message, name, `**,${name}** is not implemented yet. Use \`,${root} add\`, \`,${root} list\`, or \`,${root} remove\`.`);
     return true;
   }
 

@@ -1,13 +1,18 @@
 {
-  "generated_at": "2026-07-07T21:57:06.600Z",
+  "generated_at": "2026-07-07T22:11:31.438Z",
   "latest": {
     "id": "release-2026-07-07",
-    "version": "cee0dd4",
-    "published_at": "2026-07-07T17:55:26-04:00",
+    "version": "e39a9ad",
+    "published_at": "2026-07-07T17:57:40-04:00",
     "title": "Updates for July 7, 2026",
-    "category": "feature",
-    "body": "- Implement Fortnite and social feeds using free public data sources\n- V3 public site overhaul with unified marketing layout\n- Merge admin and staff portals into unified /admin\n- Deelo v3: staff portal, RBAC, and dashboard overhaul\n- Apply dashboard bot customization to Discord on save\n- Fix embed colors for dashboard sends and bot replies\n- Fix dashboard bot presence detection after redeploy\n- Add embed builder, fix fun commands, and resolve embed/Last.fm routing clash\n- Add premium bot appearance settings and fix web client bundle\n- Add Discord channel dropdowns to the guild dashboard\n- Fix dashboard layout overlap and animation glitches\n- Fix dashboard profile avatars showing broken image icon",
+    "category": "fix",
+    "body": "- Fix V3 marketing layout overlaps and add What's New from git commits\n- Implement Fortnite and social feeds using free public data sources\n- V3 public site overhaul with unified marketing layout\n- Merge admin and staff portals into unified /admin\n- Deelo v3: staff portal, RBAC, and dashboard overhaul\n- Apply dashboard bot customization to Discord on save\n- Fix embed colors for dashboard sends and bot replies\n- Fix dashboard bot presence detection after redeploy\n- Add embed builder, fix fun commands, and resolve embed/Last.fm routing clash\n- Add premium bot appearance settings and fix web client bundle\n- Add Discord channel dropdowns to the guild dashboard\n- Fix dashboard layout overlap and animation glitches",
     "items": [
+      {
+        "title": "Fix V3 marketing layout overlaps and add What's New from git commits",
+        "category": "fix",
+        "hash": "e39a9ad"
+      },
       {
         "title": "Implement Fortnite and social feeds using free public data sources",
         "category": "feature",
@@ -62,11 +67,6 @@
         "title": "Fix dashboard layout overlap and animation glitches",
         "category": "fix",
         "hash": "8a88059"
-      },
-      {
-        "title": "Fix dashboard profile avatars showing broken image icon",
-        "category": "fix",
-        "hash": "3adf73d"
       }
     ],
     "source": "git"
@@ -74,12 +74,17 @@
   "releases": [
     {
       "id": "release-2026-07-07",
-      "version": "cee0dd4",
-      "published_at": "2026-07-07T17:55:26-04:00",
+      "version": "e39a9ad",
+      "published_at": "2026-07-07T17:57:40-04:00",
       "title": "Updates for July 7, 2026",
-      "category": "feature",
-      "body": "- Implement Fortnite and social feeds using free public data sources\n- V3 public site overhaul with unified marketing layout\n- Merge admin and staff portals into unified /admin\n- Deelo v3: staff portal, RBAC, and dashboard overhaul\n- Apply dashboard bot customization to Discord on save\n- Fix embed colors for dashboard sends and bot replies\n- Fix dashboard bot presence detection after redeploy\n- Add embed builder, fix fun commands, and resolve embed/Last.fm routing clash\n- Add premium bot appearance settings and fix web client bundle\n- Add Discord channel dropdowns to the guild dashboard\n- Fix dashboard layout overlap and animation glitches\n- Fix dashboard profile avatars showing broken image icon",
+      "category": "fix",
+      "body": "- Fix V3 marketing layout overlaps and add What's New from git commits\n- Implement Fortnite and social feeds using free public data sources\n- V3 public site overhaul with unified marketing layout\n- Merge admin and staff portals into unified /admin\n- Deelo v3: staff portal, RBAC, and dashboard overhaul\n- Apply dashboard bot customization to Discord on save\n- Fix embed colors for dashboard sends and bot replies\n- Fix dashboard bot presence detection after redeploy\n- Add embed builder, fix fun commands, and resolve embed/Last.fm routing clash\n- Add premium bot appearance settings and fix web client bundle\n- Add Discord channel dropdowns to the guild dashboard\n- Fix dashboard layout overlap and animation glitches",
       "items": [
+        {
+          "title": "Fix V3 marketing layout overlaps and add What's New from git commits",
+          "category": "fix",
+          "hash": "e39a9ad"
+        },
         {
           "title": "Implement Fortnite and social feeds using free public data sources",
           "category": "feature",
@@ -134,27 +139,6 @@
           "title": "Fix dashboard layout overlap and animation glitches",
           "category": "fix",
           "hash": "8a88059"
-        },
-        {
-          "title": "Fix dashboard profile avatars showing broken image icon",
-          "category": "fix",
-          "hash": "3adf73d"
-        }
-      ],
-      "source": "git"
-    },
-    {
-      "id": "release-2026-07-06",
-      "version": "5318d13",
-      "published_at": "2026-07-06T23:59:23-04:00",
-      "title": "Fix Vercel workflow: checkout before steps that need the web directory",
-      "category": "fix",
-      "body": "- Fix Vercel workflow: checkout before steps that need the web directory",
-      "items": [
-        {
-          "title": "Fix Vercel workflow: checkout before steps that need the web directory",
-          "category": "fix",
-          "hash": "5318d13"
         }
       ],
       "source": "git"

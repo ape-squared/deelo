@@ -33,6 +33,8 @@ export interface DashboardModule {
   description: string;
   icon: LucideIcon;
   premium?: boolean;
+  /** Shown on overview when dashboard support is incomplete */
+  badge?: 'partial' | 'coming-soon';
 }
 
 export interface ModuleGroup {
