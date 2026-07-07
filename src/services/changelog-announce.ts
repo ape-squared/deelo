@@ -170,12 +170,6 @@ async function resolveChangelogChannel(client: Client): Promise<TextChannel | nu
     return null;
   }
 
-  const me = channel.guild.members.me;
-  if (me && !channel.permissionsFor(me)?.has(['ViewChannel', 'SendMessages', 'EmbedLinks'])) {
-    console.warn('[changelog] Missing permissions in #changelogs — need View Channel, Send Messages, Embed Links');
-    return null;
-  }
-
   return channel;
 }
 
@@ -243,7 +237,12 @@ export async function syncChangelogAnnouncements(client: Client): Promise<void> 
       posted.add(key);
       postedCount++;
     } catch (err) {
-      console.error(`[changelog] Failed to post "${entry.title}":`, err);
+      const code = err && typeof err === 'object' && 'code' in err ? (err as { code: number }).code : null;
+      if (code === 50013) {
+        console.error('[changelog] Missing permissions in #changelogs — need View Channel, Send Messages, Embed Links');
+      } else {
+        console.error(`[changelog] Failed to post "${entry.title}":`, err);
+      }
     }
   }
 
