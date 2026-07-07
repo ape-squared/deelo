@@ -3,6 +3,7 @@ import { config } from '../config';
 import type { DeeloClient } from '../client';
 import type { Command, CommandContext } from '../types/command';
 import { errorEmbed } from '../utils/embeds';
+import { formatPermissionList } from '../utils/permissions';
 import { ackCommandMessage, shouldAckCommand } from './command-ack';
 
 export async function runCommand(
@@ -24,7 +25,11 @@ export async function runCommand(
   if (command.permissions && message.member) {
     const missing = command.permissions.filter((p) => !message.member!.permissions.has(p));
     if (missing.length) {
-      await message.reply({ embeds: [errorEmbed(`You need: ${missing.join(', ')}`)] });
+      const list = formatPermissionList(missing);
+      const noun = list.includes(',') ? 'permissions' : 'permission';
+      await message.reply({
+        embeds: [errorEmbed(`You need **${list}** ${noun}.`)],
+      });
       return;
     }
   }
@@ -32,8 +37,14 @@ export async function runCommand(
     const me = message.guild.members.me;
     const missing = command.botPermissions.filter((p) => !me.permissions.has(p));
     if (missing.length) {
+      const list = formatPermissionList(missing);
+      const noun = list.includes(',') ? 'permissions' : 'permission';
       await message.reply({
-        embeds: [errorEmbed(`I need: ${missing.join(', ')}. Check my role permissions and hierarchy.`)],
+        embeds: [
+          errorEmbed(
+            `I need **${list}** ${noun}. Check my role permissions and hierarchy.`,
+          ),
+        ],
       });
       return;
     }
