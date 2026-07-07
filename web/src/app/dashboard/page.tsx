@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { getInviteUrl } from '@/lib/invite';
+import { inviteApiPath } from '@/lib/invite';
 import { DashboardShell, GuildIcon, PageHeader } from '@/components/dashboard/shell';
 import { LoadingScreen, EmptyState } from '@/components/ui/animate';
 import { Server, Crown, Plus, Search } from 'lucide-react';
@@ -95,7 +95,7 @@ export default function DashboardPage() {
         description="Choose a server to manage its modules and settings."
         badge={<span className="badge badge-accent">{withBot.length} active</span>}
         action={
-          <a href={getInviteUrl()} className="btn-primary text-sm py-2.5" target="_blank" rel="noreferrer">
+          <a href={inviteApiPath()} className="btn-primary text-sm py-2.5" target="_blank" rel="noreferrer">
             <Plus className="h-4 w-4" />
             Add to server
           </a>
@@ -122,7 +122,7 @@ export default function DashboardPage() {
           action={
             <div className="flex gap-3">
               <a href="/api/auth/discord" className="btn-secondary text-sm">Re-login</a>
-              <a href={getInviteUrl()} className="btn-primary text-sm" target="_blank" rel="noreferrer">Invite bot</a>
+              <a href={inviteApiPath()} className="btn-primary text-sm" target="_blank" rel="noreferrer">Invite bot</a>
             </div>
           }
         />
@@ -178,7 +178,7 @@ function ServerPickerCard({ guild: g, invite }: { guild: Guild; invite?: boolean
   if (invite) {
     return (
       <a
-        href={getInviteUrl(g.id)}
+        href={inviteApiPath(g.id)}
         className="server-picker-card group relative"
         target="_blank"
         rel="noreferrer"

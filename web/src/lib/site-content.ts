@@ -83,6 +83,3 @@ export function renderSimpleMarkdown(text: string): string {
     .replace(/\n\n/g, '</p><p>')
     .replace(/\n/g, '<br />');
 }
-
-export const DEFAULT_DISCORD_SERVER_ID = '1523831534799425576';
-export const DEFAULT_DISCORD_INVITE = 'https://discord.gg/deelo';

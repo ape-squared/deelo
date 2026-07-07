@@ -8,7 +8,7 @@ import {
   ChevronRight, Plus, Home,
 } from 'lucide-react';
 import { DeeloIcon, DeeloWordmark } from '@/components/brand/logo';
-import { getInviteUrl } from '@/lib/invite';
+import { inviteApiPath } from '@/lib/invite';
 
 export interface DashboardGuild {
   id: string;
@@ -111,7 +111,7 @@ export function DashboardShell({
             </Link>
           ))}
           <a
-            href={getInviteUrl()}
+            href={inviteApiPath()}
             className="server-rail-btn mt-auto text-muted hover:text-accent"
             title="Add to server"
             target="_blank"

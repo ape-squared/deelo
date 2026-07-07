@@ -66,7 +66,7 @@ const utility: Command[] = [
       const uptime = process.uptime();
       const h = Math.floor(uptime / 3600);
       const m = Math.floor((uptime % 3600) / 60);
-      const appUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://deelo.bot';
+      const appUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || '';
       await message.reply({
         embeds: [deeloEmbed('Deelo Status', [
           `**Servers:** ${guilds.toLocaleString()}`,

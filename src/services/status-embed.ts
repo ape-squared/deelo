@@ -38,7 +38,7 @@ const STATUS_COLOR: Record<OverallStatus, number> = {
 let statusMessageId: string | null = process.env.STATUS_MESSAGE_ID ?? null;
 
 function appUrl(): string {
-  return (process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://deelo.bot').replace(/\/$/, '');
+  return (process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || '').replace(/\/$/, '');
 }
 
 async function fetchStatusApi(): Promise<StatusApiPayload | null> {

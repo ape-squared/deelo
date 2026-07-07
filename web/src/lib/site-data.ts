@@ -1,6 +1,6 @@
 import { createAdminClient } from '@/lib/supabase/admin';
 import type { DiscordSiteSettings, HeroSiteSettings, SiteAnnouncement, SiteChangelogEntry } from '@/lib/site-content';
-import { DEFAULT_DISCORD_INVITE, DEFAULT_DISCORD_SERVER_ID } from '@/lib/site-content';
+import { getDiscordInviteUrl, getDiscordServerId } from '@/lib/runtime-env';
 
 function isMissingTableError(message: string): boolean {
   return message.includes('site_') || message.includes('does not exist') || message.includes('schema cache');
@@ -97,13 +97,13 @@ export async function getDiscordSettings(): Promise<DiscordSiteSettings> {
     if (error) handleDbError(error);
     const v = (data?.value ?? {}) as Partial<DiscordSiteSettings>;
     return {
-      server_id: v.server_id ?? process.env.NEXT_PUBLIC_DISCORD_SERVER_ID ?? DEFAULT_DISCORD_SERVER_ID,
-      invite_url: v.invite_url ?? DEFAULT_DISCORD_INVITE,
+      server_id: v.server_id ?? getDiscordServerId() ?? '',
+      invite_url: v.invite_url ?? getDiscordInviteUrl() ?? '',
       widget_enabled: v.widget_enabled !== false,
     };
   }, {
-    server_id: process.env.NEXT_PUBLIC_DISCORD_SERVER_ID ?? DEFAULT_DISCORD_SERVER_ID,
-    invite_url: DEFAULT_DISCORD_INVITE,
+    server_id: getDiscordServerId() ?? '',
+    invite_url: getDiscordInviteUrl() ?? '',
     widget_enabled: true,
   });
 }

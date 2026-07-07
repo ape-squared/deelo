@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { setDashboardSession, DISCORD_API, discordAvatarUrl } from '@/lib/session';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { getAppUrl, getDiscordClientId, getDiscordClientSecret } from '@/lib/discord-config';
+import { getDiscordClientId, getDiscordClientSecret, resolveAppUrl } from '@/lib/runtime-env';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
+  const appUrl = resolveAppUrl(req.headers);
   const code = req.nextUrl.searchParams.get('code');
-  if (!code) return NextResponse.redirect(new URL('/dashboard?error=no_code', req.url));
+  if (!code) return NextResponse.redirect(new URL('/dashboard?error=no_code', appUrl));
 
   const tokenRes = await fetch(`${DISCORD_API}/oauth2/token`, {
     method: 'POST',
@@ -17,17 +18,17 @@ export async function GET(req: NextRequest) {
       client_secret: getDiscordClientSecret(),
       grant_type: 'authorization_code',
       code,
-      redirect_uri: `${getAppUrl()}/api/auth/discord/callback`,
+      redirect_uri: `${appUrl}/api/auth/discord/callback`,
     }),
   });
 
-  if (!tokenRes.ok) return NextResponse.redirect(new URL('/dashboard?error=token', req.url));
+  if (!tokenRes.ok) return NextResponse.redirect(new URL('/dashboard?error=token', appUrl));
   const tokens = (await tokenRes.json()) as { access_token: string; refresh_token: string; expires_in: number };
 
   const userRes = await fetch(`${DISCORD_API}/users/@me`, {
     headers: { Authorization: `Bearer ${tokens.access_token}` },
   });
-  if (!userRes.ok) return NextResponse.redirect(new URL('/dashboard?error=user', req.url));
+  if (!userRes.ok) return NextResponse.redirect(new URL('/dashboard?error=user', appUrl));
   const user = (await userRes.json()) as { id: string; username: string; avatar: string | null; email?: string };
 
   const { error: dbError } = await createAdminClient().from('dashboard_users').upsert({
@@ -48,5 +49,5 @@ export async function GET(req: NextRequest) {
     avatar: discordAvatarUrl(user),
   });
 
-  return NextResponse.redirect(new URL('/dashboard', req.url));
+  return NextResponse.redirect(new URL('/dashboard', appUrl));
 }

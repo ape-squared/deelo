@@ -14,8 +14,11 @@ export const config = {
   defaultPrefix: process.env.DEFAULT_PREFIX ?? ',',
   botName: 'Deelo',
   botColor: 0x5865f2,
-  inviteUrl:
-    'https://discord.com/oauth2/authorize?client_id=1188001834305060925&permissions=8866461766385655&integration_type=0&scope=bot',
+  inviteUrl: (() => {
+    const clientId = process.env.DISCORD_CLIENT_ID || process.env.NEXT_PUBLIC_DISCORD_CLIENT_ID;
+    if (!clientId) return '';
+    return `https://discord.com/oauth2/authorize?client_id=${clientId}&permissions=8866461766385655&integration_type=0&scope=bot`;
+  })(),
 };
 
 export function validateConfig(): void {

@@ -1,7 +1,10 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { clearAdminSession } from '@/lib/admin-session';
+import { resolveAppUrl } from '@/lib/runtime-env';
 
-export async function POST() {
+export const dynamic = 'force-dynamic';
+
+export async function POST(req: NextRequest) {
   await clearAdminSession();
-  return NextResponse.redirect(new URL('/admin/login', process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'));
+  return NextResponse.redirect(new URL('/admin/login', resolveAppUrl(req.headers)));
 }

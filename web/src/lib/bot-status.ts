@@ -148,7 +148,7 @@ export async function getServiceStatuses(): Promise<ServiceStatus[]> {
       id: 'dashboard',
       label: 'Web Dashboard',
       status: 'operational',
-      detail: 'deelo.bot',
+      detail: process.env['NEXT_PUBLIC_APP_URL'] || process.env['APP_URL'] || 'Deployed',
     },
   ];
 }

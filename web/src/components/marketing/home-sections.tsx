@@ -140,7 +140,7 @@ export function DashboardPreviewSection() {
               <span className="dash-mockup-dot bg-amber-500/80" />
               <span className="dash-mockup-dot bg-green-500/80" />
             </div>
-            <span className="text-xs text-muted font-mono">deelo.bot/dashboard</span>
+            <span className="text-xs text-muted font-mono">/dashboard</span>
           </div>
           <div className="flex min-h-[320px]">
             <div className="w-14 shrink-0 border-r border-border bg-white/[0.02] p-2 space-y-2">

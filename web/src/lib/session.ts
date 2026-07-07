@@ -1,6 +1,6 @@
 import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
-import { getDiscordClientId, getDiscordClientSecret, getSessionSecret } from '@/lib/discord-config';
+import { getDiscordClientId, getDiscordClientSecret, getSessionSecret, resolveAppUrl } from '@/lib/runtime-env';
 
 const COOKIE = 'deelo_session';
 const secret = () => new TextEncoder().encode(getSessionSecret());
