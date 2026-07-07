@@ -63,3 +63,57 @@ export async function getYoutubeTitle(url: string): Promise<string | null> {
     return null;
   }
 }
+
+export interface YoutubeSearchResult {
+  title: string;
+  url: string;
+  duration: number;
+  thumbnail?: string;
+}
+
+/** Search YouTube via yt-dlp (more reliable than play-dl search). */
+export async function searchYouTube(query: string): Promise<YoutubeSearchResult> {
+  const out = await getYtDlp().execPromise([
+    `ytsearch1:${query}`,
+    '--dump-single-json',
+    '--no-playlist',
+    '--no-warnings',
+    '--ignore-config',
+  ]);
+
+  const parsed = JSON.parse(out.trim()) as {
+    _type?: string;
+    entries?: Array<{
+      id?: string;
+      title?: string;
+      webpage_url?: string;
+      duration?: number;
+      thumbnail?: string;
+    }>;
+    id?: string;
+    title?: string;
+    webpage_url?: string;
+    duration?: number;
+    thumbnail?: string;
+  };
+
+  const entry =
+    parsed._type === 'playlist' && parsed.entries?.length
+      ? parsed.entries[0]
+      : parsed;
+
+  const url =
+    entry.webpage_url ??
+    (entry.id && !entry.id.includes(' ') ? `https://www.youtube.com/watch?v=${entry.id}` : undefined);
+
+  if (!url?.startsWith('http')) {
+    throw new Error(`No YouTube results for "${query}".`);
+  }
+
+  return {
+    title: entry.title ?? query,
+    url,
+    duration: Math.floor(entry.duration ?? 0),
+    thumbnail: entry.thumbnail,
+  };
+}

@@ -1,6 +1,7 @@
 import play from 'play-dl';
 import type { SoundCloudPlaylist, SoundCloudTrack } from 'play-dl';
 import type { Track, TrackSource } from './types';
+import { searchYouTube } from './ytdlp';
 import {
   fetchSpotifyAlbumTracks,
   fetchSpotifyPlaylistTracks,
@@ -10,6 +11,7 @@ import {
   searchSpotifyTracks,
   spotifyConfigured,
   isSpotifySearchAvailable,
+  markSpotifySearchUnavailable,
 } from './spotify';
 
 const MAX_PLAYLIST_TRACKS = 50;
@@ -35,7 +37,14 @@ export async function resolveQuery(query: string, requestedBy: string): Promise<
     if (kind === 'dz_album' || kind === 'dz_playlist') return resolveDeezerCollection(trimmed, requestedBy);
   }
 
-  return resolveSpotifySearch(trimmed, requestedBy);
+  return resolveTextSearch(trimmed, requestedBy);
+}
+
+async function resolveTextSearch(query: string, requestedBy: string): Promise<Track[]> {
+  if (isSpotifySearchAvailable()) {
+    return resolveSpotifySearch(query, requestedBy);
+  }
+  return resolveYouTubeSearch(query, requestedBy);
 }
 
 async function resolveSpotifyLink(
@@ -74,7 +83,8 @@ async function resolveSpotifySearch(query: string, requestedBy: string): Promise
       return [await resolveSpotifyTrack(results[0], requestedBy)];
     }
   } catch (err) {
-    console.warn('[music] Spotify search failed, falling back to YouTube:', err);
+    markSpotifySearchUnavailable(err);
+    console.warn('[music] Spotify search unavailable — using YouTube');
   }
 
   return resolveYouTubeSearch(query, requestedBy);
@@ -234,6 +244,22 @@ async function lookupAppleMusic(url: string): Promise<{ title: string; artist: s
 }
 
 async function resolveYouTubeSearch(query: string, requestedBy: string): Promise<Track[]> {
+  console.log(`[music] searching YouTube: ${query}`);
+
+  try {
+    const video = await searchYouTube(query);
+    return [{
+      title: video.title,
+      url: video.url,
+      duration: video.duration,
+      thumbnail: video.thumbnail,
+      source: 'youtube',
+      requestedBy,
+    }];
+  } catch (ytdlpErr) {
+    console.warn('[music] yt-dlp search failed, trying play-dl:', ytdlpErr);
+  }
+
   const results = await play.search(query, { limit: 1, source: { youtube: 'video' } });
   if (!results.length) throw new Error(`No results found for **${query}**.`);
 

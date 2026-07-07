@@ -1,6 +1,7 @@
 import play from 'play-dl';
 import { config } from '../../config';
 import type { Track } from './types';
+import { searchYouTube } from './ytdlp';
 
 interface SpotifyApiArtist {
   name: string;
@@ -29,7 +30,7 @@ export function isSpotifySearchAvailable(): boolean {
   return spotifyConfigured() && !spotifySearchDisabled;
 }
 
-function markSpotifySearchUnavailable(err: unknown): void {
+export function markSpotifySearchUnavailable(err: unknown): void {
   const msg = err instanceof Error ? err.message : String(err);
   if (!/premium subscription/i.test(msg)) return;
   if (!spotifySearchDisabled) {
@@ -84,14 +85,24 @@ async function spotifyApi<T>(path: string): Promise<T> {
     headers: { Authorization: `Bearer ${token}` },
   });
   const raw = await res.text();
+  if (!res.ok) {
+    const err = new Error(
+      `Spotify API error (${res.status}): ${raw.slice(0, 160)}`,
+    );
+    markSpotifySearchUnavailable(err);
+    throw err;
+  }
+
   let data: T & { error?: { message?: string } };
   try {
     data = JSON.parse(raw) as T & { error?: { message?: string } };
   } catch {
-    throw new Error(`Spotify API returned invalid JSON (${res.status}): ${raw.slice(0, 120)}`);
+    const err = new Error(`Spotify API returned invalid JSON (${res.status}): ${raw.slice(0, 120)}`);
+    markSpotifySearchUnavailable(err);
+    throw err;
   }
-  if (!res.ok) {
-    const err = new Error(data.error?.message ?? `Spotify API error (${res.status})`);
+  if (data.error?.message) {
+    const err = new Error(data.error.message);
     markSpotifySearchUnavailable(err);
     throw err;
   }
@@ -156,22 +167,36 @@ export async function resolveSpotifyTrack(spTrack: SpotifyApiTrack, requestedBy:
   const artist = spTrack.artists?.[0]?.name ?? '';
   const searchQuery = artist ? `${artist} ${spTrack.name}` : spTrack.name;
 
-  const results = await play.search(searchQuery, { limit: 3, source: { youtube: 'video' } });
-  if (!results.length) {
-    throw new Error(`Could not find audio for **${spTrack.name}**.`);
-  }
+  try {
+    const video = await searchYouTube(searchQuery);
+    return {
+      title,
+      url: video.url,
+      spotifyUrl: spTrack.external_urls.spotify,
+      artist: artist || undefined,
+      duration: Math.round((spTrack.duration_ms ?? 0) / 1000) || video.duration,
+      thumbnail: spTrack.album?.images?.[0]?.url ?? video.thumbnail,
+      source: 'spotify',
+      requestedBy,
+    };
+  } catch {
+    const results = await play.search(searchQuery, { limit: 3, source: { youtube: 'video' } });
+    if (!results.length) {
+      throw new Error(`Could not find audio for **${spTrack.name}**.`);
+    }
 
-  const video = results[0];
-  return {
-    title,
-    url: video.url,
-    spotifyUrl: spTrack.external_urls.spotify,
-    artist: artist || undefined,
-    duration: Math.round((spTrack.duration_ms ?? 0) / 1000) || video.durationInSec,
-    thumbnail: spTrack.album?.images?.[0]?.url ?? video.thumbnails[0]?.url,
-    source: 'spotify',
-    requestedBy,
-  };
+    const video = results[0];
+    return {
+      title,
+      url: video.url,
+      spotifyUrl: spTrack.external_urls.spotify,
+      artist: artist || undefined,
+      duration: Math.round((spTrack.duration_ms ?? 0) / 1000) || video.durationInSec,
+      thumbnail: spTrack.album?.images?.[0]?.url ?? video.thumbnails[0]?.url,
+      source: 'spotify',
+      requestedBy,
+    };
+  }
 }
 
 export function trackDisplayUrl(track: Track): string {
