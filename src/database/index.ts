@@ -35,6 +35,7 @@ export interface GuildSettings {
   voicemaster_join_role: string | null;
   bump_channel: string | null;
   bump_interval: number;
+  extra_config?: Record<string, unknown> | null;
 }
 
 const DEFAULT_GUILD: Omit<GuildSettings, 'id'> = {

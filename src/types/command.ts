@@ -1,11 +1,13 @@
 import type { ChatInputCommandInteraction, Message, PermissionResolvable } from 'discord.js';
 import type { DeeloClient } from '../client';
+import type { GuildSettings } from '../database';
 
 export interface CommandContext {
   client: DeeloClient;
   message: Message;
   args: string[];
   commandName: string;
+  guildSettings?: GuildSettings;
 }
 
 export interface SlashContext {

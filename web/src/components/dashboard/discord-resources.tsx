@@ -9,8 +9,8 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import type { ChannelKind, GuildChannel } from '@/lib/discord-guild';
-import { channelOptions } from '@/lib/discord-guild';
+import type { ChannelKind, GuildChannel } from '@/lib/discord-channels';
+import { channelOptions } from '@/lib/discord-channels';
 
 interface GuildChannelsState {
   channels: GuildChannel[];

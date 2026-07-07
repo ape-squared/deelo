@@ -8,6 +8,9 @@ export function registerEvents(client: DeeloClient): void {
   client.once('ready', () => {
     console.log(`Deelo logged in as ${client.user?.tag}`);
     client.user?.setActivity('deelo.bot | ,help', { type: 3 });
+    void import('../services/guild-identity').then(({ syncAllGuildIdentities }) =>
+      syncAllGuildIdentities(client).catch((err) => console.warn('[guild-identity] sync failed:', err)),
+    );
   });
 
   client.on('messageCreate', async (message) => {
@@ -70,8 +73,11 @@ export function registerEvents(client: DeeloClient): void {
   });
 
   client.on('guildCreate', async (guild) => {
-    const { getGuild } = await import('../database');
-    await getGuild(guild.id);
+    const { getGuild, getGuildPlan } = await import('../database');
+    const settings = await getGuild(guild.id);
+    const plan = await getGuildPlan(guild.id);
+    const { applyGuildBotIdentity } = await import('../services/guild-identity');
+    await applyGuildBotIdentity(guild, settings.extra_config ?? null, plan);
     console.log(`[sync] Registered guild ${guild.name} (${guild.id})`);
   });
 

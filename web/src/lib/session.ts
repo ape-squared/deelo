@@ -1,7 +1,10 @@
 import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
 import { discordAvatarUrl as buildDiscordAvatarUrl } from '@/lib/discord-avatar';
+import { DISCORD_API } from '@/lib/discord-api';
 import { getDiscordClientId, getDiscordClientSecret, getSessionSecret, resolveAppUrl } from '@/lib/runtime-env';
+
+export { DISCORD_API };
 
 const COOKIE = 'deelo_session';
 const secret = () => new TextEncoder().encode(getSessionSecret());
@@ -46,9 +49,6 @@ export async function clearDashboardSession() {
   const cookieStore = await cookies();
   cookieStore.delete(COOKIE);
 }
-
-export const DISCORD_API = 'https://discord.com/api/v10';
-
 const PERM_ADMINISTRATOR = BigInt(1) << BigInt(3);
 const PERM_MANAGE_GUILD = BigInt(1) << BigInt(5);
 

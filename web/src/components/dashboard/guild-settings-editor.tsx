@@ -6,8 +6,9 @@ import { useCallback, useState } from 'react';
 import { Save } from 'lucide-react';
 import type { DashboardGuildSettings } from '@/lib/guild-settings';
 import { WELCOME_VARIABLES, getExtraConfigPath } from '@/lib/guild-settings';
+import { BOT_APPEARANCE_FIELDS } from '@/lib/bot-appearance';
 import type { GuildFullConfig } from '@/lib/guild-types';
-import type { ChannelKind } from '@/lib/discord-guild';
+import type { ChannelKind } from '@/lib/discord-channels';
 import { EXTRA_CONFIG_FIELDS, KNOWN_EVENTS } from '@/lib/guild-types';
 import { MODULE_GROUPS, isValidModuleId, type ModuleId } from '@/lib/dashboard-modules';
 import { AddRow, CrudList, MiniInput, MiniSelect } from '@/components/dashboard/guild-crud';
@@ -193,6 +194,51 @@ export function GuildSettingsEditor({
             </Field>
             <Toggle label="Fake permissions mode" desc="Allow fake permission overrides (admin only)" checked={guild.fake_permissions_enabled ?? false} onChange={(v) => update('fake_permissions_enabled', v)} />
             <PlanCard guild={guild} subscription={initial.subscription} />
+          </Section>
+        )}
+
+        {tab === 'appearance' && (
+          <Section
+            title="Bot appearance"
+            desc="Customize how Deelo looks in this server. Nickname is per-server; status and avatar are global to the bot."
+          >
+            {!isPremium ? (
+              <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4">
+                <p className="text-sm font-medium">Premium required</p>
+                <p className="mt-1 text-sm text-muted">Upgrade to customize Deelo&apos;s nickname, embed color, and footer in your server.</p>
+                <Link href="/pricing" className="btn-primary text-sm py-2 inline-flex mt-3">View plans</Link>
+              </div>
+            ) : (
+              BOT_APPEARANCE_FIELDS.map((f) => (
+                <Field key={f.key} label={f.label} hint={f.description}>
+                  {f.type === 'color' ? (
+                    <div className="flex flex-wrap items-center gap-3">
+                      <input
+                        type="color"
+                        className="h-10 w-14 cursor-pointer rounded-lg border border-border bg-transparent"
+                        value={extraValue(f.key) ? `#${extraValue(f.key).replace(/^#/, '')}` : '#5865F2'}
+                        onChange={(e) => setExtra(f.key, e.target.value.replace(/^#/, '').toUpperCase())}
+                      />
+                      <input
+                        className="input max-w-[140px] font-mono text-sm uppercase"
+                        value={extraValue(f.key)}
+                        onChange={(e) => setExtra(f.key, e.target.value.replace(/^#/, '').toUpperCase())}
+                        placeholder={f.placeholder}
+                        maxLength={6}
+                      />
+                    </div>
+                  ) : (
+                    <input
+                      className="input text-sm"
+                      value={extraValue(f.key)}
+                      onChange={(e) => setExtra(f.key, e.target.value)}
+                      placeholder={f.placeholder}
+                      maxLength={'maxLength' in f ? f.maxLength : undefined}
+                    />
+                  )}
+                </Field>
+              ))
+            )}
           </Section>
         )}
 

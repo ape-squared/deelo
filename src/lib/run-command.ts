@@ -5,6 +5,7 @@ import type { Command, CommandContext } from '../types/command';
 import { errorEmbed } from '../utils/embeds';
 import { formatPermissionList } from '../utils/permissions';
 import { ackCommandMessage, shouldAckCommand } from './command-ack';
+import { getGuild, getGuildPlan } from '../database';
 
 export async function runCommand(
   client: DeeloClient,
@@ -18,8 +19,19 @@ export async function runCommand(
   client.commandExecutions.add(message.id);
   setTimeout(() => client.commandExecutions.delete(message.id), 15_000);
 
+  const guildSettings = message.guild ? await getGuild(message.guild.id) : undefined;
+  const effectivePlan = message.guild ? await getGuildPlan(message.guild.id) : undefined;
+  const embedGuild = guildSettings
+    ? { extra_config: guildSettings.extra_config, plan: effectivePlan ?? guildSettings.plan }
+    : undefined;
+
+  if (message.guild && guildSettings) {
+    const { ensureGuildBotIdentity } = await import('../services/guild-identity');
+    void ensureGuildBotIdentity(message.guild, guildSettings.extra_config ?? null, effectivePlan);
+  }
+
   if (command.ownerOnly && !config.ownerIds.includes(message.author.id)) {
-    await message.reply({ embeds: [errorEmbed('This command is owner-only.')] });
+    await message.reply({ embeds: [errorEmbed('This command is owner-only.', embedGuild)] });
     return;
   }
   if (command.permissions && message.member) {
@@ -28,7 +40,7 @@ export async function runCommand(
       const list = formatPermissionList(missing);
       const noun = list.includes(',') ? 'permissions' : 'permission';
       await message.reply({
-        embeds: [errorEmbed(`You need **${list}** ${noun}.`)],
+        embeds: [errorEmbed(`You need **${list}** ${noun}.`, embedGuild)],
       });
       return;
     }
@@ -43,6 +55,7 @@ export async function runCommand(
         embeds: [
           errorEmbed(
             `I need **${list}** ${noun}. Check my role permissions and hierarchy.`,
+            embedGuild,
           ),
         ],
       });
@@ -60,7 +73,7 @@ export async function runCommand(
     const now = Date.now();
     const expiration = timestamps.get(message.author.id);
     if (expiration && now < expiration) {
-      await message.reply({ embeds: [errorEmbed(`Cooldown: ${((expiration - now) / 1000).toFixed(1)}s remaining.`)] });
+      await message.reply({ embeds: [errorEmbed(`Cooldown: ${((expiration - now) / 1000).toFixed(1)}s remaining.`, embedGuild)] });
       return;
     }
     timestamps.set(message.author.id, now + command.cooldown * 1000);
@@ -74,14 +87,20 @@ export async function runCommand(
     return originalReply(...replyArgs);
   };
 
-  const ctx: CommandContext = { client, message, args, commandName: command.name };
+  const ctx: CommandContext = {
+    client,
+    message,
+    args,
+    commandName: command.name,
+    guildSettings: guildSettings ? { ...guildSettings, plan: effectivePlan ?? guildSettings.plan } : undefined,
+  };
   let succeeded = true;
   try {
     await command.run(ctx);
   } catch (err) {
     succeeded = false;
     console.error(`Error in ${command.name}:`, err);
-    await originalReply({ embeds: [errorEmbed('An error occurred running that command.')] }).catch(() => {});
+    await originalReply({ embeds: [errorEmbed('An error occurred running that command.', embedGuild)] }).catch(() => {});
   } finally {
     message.reply = originalReply;
     if (shouldAckCommand(command, replyCount, succeeded)) {

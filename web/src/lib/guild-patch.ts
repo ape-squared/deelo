@@ -11,7 +11,8 @@ import {
   setExtraConfigPath,
   type DashboardPatchField,
 } from '@/lib/guild-settings';
-import { validatePremiumPatch } from '@/lib/plan-gates';
+import { BOT_APPEARANCE_KEYS, sanitizeBotAppearancePath } from '@/lib/bot-appearance';
+import { planHasFeature, validatePremiumPatch } from '@/lib/plan-gates';
 
 export function normalizeGuildPatch(
   body: Record<string, unknown>,
@@ -94,7 +95,15 @@ export function normalizeGuildPatch(
   if (extraPatch && typeof extraPatch === 'object' && !Array.isArray(extraPatch)) {
     let merged = { ...(existingExtra ?? {}) };
     for (const [path, val] of Object.entries(extraPatch as Record<string, unknown>)) {
-      merged = setExtraConfigPath(merged, path, val === '' ? null : val);
+      if ((BOT_APPEARANCE_KEYS as readonly string[]).includes(path)) {
+        if (!planHasFeature(plan, 'botCustomization')) {
+          return { updates: {}, error: 'Bot customization requires Premium.', eventToggles: [] };
+        }
+        const sanitized = sanitizeBotAppearancePath(path, val === '' ? null : val);
+        merged = setExtraConfigPath(merged, path, sanitized);
+      } else {
+        merged = setExtraConfigPath(merged, path, val === '' ? null : val);
+      }
     }
     updates.extra_config = merged;
   }

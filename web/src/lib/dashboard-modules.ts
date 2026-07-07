@@ -1,7 +1,7 @@
 import type { LucideIcon } from 'lucide-react';
 import {
   LayoutGrid, Sparkles, MessageSquare, Shield, Filter, Bot, Users,
-  TrendingUp, Star, Mic, Ticket, Zap, Radio, Settings2, Smile,
+  TrendingUp, Star, Mic, Ticket, Zap, Radio, Settings2, Smile, Palette,
 } from 'lucide-react';
 import type { DashboardGuildSettings } from '@/lib/guild-settings';
 import type { GuildFullConfig } from '@/lib/guild-types';
@@ -9,6 +9,7 @@ import type { GuildFullConfig } from '@/lib/guild-types';
 export type ModuleId =
   | 'overview'
   | 'general'
+  | 'appearance'
   | 'welcome'
   | 'moderation'
   | 'filters'
@@ -42,6 +43,7 @@ export const MODULE_GROUPS: ModuleGroup[] = [
     modules: [
       { id: 'overview', label: 'Overview', description: 'Module status and quick access', icon: LayoutGrid },
       { id: 'general', label: 'General', description: 'Prefix, plan, and core settings', icon: Sparkles },
+      { id: 'appearance', label: 'Bot appearance', description: 'Nickname, embed color, and footer', icon: Palette, premium: true },
     ],
   },
   {
@@ -94,6 +96,19 @@ export function getModuleStatus(
       return { enabled: true, detail: 'Dashboard home' };
     case 'general':
       return { enabled: true, detail: `Prefix: ${guild.prefix}` };
+    case 'appearance': {
+      const extra = (guild.extra_config ?? {}) as Record<string, unknown>;
+      const nick = extra['bot.nickname'];
+      const color = extra['bot.embed_color'];
+      const footer = extra['bot.embed_footer'];
+      const configured = !!(nick || color || footer);
+      return {
+        enabled: configured,
+        detail: configured
+          ? [nick && 'Nickname', color && 'Color', footer && 'Footer'].filter(Boolean).join(' · ')
+          : 'Default appearance',
+      };
+    }
     case 'welcome':
       return {
         enabled: !!(guild.welcome_channel || guild.welcome_message || guild.goodbye_channel),

@@ -6,7 +6,8 @@ type Feature =
   | 'antiraid'
   | 'starboard'
   | 'logging'
-  | 'voicemasterGhost';
+  | 'voicemasterGhost'
+  | 'botCustomization';
 
 const FREE: Record<Feature, boolean> = {
   customPrefix: false,
@@ -15,6 +16,7 @@ const FREE: Record<Feature, boolean> = {
   starboard: false,
   logging: false,
   voicemasterGhost: false,
+  botCustomization: false,
 };
 
 const PREMIUM: Record<Feature, boolean> = {
@@ -25,6 +27,7 @@ const PREMIUM: Record<Feature, boolean> = {
   starboard: true,
   logging: true,
   voicemasterGhost: true,
+  botCustomization: true,
 };
 
 function features(plan: PlanTier): Record<Feature, boolean> {
