@@ -139,10 +139,13 @@ export function setExtraConfigPath(config: Record<string, unknown>, path: string
 
 export function getExtraConfigPath(config: Record<string, unknown> | undefined, path: string): unknown {
   if (!config) return undefined;
-  return path.split('.').reduce<unknown>((acc, key) => {
+  const nested = path.split('.').reduce<unknown>((acc, key) => {
     if (acc && typeof acc === 'object' && key in (acc as Record<string, unknown>)) {
       return (acc as Record<string, unknown>)[key];
     }
     return undefined;
   }, config);
+  if (nested !== undefined) return nested;
+  if (path in config) return config[path];
+  return undefined;
 }

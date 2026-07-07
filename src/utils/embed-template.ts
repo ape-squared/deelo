@@ -22,6 +22,15 @@ export interface EmbedTemplateJson {
   fields?: EmbedFieldJson[];
 }
 
+function parseEmbedColor(input: unknown): number | undefined {
+  if (typeof input === 'number' && Number.isFinite(input)) return input & 0xffffff;
+  if (typeof input === 'string') {
+    const hex = input.replace(/^#/, '').trim();
+    if (/^[0-9a-fA-F]{6}$/.test(hex)) return parseInt(hex, 16);
+  }
+  return undefined;
+}
+
 function resolveDefaultColor(guild?: GuildEmbedContext): number {
   if (guild && (guild.plan === 'premium' || guild.plan === 'premium_plus')) {
     const appearance = getBotAppearance(guild.extra_config ?? null);
@@ -34,7 +43,8 @@ export function buildEmbedFromTemplate(json: EmbedTemplateJson, guild?: GuildEmb
   const embed = new EmbedBuilder();
   if (json.title) embed.setTitle(json.title);
   if (json.description) embed.setDescription(json.description);
-  embed.setColor((json.color ?? resolveDefaultColor(guild)) as ColorResolvable);
+  const explicit = parseEmbedColor(json.color);
+  embed.setColor((explicit ?? resolveDefaultColor(guild)) as ColorResolvable);
   if (json.url) embed.setURL(json.url);
   if (json.timestamp) embed.setTimestamp();
   if (json.author?.name) {

@@ -2,12 +2,24 @@ import type { Client, Guild } from 'discord.js';
 
 function getExtraConfigPath(config: Record<string, unknown> | undefined | null, path: string): unknown {
   if (!config) return undefined;
-  return path.split('.').reduce<unknown>((acc, key) => {
+  const nested = path.split('.').reduce<unknown>((acc, key) => {
     if (acc && typeof acc === 'object' && key in (acc as Record<string, unknown>)) {
       return (acc as Record<string, unknown>)[key];
     }
     return undefined;
   }, config);
+  if (nested !== undefined) return nested;
+  if (path in config) return config[path];
+  return undefined;
+}
+
+function parseEmbedColorValue(raw: unknown): number | null {
+  if (typeof raw === 'number' && Number.isFinite(raw)) return raw & 0xffffff;
+  if (typeof raw === 'string') {
+    const hex = raw.replace(/^#/, '').trim();
+    if (/^[0-9a-fA-F]{6}$/.test(hex)) return parseInt(hex, 16);
+  }
+  return null;
 }
 
 export interface BotAppearance {
@@ -25,9 +37,8 @@ function appearanceFromExtra(extra: Record<string, unknown> | undefined | null):
   const footerRaw = getExtraConfigPath(extra ?? {}, 'bot.embed_footer');
 
   let embedColor: number | null = null;
-  if (typeof colorRaw === 'string' && /^[0-9a-fA-F]{6}$/.test(colorRaw)) {
-    embedColor = parseInt(colorRaw, 16);
-  }
+  const parsed = parseEmbedColorValue(colorRaw);
+  if (parsed !== null) embedColor = parsed;
 
   return {
     nickname: typeof nicknameRaw === 'string' && nicknameRaw.trim() ? nicknameRaw.trim().slice(0, 32) : null,

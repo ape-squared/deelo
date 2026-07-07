@@ -1,24 +1,34 @@
 import type { Message, GuildMember, Role, GuildBasedChannel } from 'discord.js';
 import { PermissionFlagsBits } from 'discord.js';
-import { deeloEmbed, errorEmbed, successEmbed, resolveUserId, parseDuration, formatDuration } from '../../utils/embeds';
+import { deeloEmbed, errorEmbed, successEmbed, resolveUserId, parseDuration, formatDuration, type GuildEmbedContext } from '../../utils/embeds';
 import type { CommandDef } from '../types';
 
 export type CmdMessage = Message;
+
+async function resolveEmbedGuild(message: Message): Promise<GuildEmbedContext | undefined> {
+  if (!message.guild) return undefined;
+  const { getGuild, getGuildPlan } = await import('../../database');
+  const [settings, plan] = await Promise.all([getGuild(message.guild.id), getGuildPlan(message.guild.id)]);
+  return { extra_config: settings.extra_config, plan };
+}
 
 export async function reply(message: Message, embed: ReturnType<typeof deeloEmbed>) {
   await message.reply({ embeds: [embed] });
 }
 
 export async function replyError(message: Message, text: string) {
-  await message.reply({ embeds: [errorEmbed(text)] });
+  const guild = await resolveEmbedGuild(message);
+  await message.reply({ embeds: [errorEmbed(text, guild)] });
 }
 
 export async function replySuccess(message: Message, text: string) {
-  await message.reply({ embeds: [successEmbed(text)] });
+  const guild = await resolveEmbedGuild(message);
+  await message.reply({ embeds: [successEmbed(text, guild)] });
 }
 
 export async function replyInfo(message: Message, title: string, body: string) {
-  await message.reply({ embeds: [deeloEmbed(title, body)] });
+  const guild = await resolveEmbedGuild(message);
+  await message.reply({ embeds: [deeloEmbed(title, body, guild)] });
 }
 
 export function needManageGuild(member: GuildMember): boolean {

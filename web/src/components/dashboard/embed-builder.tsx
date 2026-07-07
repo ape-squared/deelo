@@ -147,7 +147,7 @@ export function EmbedsTab({
     const res = await fetch(`/api/guilds/${guildId}/embeds/send`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, channel_id: sendChannel }),
+      body: JSON.stringify({ name, channel_id: sendChannel, embed_json: draft }),
     });
     setSending(false);
     const data = await res.json();

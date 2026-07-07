@@ -1,3 +1,6 @@
+import { getExtraConfigPath, type PlanTier } from '@/lib/guild-settings';
+import { parseEmbedColor } from '@/lib/embed-template';
+
 /** Premium bot appearance keys stored in guilds.extra_config */
 export const BOT_APPEARANCE_FIELDS = [
   {
@@ -46,6 +49,15 @@ export function sanitizeBotEmbedFooter(value: unknown): string | null {
   const s = String(value).trim();
   if (!s) return null;
   return s.slice(0, 80);
+}
+
+export function resolveGuildEmbedColor(
+  extra: Record<string, unknown> | null | undefined,
+  plan: PlanTier,
+): number | undefined {
+  if (plan !== 'premium' && plan !== 'premium_plus') return undefined;
+  const raw = getExtraConfigPath(extra ?? {}, 'bot.embed_color');
+  return parseEmbedColor(raw);
 }
 
 export function sanitizeBotAppearancePath(path: string, value: unknown): unknown {

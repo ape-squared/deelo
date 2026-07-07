@@ -21,6 +21,7 @@ export const EMPTY_EMBED: EmbedTemplate = {
   description: '',
   timestamp: false,
   fields: [],
+  color: parseEmbedColor('#5865F2'),
 };
 
 export function parseEmbedColor(input: unknown): number | undefined {
@@ -108,11 +109,12 @@ export function sanitizeEmbedTemplate(raw: unknown, premium: boolean): EmbedTemp
   return out;
 }
 
-export function templateToDiscordApi(template: EmbedTemplate): Record<string, unknown> {
+export function templateToDiscordApi(template: EmbedTemplate, defaultColor?: number): Record<string, unknown> {
   const embed: Record<string, unknown> = {};
   if (template.title) embed.title = template.title;
   if (template.description) embed.description = template.description;
-  if (template.color != null) embed.color = template.color;
+  const color = parseEmbedColor(template.color) ?? defaultColor;
+  if (color != null) embed.color = color;
   if (template.url) embed.url = template.url;
   if (template.timestamp) embed.timestamp = new Date().toISOString();
   if (template.author) embed.author = template.author;

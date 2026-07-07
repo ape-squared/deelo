@@ -4,6 +4,7 @@ import {
   TrendingUp, Star, Mic, Ticket, Zap, Radio, Settings2, Smile, Palette, LayoutTemplate,
 } from 'lucide-react';
 import type { DashboardGuildSettings } from '@/lib/guild-settings';
+import { getExtraConfigPath } from '@/lib/guild-settings';
 import type { GuildFullConfig } from '@/lib/guild-types';
 
 export type ModuleId =
@@ -100,9 +101,9 @@ export function getModuleStatus(
       return { enabled: true, detail: `Prefix: ${guild.prefix}` };
     case 'appearance': {
       const extra = (guild.extra_config ?? {}) as Record<string, unknown>;
-      const nick = extra['bot.nickname'];
-      const color = extra['bot.embed_color'];
-      const footer = extra['bot.embed_footer'];
+      const nick = getExtraConfigPath(extra, 'bot.nickname');
+      const color = getExtraConfigPath(extra, 'bot.embed_color');
+      const footer = getExtraConfigPath(extra, 'bot.embed_footer');
       const configured = !!(nick || color || footer);
       return {
         enabled: configured,

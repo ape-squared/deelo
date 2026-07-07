@@ -4,6 +4,9 @@ import { DISCORD_API } from '@/lib/discord-api';
 import { loadGuildWithPlan } from '@/lib/guild-plan-loader';
 import { planHasFeature } from '@/lib/plan-gates';
 import { sanitizeEmbedTemplate, templateToDiscordApi, type EmbedTemplate } from '@/lib/embed-template';
+import { resolveGuildEmbedColor } from '@/lib/bot-appearance';
+
+const DEFAULT_EMBED_COLOR = 0x5865f2;
 
 export const POST = guildRoute(async (req, { guildId, db }) => {
   const body = await req.json();
@@ -24,10 +27,20 @@ export const POST = guildRoute(async (req, { guildId, db }) => {
     .eq('name', name)
     .maybeSingle();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  if (!data) return NextResponse.json({ error: 'Embed not found.' }, { status: 404 });
 
-  const template = sanitizeEmbedTemplate(data.embed_json, true) as EmbedTemplate;
-  const embedPayload = templateToDiscordApi(template);
+  const inlineJson =
+    body.embed_json && typeof body.embed_json === 'object' && !Array.isArray(body.embed_json)
+      ? body.embed_json
+      : null;
+  if (!data && !inlineJson) return NextResponse.json({ error: 'Embed not found.' }, { status: 404 });
+
+  const template = sanitizeEmbedTemplate(inlineJson ?? data!.embed_json, true) as EmbedTemplate;
+  const appearanceColor = resolveGuildEmbedColor(
+    (guild.extra_config ?? null) as Record<string, unknown> | null,
+    guild.plan,
+  );
+  const defaultColor = appearanceColor ?? DEFAULT_EMBED_COLOR;
+  const embedPayload = templateToDiscordApi(template, defaultColor);
 
   const token = process.env.DISCORD_BOT_TOKEN || process.env.DISCORD_TOKEN;
   if (!token) return NextResponse.json({ error: 'Bot token is not configured.' }, { status: 500 });
