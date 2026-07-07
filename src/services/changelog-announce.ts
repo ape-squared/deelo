@@ -62,6 +62,26 @@ function entryKey(entry: ChangelogEntry): string {
   return `id:${entry.id}`;
 }
 
+function titleKey(title: string): string {
+  return `title:${title.trim().toLowerCase()}`;
+}
+
+function dedupeChangelogEntries(entries: ChangelogEntry[]): ChangelogEntry[] {
+  const byTitle = new Map<string, ChangelogEntry>();
+  for (const entry of entries) {
+    const key = titleKey(entry.title);
+    const existing = byTitle.get(key);
+    if (!existing) {
+      byTitle.set(key, entry);
+      continue;
+    }
+    const existingTime = new Date(existing.published_at ?? existing.id).getTime();
+    const entryTime = new Date(entry.published_at ?? entry.id).getTime();
+    if (entryTime >= existingTime) byTitle.set(key, entry);
+  }
+  return [...byTitle.values()];
+}
+
 function truncate(text: string, max: number): string {
   const trimmed = text.trim();
   if (trimmed.length <= max) return trimmed;
@@ -190,6 +210,7 @@ async function getChannelPostedKeys(
     if (!footer.includes('/changelog')) continue;
 
     const versionField = embed.fields?.find((field) => field.name === 'Version')?.value;
+    const matchedTitles = new Set<string>();
 
     for (const entry of entries) {
       const key = entryKey(entry);
@@ -199,6 +220,15 @@ async function getChannelPostedKeys(
       const titleMatch = embedTitleMatches(entry, embed.title ?? undefined);
       if (versionMatch || titleMatch) {
         posted.add(key);
+        posted.add(titleKey(entry.title));
+        if (titleMatch) matchedTitles.add(entry.title.trim().toLowerCase());
+      }
+    }
+
+    for (const entry of entries) {
+      if (matchedTitles.has(entry.title.trim().toLowerCase())) {
+        posted.add(entryKey(entry));
+        posted.add(titleKey(entry.title));
       }
     }
   }
@@ -206,52 +236,88 @@ async function getChannelPostedKeys(
   return posted;
 }
 
-export async function syncChangelogAnnouncements(client: Client): Promise<void> {
-  if (!client.user) return;
+async function isEntryAlreadyPosted(
+  channel: TextChannel,
+  botId: string,
+  entry: ChangelogEntry,
+): Promise<boolean> {
+  const messages = await channel.messages.fetch({ limit: 15 }).catch(() => null);
+  if (!messages) return false;
 
-  const channel = await resolveChangelogChannel(client);
-  if (!channel) return;
+  for (const message of messages.values()) {
+    if (message.author.id !== botId || !message.embeds.length) continue;
+    const embed = message.embeds[0];
+    if (!(embed.footer?.text ?? '').includes('/changelog')) continue;
 
-  const entries = await fetchPublishedChangelog();
-  if (!entries.length) {
-    console.warn('[changelog] No published changelog entries found');
-    return;
+    const versionField = embed.fields?.find((field) => field.name === 'Version')?.value;
+    if (entry.version && versionField === entry.version) return true;
+    if (embedTitleMatches(entry, embed.title ?? undefined)) return true;
   }
 
-  const sorted = [...entries].sort((a, b) => {
-    const ta = new Date(a.published_at ?? a.id).getTime();
-    const tb = new Date(b.published_at ?? b.id).getTime();
-    return ta - tb;
-  });
+  return false;
+}
 
-  const inChannel = await getChannelPostedKeys(channel, client.user.id, sorted);
-  const posted = new Set(inChannel);
+let changelogSyncInFlight = false;
 
-  let postedCount = 0;
-  for (const entry of sorted) {
-    const key = entryKey(entry);
-    if (posted.has(key)) continue;
+export async function syncChangelogAnnouncements(client: Client): Promise<void> {
+  if (!client.user || changelogSyncInFlight) return;
+  changelogSyncInFlight = true;
 
-    try {
-      await channel.send({ embeds: [buildChangelogEmbed(entry)] });
-      posted.add(key);
-      postedCount++;
-    } catch (err) {
-      const code = err && typeof err === 'object' && 'code' in err ? (err as { code: number }).code : null;
-      if (code === 50013) {
-        console.error('[changelog] Missing permissions in #changelogs — need View Channel, Send Messages, Embed Links');
-      } else {
-        console.error(`[changelog] Failed to post "${entry.title}":`, err);
+  try {
+    const channel = await resolveChangelogChannel(client);
+    if (!channel) return;
+
+    const entries = dedupeChangelogEntries(await fetchPublishedChangelog());
+    if (!entries.length) {
+      console.warn('[changelog] No published changelog entries found');
+      return;
+    }
+
+    const sorted = [...entries].sort((a, b) => {
+      const ta = new Date(a.published_at ?? a.id).getTime();
+      const tb = new Date(b.published_at ?? b.id).getTime();
+      return ta - tb;
+    });
+
+    const state = await loadSyncState();
+    const inChannel = await getChannelPostedKeys(channel, client.user.id, sorted);
+    const posted = new Set([...inChannel, ...state.posted]);
+
+    let postedCount = 0;
+    for (const entry of sorted) {
+      const key = entryKey(entry);
+      const tKey = titleKey(entry.title);
+      if (posted.has(key) || posted.has(tKey)) continue;
+      if (await isEntryAlreadyPosted(channel, client.user.id, entry)) {
+        posted.add(key);
+        posted.add(tKey);
+        continue;
+      }
+
+      try {
+        await channel.send({ embeds: [buildChangelogEmbed(entry)] });
+        posted.add(key);
+        posted.add(tKey);
+        postedCount++;
+      } catch (err) {
+        const code = err && typeof err === 'object' && 'code' in err ? (err as { code: number }).code : null;
+        if (code === 50013) {
+          console.error('[changelog] Missing permissions in #changelogs — need View Channel, Send Messages, Embed Links');
+        } else {
+          console.error(`[changelog] Failed to post "${entry.title}":`, err);
+        }
       }
     }
-  }
 
-  await saveSyncState({ posted: [...posted], initialized: true });
+    await saveSyncState({ posted: [...posted], initialized: true });
 
-  if (postedCount > 0) {
-    console.log(`[changelog] Posted ${postedCount} changelog entr${postedCount === 1 ? 'y' : 'ies'} to #changelogs`);
-  } else {
-    console.log(`[changelog] Up to date — ${posted.size} entr${posted.size === 1 ? 'y' : 'ies'} in #changelogs`);
+    if (postedCount > 0) {
+      console.log(`[changelog] Posted ${postedCount} changelog entr${postedCount === 1 ? 'y' : 'ies'} to #changelogs`);
+    } else {
+      console.log(`[changelog] Up to date — ${posted.size} entr${posted.size === 1 ? 'y' : 'ies'} tracked`);
+    }
+  } finally {
+    changelogSyncInFlight = false;
   }
 }
 
