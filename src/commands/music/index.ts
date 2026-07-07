@@ -63,8 +63,6 @@ const music: Command[] = [
           await message.reply({
             embeds: [deeloEmbed('🎵 Playlist Added', `Added **${tracks.length}** tracks to the queue.\nFirst up: **${track.title}**`)],
           });
-        } else if (!started) {
-          await message.reply({ embeds: [errorEmbed('Could not start playback. Make sure I can join and speak in your voice channel.')] });
         } else {
           await message.reply({ embeds: [buildAddedEmbed(track, position, started)] });
         }

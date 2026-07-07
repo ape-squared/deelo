@@ -37,15 +37,32 @@ export class GuildPlayer {
     return getAudioPlayer(this.guildId);
   }
 
-  get isActive(): boolean {
+  /** True when the audio player is actually outputting audio. */
+  isPlayingAudio(): boolean {
     const status = this.player.state.status;
-    return Boolean(
-      this.state.current ||
-        this.state.queue.length > 0 ||
-        status === AudioPlayerStatus.Playing ||
-        status === AudioPlayerStatus.Paused ||
-        status === AudioPlayerStatus.Buffering,
+    return (
+      status === AudioPlayerStatus.Playing ||
+      status === AudioPlayerStatus.Paused ||
+      status === AudioPlayerStatus.Buffering
     );
+  }
+
+  get isActive(): boolean {
+    return Boolean(
+      this.isPlayingAudio() ||
+        this.state.current ||
+        this.state.queue.length > 0,
+    );
+  }
+
+  /** Drop ghost state left by hot reloads (current set but player idle, etc.). */
+  private pruneStaleState(): void {
+    if (this.isPlayingAudio()) return;
+
+    if (this.state.current && this.player.state.status === AudioPlayerStatus.Idle && !this.state.queue.length) {
+      console.log(`[music:${this.guildId}] clearing stale current track`);
+      this.state.current = null;
+    }
   }
 
   init(): void {
@@ -85,7 +102,11 @@ export class GuildPlayer {
     if (fromError && this.state.current) {
       console.warn(`[music:${this.guildId}] track failed: ${this.state.current.title}`);
     }
-    await this.playNext();
+    try {
+      await this.playNext();
+    } catch (err) {
+      console.error(`[music:${this.guildId}] could not advance queue:`, err);
+    }
   }
 
   private finishBusy(): void {
@@ -168,21 +189,29 @@ export class GuildPlayer {
     tracks: Track[],
   ): Promise<{ position: number; track: Track; started: boolean }> {
     this.init();
+    this.pruneStaleState();
     this.state.voiceChannelId = voiceChannelId;
     this.state.textChannelId = textChannelId;
 
-    const wasIdle = !this.isActive;
+    const shouldStart = !this.isPlayingAudio();
     this.state.queue.push(...tracks);
     const track = tracks[tracks.length - 1];
-    const position = this.state.queue.length;
 
-    if (wasIdle) {
+    if (shouldStart) {
+      console.log(`[music:${this.guildId}] starting playback (${tracks.length} track(s))`);
       await this.connect(guild, voiceChannelId);
       await this.playNext();
-      return { position: 1, track, started: this.isActive };
+
+      if (!this.isPlayingAudio() && !this.state.current) {
+        throw new Error(
+          'Could not start audio stream. Try another song, a YouTube URL, or check bot logs.',
+        );
+      }
+
+      return { position: 1, track, started: true };
     }
 
-    return { position, track, started: false };
+    return { position: this.state.queue.length, track, started: true };
   }
 
   async playNext(): Promise<void> {
@@ -229,6 +258,7 @@ export class GuildPlayer {
         await this.playNext();
       } else {
         this.scheduleLeave();
+        throw err instanceof Error ? err : new Error(msg);
       }
     } finally {
       this.finishBusy();
