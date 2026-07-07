@@ -124,10 +124,10 @@ export interface GuildFullConfig {
 export const EXTRA_CONFIG_FIELDS = [
   { key: 'starboard.emoji', label: 'Starboard emoji', type: 'text', placeholder: '⭐' },
   { key: 'levels.message', label: 'Level-up message', type: 'textarea', placeholder: 'GG {user}, you reached level {level}!' },
-  { key: 'suggest.channel', label: 'Suggestions channel ID', type: 'channel' },
-  { key: 'logs.join', label: 'Join log channel ID', type: 'channel' },
-  { key: 'logs.leave', label: 'Leave log channel ID', type: 'channel' },
-  { key: 'logs.message', label: 'Message log channel ID', type: 'channel' },
+  { key: 'suggest.channel', label: 'Suggestions channel', type: 'channel' },
+  { key: 'logs.join', label: 'Join log channel', type: 'channel' },
+  { key: 'logs.leave', label: 'Leave log channel', type: 'channel' },
+  { key: 'logs.message', label: 'Message log channel', type: 'channel' },
   { key: 'bumpreminder.message', label: 'Bump reminder message', type: 'textarea' },
 ] as const;
 

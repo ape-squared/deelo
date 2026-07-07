@@ -7,9 +7,11 @@ import { Save } from 'lucide-react';
 import type { DashboardGuildSettings } from '@/lib/guild-settings';
 import { WELCOME_VARIABLES, getExtraConfigPath } from '@/lib/guild-settings';
 import type { GuildFullConfig } from '@/lib/guild-types';
+import type { ChannelKind } from '@/lib/discord-guild';
 import { EXTRA_CONFIG_FIELDS, KNOWN_EVENTS } from '@/lib/guild-types';
 import { MODULE_GROUPS, isValidModuleId, type ModuleId } from '@/lib/dashboard-modules';
 import { AddRow, CrudList, MiniInput, MiniSelect } from '@/components/dashboard/guild-crud';
+import { ChannelSelect, GuildChannelsProvider, MiniChannelSelect } from '@/components/dashboard/discord-resources';
 import { RedeemCodePanel } from '@/components/dashboard/redeem-panel';
 import { ModuleOverview } from '@/components/dashboard/module-overview';
 
@@ -129,6 +131,7 @@ export function GuildSettingsEditor({
   }
 
   return (
+    <GuildChannelsProvider guildId={guildId}>
     <div className="module-layout">
       <aside className="module-sidebar">
         <div className="module-sidebar-inner">
@@ -184,7 +187,7 @@ export function GuildSettingsEditor({
             <Field label="Command prefix" hint={isPremium ? 'Max 5 characters' : 'Premium required for custom prefix'}>
               <input className="input max-w-[120px] font-mono" value={guild.prefix} onChange={(e) => update('prefix', e.target.value)} maxLength={5} disabled={!isPremium && guild.prefix === ','} />
             </Field>
-            <Field label="Bump reminder channel ID"><IdInput value={guild.bump_channel} onChange={(v) => update('bump_channel', v)} /></Field>
+            <Field label="Bump reminder channel"><ChannelField value={guild.bump_channel} onChange={(v) => update('bump_channel', v)} /></Field>
             <Field label="Bump interval (ms)" hint="Default 7200000 (2 hours)">
               <input type="number" className="input max-w-[160px] font-mono" value={guild.bump_interval ?? 7200000} onChange={(e) => update('bump_interval', parseInt(e.target.value, 10) || 7200000)} />
             </Field>
@@ -195,16 +198,16 @@ export function GuildSettingsEditor({
 
         {tab === 'welcome' && (
           <Section title="Welcome & Goodbye" desc={`Variables: ${WELCOME_VARIABLES}`}>
-            <Field label="Welcome channel ID"><IdInput value={guild.welcome_channel} onChange={(v) => update('welcome_channel', v)} /></Field>
+            <Field label="Welcome channel"><ChannelField value={guild.welcome_channel} onChange={(v) => update('welcome_channel', v)} /></Field>
             <Field label="Welcome message"><textarea className="input min-h-[100px] font-mono text-sm" value={guild.welcome_message ?? ''} onChange={(e) => update('welcome_message', e.target.value || null)} /></Field>
-            <Field label="Goodbye channel ID"><IdInput value={guild.goodbye_channel} onChange={(v) => update('goodbye_channel', v)} /></Field>
+            <Field label="Goodbye channel"><ChannelField value={guild.goodbye_channel} onChange={(v) => update('goodbye_channel', v)} /></Field>
             <Field label="Goodbye message"><textarea className="input min-h-[100px] font-mono text-sm" value={guild.goodbye_message ?? ''} onChange={(e) => update('goodbye_message', e.target.value || null)} /></Field>
           </Section>
         )}
 
         {tab === 'moderation' && (
           <Section title="Moderation & Security" desc="Protection modules synced with Discord commands">
-            <Field label="Mod log channel ID" hint="Premium"><IdInput value={guild.mod_log_channel} onChange={(v) => update('mod_log_channel', v)} /></Field>
+            <Field label="Mod log channel" hint="Premium"><ChannelField value={guild.mod_log_channel} onChange={(v) => update('mod_log_channel', v)} /></Field>
             <Toggle label="Automod" desc="Filter invites + custom word filters" checked={guild.automod_enabled} onChange={(v) => update('automod_enabled', v)} />
             <Toggle label="Anti-nuke" checked={guild.antinuke_enabled} onChange={(v) => update('antinuke_enabled', v)} premium={!isPremium} />
             <Field label="Anti-nuke threshold"><input type="number" min={1} max={20} className="input max-w-[120px]" value={guild.antinuke_threshold} onChange={(e) => update('antinuke_threshold', parseInt(e.target.value, 10) || 5)} /></Field>
@@ -243,7 +246,7 @@ export function GuildSettingsEditor({
           <>
             <Section title="Leveling" desc={`Event: ${eventOn('levels') ? 'on' : 'off'}`}>
               <Toggle label="Levels enabled" checked={guild.levels_enabled} onChange={(v) => update('levels_enabled', v)} />
-              <Field label="Level-up channel ID"><IdInput value={guild.levels_channel} onChange={(v) => update('levels_channel', v)} /></Field>
+              <Field label="Level-up channel"><ChannelField value={guild.levels_channel} onChange={(v) => update('levels_channel', v)} /></Field>
               <Field label="XP multiplier"><input type="number" step={0.1} min={0.1} max={10} className="input max-w-[120px]" value={guild.levels_multiplier} onChange={(e) => update('levels_multiplier', parseFloat(e.target.value) || 1)} /></Field>
               <Field label="Custom level-up message" hint="Saved to extra_config">
                 <textarea className="input min-h-[80px] text-sm" value={extraValue('levels.message')} onChange={(e) => setExtra('levels.message', e.target.value)} placeholder="GG {user}, level {level}!" />
@@ -255,7 +258,7 @@ export function GuildSettingsEditor({
 
         {tab === 'starboard' && (
           <Section title="Starboard" desc="Premium — reacts with configurable emoji">
-            <Field label="Starboard channel ID" hint="Premium"><IdInput value={guild.starboard_channel} onChange={(v) => update('starboard_channel', v)} /></Field>
+            <Field label="Starboard channel" hint="Premium"><ChannelField value={guild.starboard_channel} onChange={(v) => update('starboard_channel', v)} /></Field>
             <Field label="Stars required"><input type="number" min={1} max={25} className="input max-w-[120px]" value={guild.starboard_threshold} onChange={(e) => update('starboard_threshold', parseInt(e.target.value, 10) || 3)} /></Field>
             <Field label="Starboard emoji"><input className="input max-w-[120px]" value={extraValue('starboard.emoji') || '⭐'} onChange={(e) => setExtra('starboard.emoji', e.target.value)} /></Field>
           </Section>
@@ -263,9 +266,9 @@ export function GuildSettingsEditor({
 
         {tab === 'voicemaster' && (
           <Section title="VoiceMaster" desc="Join-to-create temporary voice channels">
-            <Field label="Category ID"><IdInput value={guild.voicemaster_category} onChange={(v) => update('voicemaster_category', v)} /></Field>
-            <Field label="Join-to-create channel ID"><IdInput value={guild.voicemaster_join_channel} onChange={(v) => update('voicemaster_join_channel', v)} /></Field>
-            <Field label="Interface/panel channel ID"><IdInput value={guild.voicemaster_interface_channel ?? null} onChange={(v) => update('voicemaster_interface_channel', v)} /></Field>
+            <Field label="Voice category"><ChannelField value={guild.voicemaster_category} onChange={(v) => update('voicemaster_category', v)} kinds={['category']} /></Field>
+            <Field label="Join-to-create voice channel"><ChannelField value={guild.voicemaster_join_channel} onChange={(v) => update('voicemaster_join_channel', v)} kinds={['voice']} /></Field>
+            <Field label="Interface / panel channel"><ChannelField value={guild.voicemaster_interface_channel ?? null} onChange={(v) => update('voicemaster_interface_channel', v)} /></Field>
             <Field label="Default channel name"><input className="input" value={guild.voicemaster_default_name} onChange={(e) => update('voicemaster_default_name', e.target.value)} /></Field>
             <Field label="Bitrate (kbps)"><input type="number" min={8} max={384} className="input max-w-[120px]" value={guild.voicemaster_default_bitrate} onChange={(e) => update('voicemaster_default_bitrate', parseInt(e.target.value, 10) || 64)} /></Field>
             <Field label="Join role ID"><IdInput value={guild.voicemaster_join_role} onChange={(v) => update('voicemaster_join_role', v)} /></Field>
@@ -331,6 +334,8 @@ export function GuildSettingsEditor({
                 <Field key={f.key} label={f.label}>
                   {f.type === 'textarea' ? (
                     <textarea className="input min-h-[80px] text-sm" value={extraValue(f.key)} onChange={(e) => setExtra(f.key, e.target.value)} placeholder={'placeholder' in f ? f.placeholder : undefined} />
+                  ) : f.type === 'channel' ? (
+                    <ChannelSelect value={extraValue(f.key) || null} onChange={(v) => setExtra(f.key, v ?? '')} />
                   ) : (
                     <input className="input font-mono text-sm" value={extraValue(f.key)} onChange={(e) => setExtra(f.key, e.target.value)} placeholder={'placeholder' in f ? f.placeholder : undefined} />
                   )}
@@ -359,6 +364,7 @@ export function GuildSettingsEditor({
         </div>
       </div>
     </div>
+    </GuildChannelsProvider>
   );
 }
 
@@ -436,7 +442,7 @@ function TicketPanelsTab({ guildId, panels, onReload }: { guildId: string; panel
           await onReload();
         }}>
           <MiniInput label="Panel name" value={name} onChange={setName} />
-          <MiniInput label="Channel ID" value={channel_id} onChange={setChannelId} />
+          <MiniChannelSelect label="Channel" value={channel_id} onChange={setChannelId} />
           <MiniInput label="Support role ID" value={support_role} onChange={setSupportRole} />
         </AddRow>
       }
@@ -468,7 +474,7 @@ function SocialFeedsList({ guildId, items, onReload }: { guildId: string; items:
       addForm={<AddRow label="Add feed" onAdd={async () => { await fetch(`/api/guilds/${guildId}/resources`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ resource: 'social-feeds', platform, username, channel_id }) }); setUsername(''); setChannelId(''); await onReload(); }}>
         <MiniSelect label="Platform" value={platform} onChange={setPlatform} options={['youtube', 'twitch', 'twitter', 'instagram', 'tiktok'].map((p) => ({ value: p, label: p }))} />
         <MiniInput label="Username" value={username} onChange={setUsername} />
-        <MiniInput label="Channel ID" value={channel_id} onChange={setChannelId} />
+        <MiniChannelSelect label="Channel" value={channel_id} onChange={setChannelId} />
       </AddRow>}
     />
   );
@@ -482,7 +488,7 @@ function CountersList({ guildId, items, onReload }: { guildId: string; items: Gu
       onDelete={async (r) => { await fetch(`/api/guilds/${guildId}/resources?resource=counters&id=${r.id}`, { method: 'DELETE' }); await onReload(); }}
       addForm={<AddRow label="Add counter" onAdd={async () => { await fetch(`/api/guilds/${guildId}/resources`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ resource: 'counters', channel_id, type }) }); setChannelId(''); await onReload(); }}>
         <MiniSelect label="Type" value={type} onChange={setType} options={[{ value: 'members', label: 'Members' }, { value: 'bots', label: 'Bots' }, { value: 'channels', label: 'Channels' }]} />
-        <MiniInput label="Channel ID" value={channel_id} onChange={setChannelId} />
+        <MiniChannelSelect label="Channel" value={channel_id} onChange={setChannelId} />
       </AddRow>}
     />
   );
@@ -567,6 +573,18 @@ function Section({ title, desc, children }: { title: string; desc: string; child
 
 function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return <div><label className="label">{label}</label>{hint && <p className="text-xs text-muted mb-2">{hint}</p>}{children}</div>;
+}
+
+function ChannelField({
+  value,
+  onChange,
+  kinds,
+}: {
+  value: string | null;
+  onChange: (v: string | null) => void;
+  kinds?: ChannelKind[];
+}) {
+  return <ChannelSelect value={value} onChange={onChange} kinds={kinds} />;
 }
 
 function IdInput({ value, onChange }: { value: string | null; onChange: (v: string | null) => void }) {
