@@ -1,0 +1,107 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { createAdminClient } from '@/lib/supabase/admin';
+import { requireGuildManager } from '@/lib/guild-auth';
+import { normalizeGuildPatch } from '@/lib/guild-patch';
+import { loadGuildWithPlan } from '@/lib/guild-plan-loader';
+import { resolveEffectivePlan } from '@/lib/plan-resolve';
+
+export async function GET(_req: NextRequest, { params }: { params: Promise<{ guildId: string }> }) {
+  const { guildId } = await params;
+  const auth = await requireGuildManager(guildId);
+  if (auth.error) return auth.error;
+
+  const db = createAdminClient();
+  const { guild, subscription: activeSub } = await loadGuildWithPlan(db, guildId);
+
+  const [
+    eventTogglesRes,
+    filtersRes,
+    respondersRes,
+    ticketPanelsRes,
+    levelRewardsRes,
+    countersRes,
+    socialFeedsRes,
+    vanityRolesRes,
+    reactionTriggersRes,
+    commandAliasesRes,
+    autorolesRes,
+    reactionRolesRes,
+    buttonRolesRes,
+    ticketsRes,
+  ] = await Promise.all([
+    db.from('event_toggles').select('event, enabled').eq('guild_id', guildId),
+    db.from('filters').select('*').eq('guild_id', guildId).order('id'),
+    db.from('auto_responders').select('*').eq('guild_id', guildId).order('id'),
+    db.from('ticket_panels').select('*').eq('guild_id', guildId).order('id'),
+    db.from('level_rewards').select('*').eq('guild_id', guildId).order('level'),
+    db.from('counters').select('*').eq('guild_id', guildId).order('id'),
+    db.from('social_feeds').select('*').eq('guild_id', guildId).order('id'),
+    db.from('vanity_roles').select('*').eq('guild_id', guildId),
+    db.from('reaction_triggers').select('*').eq('guild_id', guildId).order('id'),
+    db.from('command_aliases').select('*').eq('guild_id', guildId).order('id'),
+    db.from('autoroles').select('*').eq('guild_id', guildId),
+    db.from('reaction_roles').select('*').eq('guild_id', guildId).order('id'),
+    db.from('button_roles').select('*').eq('guild_id', guildId).order('id'),
+    db.from('tickets').select('id, channel_id, user_id, panel_name, status, created_at').eq('guild_id', guildId).order('created_at', { ascending: false }).limit(50),
+  ]);
+
+  return NextResponse.json({
+    guild,
+    subscription: activeSub ?? null,
+    eventToggles: eventTogglesRes.data ?? [],
+    filters: filtersRes.data ?? [],
+    responders: respondersRes.data ?? [],
+    ticketPanels: ticketPanelsRes.data ?? [],
+    levelRewards: levelRewardsRes.data ?? [],
+    counters: countersRes.data ?? [],
+    socialFeeds: socialFeedsRes.data ?? [],
+    vanityRoles: vanityRolesRes.data ?? [],
+    reactionTriggers: reactionTriggersRes.data ?? [],
+    commandAliases: commandAliasesRes.data ?? [],
+    autoroles: autorolesRes.data ?? [],
+    reactionRoles: reactionRolesRes.data ?? [],
+    buttonRoles: buttonRolesRes.data ?? [],
+    tickets: ticketsRes.data ?? [],
+  });
+}
+
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ guildId: string }> }) {
+  const { guildId } = await params;
+  const auth = await requireGuildManager(guildId);
+  if (auth.error) return auth.error;
+
+  const body = (await req.json()) as Record<string, unknown>;
+  const db = createAdminClient();
+
+  const { data: existing } = await db.from('guilds').select('plan, extra_config, plan_expires_at').eq('id', guildId).maybeSingle();
+  const { data: activeSub } = await db
+    .from('subscriptions')
+    .select('plan, status, expires_at')
+    .eq('guild_id', guildId)
+    .eq('status', 'active')
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const effective = resolveEffectivePlan(
+    { plan: existing?.plan ?? 'free', plan_expires_at: existing?.plan_expires_at },
+    activeSub,
+  );
+  const plan = effective.plan;
+  const extra = (existing?.extra_config ?? {}) as Record<string, unknown>;
+
+  const { updates, error, eventToggles } = normalizeGuildPatch(body, plan, extra);
+  if (error) return NextResponse.json({ error }, { status: 400 });
+
+  await db.from('guilds').upsert({ id: guildId, ...updates }, { onConflict: 'id' });
+
+  for (const { event, enabled } of eventToggles) {
+    await db.from('event_toggles').upsert(
+      { guild_id: guildId, event, enabled },
+      { onConflict: 'guild_id,event' },
+    );
+  }
+
+  const { guild } = await loadGuildWithPlan(db, guildId);
+  return NextResponse.json({ guild, synced: { eventToggles } });
+}

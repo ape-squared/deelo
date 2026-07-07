@@ -1,0 +1,7 @@
+
+[api]
+enabled = true
+schemas = ["public", "deelo"]
+
+[db]
+major_version = 17

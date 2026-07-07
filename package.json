@@ -1,0 +1,43 @@
+{
+  "name": "deelo-bot",
+  "version": "1.0.0",
+  "description": "Deelo — Discord's all-in-one community management bot with freemium tiers",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "rm -rf dist && tsc && cp -r src/data dist/data",
+    "sync:commands": "curl -sL https://bucket.bleed.bot/commands.json -o src/data/commands-catalog.json && node -e \"const d=require('./src/data/commands-catalog.json'); console.log('Synced', d.cogs.reduce((a,c)=>a+c.commands.length,0), 'commands')\"",
+    "start": "node dist/index.js",
+    "dev": "tsx watch src/index.ts",
+    "dev:web": "npm run dev --prefix web",
+    "build:web": "npm run build --prefix web",
+    "test:smoke": "tsx scripts/smoke-test.ts",
+    "web:env": "node web/scripts/sync-env.mjs",
+    "web:admin": "node web/scripts/setup-admin.mjs"
+  },
+  "keywords": [
+    "discord",
+    "bot",
+    "moderation",
+    "music",
+    "deelo"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@discordjs/voice": "^0.18.0",
+    "@supabase/supabase-js": "^2.49.1",
+    "discord.js": "^14.18.0",
+    "dotenv": "^16.4.7",
+    "libsodium-wrappers": "^0.8.4",
+    "opusscript": "^0.0.8",
+    "play-dl": "^1.9.7",
+    "yt-dlp-wrap": "^2.3.12"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.10",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
