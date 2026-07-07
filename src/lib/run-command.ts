@@ -14,6 +14,7 @@ export async function runCommand(
   args: string[]
 ): Promise<void> {
   if (client.commandExecutions.has(message.id)) {
+    console.warn(`[dedup] runCommand skipped — already executed for ${message.id}`);
     return;
   }
   client.commandExecutions.add(message.id);
@@ -30,81 +31,96 @@ export async function runCommand(
     void ensureGuildBotIdentity(message.guild, guildSettings.extra_config ?? null, effectivePlan);
   }
 
-  if (command.ownerOnly && !config.ownerIds.includes(message.author.id)) {
-    await message.reply({ embeds: [errorEmbed('This command is owner-only.', embedGuild)] });
-    return;
-  }
-  if (command.permissions && message.member) {
-    const missing = command.permissions.filter((p) => !message.member!.permissions.has(p));
-    if (missing.length) {
-      const list = formatPermissionList(missing);
-      const noun = list.includes(',') ? 'permissions' : 'permission';
-      await message.reply({
-        embeds: [errorEmbed(`You need **${list}** ${noun}.`, embedGuild)],
-      });
-      return;
-    }
-  }
-  if (command.botPermissions && message.guild?.members.me) {
-    const me = message.guild.members.me;
-    const missing = command.botPermissions.filter((p) => !me.permissions.has(p));
-    if (missing.length) {
-      const list = formatPermissionList(missing);
-      const noun = list.includes(',') ? 'permissions' : 'permission';
-      await message.reply({
-        embeds: [
-          errorEmbed(
-            `I need **${list}** ${noun}. Check my role permissions and hierarchy.`,
-            embedGuild,
-          ),
-        ],
-      });
-      return;
-    }
-  }
-  if (command.premiumFeature && message.guild) {
-    const { checkPremium } = await import('../premium/check');
-    const allowed = await checkPremium(message.guild.id, command.premiumFeature, (opts) => message.reply(opts));
-    if (!allowed) return;
-  }
-  if (command.cooldown) {
-    if (!client.cooldowns.has(command.name)) client.cooldowns.set(command.name, new Collection());
-    const timestamps = client.cooldowns.get(command.name)!;
-    const now = Date.now();
-    const expiration = timestamps.get(message.author.id);
-    if (expiration && now < expiration) {
-      await message.reply({ embeds: [errorEmbed(`Cooldown: ${((expiration - now) / 1000).toFixed(1)}s remaining.`, embedGuild)] });
-      return;
-    }
-    timestamps.set(message.author.id, now + command.cooldown * 1000);
-    setTimeout(() => timestamps.delete(message.author.id), command.cooldown * 1000);
-  }
-
   let replyCount = 0;
+  let hasReplied = false;
   const originalReply = message.reply.bind(message);
-  message.reply = async (...replyArgs: Parameters<typeof message.reply>) => {
+
+  const safeReply: typeof message.reply = async (...replyArgs) => {
+    if (hasReplied) {
+      console.warn(`[dedup] blocked duplicate reply on message ${message.id} (${command.name})`);
+      return null as unknown as Awaited<ReturnType<typeof message.reply>>;
+    }
+    hasReplied = true;
     replyCount++;
     return originalReply(...replyArgs);
   };
 
-  const ctx: CommandContext = {
-    client,
-    message,
-    args,
-    commandName: command.name,
-    guildSettings: guildSettings ? { ...guildSettings, plan: effectivePlan ?? guildSettings.plan } : undefined,
-  };
-  let succeeded = true;
+  message.reply = safeReply;
+
   try {
-    await command.run(ctx);
-  } catch (err) {
-    succeeded = false;
-    console.error(`Error in ${command.name}:`, err);
-    await originalReply({ embeds: [errorEmbed('An error occurred running that command.', embedGuild)] }).catch(() => {});
+    if (command.ownerOnly && !config.ownerIds.includes(message.author.id)) {
+      await safeReply({ embeds: [errorEmbed('This command is owner-only.', embedGuild)] });
+      return;
+    }
+    if (command.permissions && message.member) {
+      const missing = command.permissions.filter((p) => !message.member!.permissions.has(p));
+      if (missing.length) {
+        const list = formatPermissionList(missing);
+        const noun = list.includes(',') ? 'permissions' : 'permission';
+        await safeReply({
+          embeds: [errorEmbed(`You need **${list}** ${noun}.`, embedGuild)],
+        });
+        return;
+      }
+    }
+    if (command.botPermissions && message.guild?.members.me) {
+      const me = message.guild.members.me;
+      const missing = command.botPermissions.filter((p) => !me.permissions.has(p));
+      if (missing.length) {
+        const list = formatPermissionList(missing);
+        const noun = list.includes(',') ? 'permissions' : 'permission';
+        await safeReply({
+          embeds: [
+            errorEmbed(
+              `I need **${list}** ${noun}. Check my role permissions and hierarchy.`,
+              embedGuild,
+            ),
+          ],
+        });
+        return;
+      }
+    }
+    if (command.premiumFeature && message.guild) {
+      const { checkPremium } = await import('../premium/check');
+      const allowed = await checkPremium(message.guild.id, command.premiumFeature, (opts) => safeReply(opts));
+      if (!allowed) return;
+    }
+    if (command.cooldown) {
+      if (!client.cooldowns.has(command.name)) client.cooldowns.set(command.name, new Collection());
+      const timestamps = client.cooldowns.get(command.name)!;
+      const now = Date.now();
+      const expiration = timestamps.get(message.author.id);
+      if (expiration && now < expiration) {
+        await safeReply({ embeds: [errorEmbed(`Cooldown: ${((expiration - now) / 1000).toFixed(1)}s remaining.`, embedGuild)] });
+        return;
+      }
+      timestamps.set(message.author.id, now + command.cooldown * 1000);
+      setTimeout(() => timestamps.delete(message.author.id), command.cooldown * 1000);
+    }
+
+    const ctx: CommandContext = {
+      client,
+      message,
+      args,
+      commandName: command.name,
+      guildSettings: guildSettings ? { ...guildSettings, plan: effectivePlan ?? guildSettings.plan } : undefined,
+    };
+
+    let succeeded = true;
+    try {
+      await command.run(ctx);
+    } catch (err) {
+      succeeded = false;
+      console.error(`Error in ${command.name}:`, err);
+      if (!hasReplied) {
+        await safeReply({ embeds: [errorEmbed('An error occurred running that command.', embedGuild)] }).catch(() => {});
+      }
+    } finally {
+      if (shouldAckCommand(command, replyCount, succeeded)) {
+        await ackCommandMessage(message);
+      }
+    }
   } finally {
     message.reply = originalReply;
-    if (shouldAckCommand(command, replyCount, succeeded)) {
-      await ackCommandMessage(message);
-    }
   }
 }
