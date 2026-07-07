@@ -28,9 +28,8 @@ export async function handleMessage(client: DeeloClient, message: import('discor
   const content = message.content.slice(prefix.length).trim();
   if (!content) return;
 
-  // In-process + cross-process dedup (overlapping instances during tsx watch restarts)
   if (client.handledMessages.has(message.id)) return;
-  if (!tryClaimMessage(message.id)) return;
+  if (!(await tryClaimMessage(message.id))) return;
   client.handledMessages.add(message.id);
   setTimeout(() => client.handledMessages.delete(message.id), 15_000);
 
