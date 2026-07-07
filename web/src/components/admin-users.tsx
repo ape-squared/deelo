@@ -15,6 +15,7 @@ interface User {
 
 export function AdminUsersTable({ users }: { users: User[] }) {
   const [search, setSearch] = useState('');
+  const [weekStart] = useState(() => Date.now() - 7 * 86400000);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -28,7 +29,7 @@ export function AdminUsersTable({ users }: { users: User[] }) {
 
   const activeWeek = users.filter((u) => {
     if (!u.last_login) return false;
-    return Date.now() - new Date(u.last_login).getTime() < 7 * 86400000;
+    return new Date(u.last_login).getTime() > weekStart;
   }).length;
 
   return (

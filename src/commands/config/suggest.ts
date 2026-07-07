@@ -76,20 +76,27 @@ const suggestCommands: Command[] = [
         });
       }
 
-      const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
-        new ButtonBuilder().setCustomId('suggest_up').setEmoji('👍').setStyle(ButtonStyle.Secondary),
-        new ButtonBuilder().setCustomId('suggest_down').setEmoji('👎').setStyle(ButtonStyle.Secondary),
-      );
-
       const embed = deeloEmbed('💡 Suggestion', text);
       embed.setColor(BRAND_COLOR);
       embed.setAuthor({ name: message.author.tag, iconURL: message.author.displayAvatarURL() });
-      embed.setFooter({ text: `User ID: ${message.author.id}` });
+      embed.setFooter({ text: `User ID: ${message.author.id} · 👍 0 · 👎 0` });
       embed.setTimestamp();
 
-      const posted = await channel.send({ embeds: [embed], components: [row] });
-      await posted.react('👍').catch(() => {});
-      await posted.react('👎').catch(() => {});
+      const posted = await channel.send({ embeds: [embed] });
+
+      const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
+        new ButtonBuilder()
+          .setCustomId(`suggest_up:${posted.id}`)
+          .setLabel('Upvote')
+          .setEmoji('👍')
+          .setStyle(ButtonStyle.Secondary),
+        new ButtonBuilder()
+          .setCustomId(`suggest_down:${posted.id}`)
+          .setLabel('Downvote')
+          .setEmoji('👎')
+          .setStyle(ButtonStyle.Secondary),
+      );
+      await posted.edit({ components: [row] });
       // Success: ack-only (✅ on command message, no extra bot reply)
     },
   },

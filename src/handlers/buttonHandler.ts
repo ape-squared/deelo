@@ -1,7 +1,15 @@
 import type { DeeloClient } from '../client';
 import { getSupabase } from '../database/supabase';
-import { ChannelType, PermissionFlagsBits } from 'discord.js';
+import { ChannelType, EmbedBuilder, PermissionFlagsBits } from 'discord.js';
 import { deeloEmbed } from '../utils/embeds';
+
+function parseSuggestionVotes(footerText?: string | null): { authorId: string; up: number; down: number } {
+  const text = footerText ?? '';
+  const authorId = text.match(/User ID:\s*(\d+)/)?.[1] ?? '0';
+  const up = parseInt(text.match(/👍\s*(\d+)/)?.[1] ?? '0', 10);
+  const down = parseInt(text.match(/👎\s*(\d+)/)?.[1] ?? '0', 10);
+  return { authorId, up, down };
+}
 
 export function registerButtonHandlers(client: DeeloClient): void {
   if (client.buttonsRegistered) return;
@@ -57,6 +65,38 @@ export function registerButtonHandlers(client: DeeloClient): void {
 
       await channel.send({ embeds: [deeloEmbed('🎫 Ticket Opened', `${interaction.user}, support will be with you shortly.\nUse \`,tickets close\` to close.`)] });
       await interaction.reply({ content: `Ticket created: ${channel}`, ephemeral: true });
+      return;
+    }
+
+    if (interaction.customId.startsWith('suggest_up:') || interaction.customId.startsWith('suggest_down:')) {
+      const isUp = interaction.customId.startsWith('suggest_up:');
+      const embed = interaction.message.embeds[0];
+      if (!embed) {
+        await interaction.reply({ content: 'This suggestion is no longer available.', ephemeral: true });
+        return;
+      }
+
+      const { authorId, up, down } = parseSuggestionVotes(embed.footer?.text);
+      if (authorId === interaction.user.id) {
+        await interaction.reply({ content: 'You cannot vote on your own suggestion.', ephemeral: true });
+        return;
+      }
+
+      const voters = client.suggestionVoters.get(interaction.message.id) ?? new Set<string>();
+      if (voters.has(interaction.user.id)) {
+        await interaction.reply({ content: 'You already voted on this suggestion.', ephemeral: true });
+        return;
+      }
+      voters.add(interaction.user.id);
+      client.suggestionVoters.set(interaction.message.id, voters);
+
+      const newUp = isUp ? up + 1 : up;
+      const newDown = isUp ? down : down + 1;
+      const updated = EmbedBuilder.from(embed).setFooter({
+        text: `User ID: ${authorId} · 👍 ${newUp} · 👎 ${newDown}`,
+      });
+
+      await interaction.update({ embeds: [updated], components: interaction.message.components });
     }
   });
 }

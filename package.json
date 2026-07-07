@@ -12,6 +12,7 @@
     "build:web": "npm run build --prefix web",
     "test:smoke": "tsx scripts/smoke-test.ts",
     "web:env": "node web/scripts/sync-env.mjs",
+    "web:env:prod": "node web/scripts/sync-production-env.mjs",
     "web:admin": "node web/scripts/setup-admin.mjs"
   },
   "keywords": [
@@ -30,6 +31,7 @@
     "libsodium-wrappers": "^0.8.4",
     "opusscript": "^0.0.8",
     "play-dl": "^1.9.7",
+    "sharp": "^0.33.5",
     "yt-dlp-wrap": "^2.3.12"
   },
   "devDependencies": {

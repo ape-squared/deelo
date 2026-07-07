@@ -11,6 +11,8 @@ export class DeeloClient extends Client {
   handledMessages = new Set<string>();
   /** Prevent runCommand from executing twice for one user message */
   commandExecutions = new Set<string>();
+  /** Track suggestion voters per message (in-memory) */
+  suggestionVoters = new Map<string, Set<string>>();
   eventsRegistered = false;
   buttonsRegistered = false;
 

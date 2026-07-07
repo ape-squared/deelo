@@ -38,6 +38,7 @@ export function SubscriptionManager({
   const [search, setSearch] = useState('');
   const [expanded, setExpanded] = useState<string | null>(null);
   const [message, setMessage] = useState('');
+  const [nowMs] = useState(() => Date.now());
 
   const planMap = useMemo(() => new Map(Object.entries(guildPlans)), [guildPlans]);
   const { current, duplicateCount } = useMemo(
@@ -48,8 +49,7 @@ export function SubscriptionManager({
 
   const filtered = useMemo(() => {
     const q = search.trim();
-    const now = Date.now();
-    const week = now + 7 * 86400000;
+    const week = nowMs + 7 * 86400000;
     return current.filter((s) => {
       if (q && !s.guild_id.includes(q) && !s.plan.includes(q) && !String(s.id).includes(q)) return false;
       if (filter === 'active') return s.status === 'active';
@@ -57,11 +57,11 @@ export function SubscriptionManager({
       if (filter === 'expiring') {
         if (s.status !== 'active' || !s.expires_at) return false;
         const exp = new Date(s.expires_at).getTime();
-        return exp > now && exp < week;
+        return exp > nowMs && exp < week;
       }
       return true;
     });
-  }, [current, filter, search]);
+  }, [current, filter, search, nowMs]);
 
   const historyFor = (guildId: string) =>
     allSubs.filter((s) => s.guild_id === guildId).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());

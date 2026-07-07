@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 
 const FAQ = [
@@ -27,8 +26,6 @@ const FAQ = [
 ];
 
 export function FaqSection() {
-  const [open, setOpen] = useState<number | null>(0);
-
   return (
     <section className="px-4 py-24 lg:py-28">
       <div className="mx-auto max-w-3xl">
@@ -38,23 +35,15 @@ export function FaqSection() {
           <p className="section-sub mx-auto">Everything you need to know before adding Deelo.</p>
         </div>
         <div className="space-y-3">
-          {FAQ.map((item, i) => {
-            const isOpen = open === i;
-            return (
-              <button
-                key={item.q}
-                type="button"
-                onClick={() => setOpen(isOpen ? null : i)}
-                className="faq-item w-full text-left"
-              >
-                <div className="flex items-center justify-between gap-4">
-                  <span className="font-semibold">{item.q}</span>
-                  <ChevronDown className={`h-5 w-5 shrink-0 text-muted transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-                </div>
-                {isOpen && <p className="mt-3 text-sm text-muted leading-relaxed">{item.a}</p>}
-              </button>
-            );
-          })}
+          {FAQ.map((item) => (
+            <details key={item.q} className="faq-item group">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-semibold [&::-webkit-details-marker]:hidden">
+                <span>{item.q}</span>
+                <ChevronDown className="h-5 w-5 shrink-0 text-muted transition-transform group-open:rotate-180" />
+              </summary>
+              <p className="mt-3 text-sm text-muted leading-relaxed">{item.a}</p>
+            </details>
+          ))}
         </div>
       </div>
     </section>

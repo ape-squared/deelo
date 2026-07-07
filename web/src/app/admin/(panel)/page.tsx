@@ -38,10 +38,14 @@ export default async function AdminOverviewPage() {
   const total = plans.free + plans.premium + plans.premium_plus;
   const premiumPct = total ? Math.round(((plans.premium + plans.premium_plus) / total) * 100) : 0;
   const activeUnique = activeSubs.filter((s) => s.status === 'active').length;
+  // Server-rendered snapshot for expiring-subscription filter
+  // eslint-disable-next-line react-hooks/purity -- intentional request-time clock on the server
+  const nowMs = Date.now();
+  const weekMs = 7 * 86400000;
   const expiring = activeSubs.filter((s) => {
     if (s.status !== 'active' || !s.expires_at) return false;
     const exp = new Date(s.expires_at).getTime();
-    return exp > Date.now() && exp < Date.now() + 7 * 86400000;
+    return exp > nowMs && exp < nowMs + weekMs;
   });
 
   return (

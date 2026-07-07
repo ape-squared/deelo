@@ -48,9 +48,6 @@ export async function handleMessage(client: DeeloClient, message: import('discor
   if (extMatch) {
     const handled = await handleExtendedCommand(message, content);
     if (handled) return;
-  }
-
-  if (extMatch) {
     await message.reply({
       embeds: [errorEmbed(`**${extMatch.command.name}** isn't available yet. Use \`,help ${extMatch.command.name}\` for info.`)],
     }).catch(() => {});

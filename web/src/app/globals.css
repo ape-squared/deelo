@@ -552,6 +552,12 @@ body {
 .faq-item {
   @apply rounded-2xl border border-border bg-card/50 px-6 py-5 transition-colors hover:border-accent/25 hover:bg-card/80;
 }
+.faq-item summary {
+  @apply outline-none;
+}
+.faq-item[open] {
+  @apply border-accent/20 bg-card/80;
+}
 
 .trust-bar {
   @apply border-y border-border bg-white/[0.02] py-8;

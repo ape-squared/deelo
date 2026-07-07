@@ -49,30 +49,36 @@ export default function GuildDashboardPage() {
   }, [guildId, router]);
 
   useEffect(() => {
-    load().catch(() => router.push('/dashboard'));
-    fetch('/api/guilds')
-      .then(async (r) => {
-        if (!r.ok) return;
-        const data = await r.json();
-        if (data.user) {
-          setUser({
-            username: data.user.username,
-            avatar: data.user.avatar
-              ? `https://cdn.discordapp.com/avatars/${data.user.id}/${data.user.avatar}.png?size=64`
-              : null,
-          });
-        }
-        if (data.guilds) {
-          setGuilds(data.guilds.map((g: GuildMeta) => ({
-            id: g.id,
-            name: g.name,
-            icon: g.icon,
-            botPresent: g.botPresent,
-            plan: g.plan,
-          })));
-        }
-      })
-      .catch(() => {});
+    let cancelled = false;
+    void (async () => {
+      await load();
+      if (cancelled) return;
+      const r = await fetch('/api/guilds');
+      if (!r.ok || cancelled) return;
+      const data = await r.json();
+      if (data.user) {
+        setUser({
+          username: data.user.username,
+          avatar: data.user.avatar
+            ? `https://cdn.discordapp.com/avatars/${data.user.id}/${data.user.avatar}.png?size=64`
+            : null,
+        });
+      }
+      if (data.guilds) {
+        setGuilds(data.guilds.map((g: GuildMeta) => ({
+          id: g.id,
+          name: g.name,
+          icon: g.icon,
+          botPresent: g.botPresent,
+          plan: g.plan,
+        })));
+      }
+    })().catch(() => {
+      if (!cancelled) router.push('/dashboard');
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [load, router]);
 
   const currentGuild = useMemo(

@@ -1,46 +1,57 @@
-import type { Message } from 'discord.js';
+import { AttachmentBuilder, type Message } from 'discord.js';
 import type { CommandDef } from '../types';
 import { replyError, replyInfo, deeloEmbed } from '../lib/helpers';
+import { generateMediaEffect, MEDIA_EFFECT_NAMES } from '../../services/media-effects';
 
-const MEDIA_TYPES = [
-  'blur', 'deepfry', 'bloom', 'spin', 'motivate', 'meme', 'flag', 'speechbubble', 'rainbow', 'valentine',
-  'toaster', 'rubiks', 'fortune', 'gifmagik', 'magik', 'glass', 'passed', 'failed', 'trash', 'wasted',
-  'triggered', 'captcha', 'invert', 'pixelate', 'sharpen', 'brightness', 'contrast', 'saturation',
-];
-
-async function nekoBot(type: string, imageUrl: string): Promise<string | null> {
-  try {
-    const res = await fetch(`https://nekobot.xyz/api/imageGen?type=${type}&url=${encodeURIComponent(imageUrl)}`);
-    const data = (await res.json()) as { success?: boolean; message?: string };
-    return data.success ? data.message ?? null : null;
-  } catch {
-    return null;
-  }
+function resolveImageUrl(message: Message, args: string[]): string | undefined {
+  return (
+    message.attachments.first()?.url ??
+    message.mentions.users.first()?.displayAvatarURL({ extension: 'png', size: 512 }) ??
+    args.find((a) => /^https?:\/\//i.test(a))
+  );
 }
 
 export async function handleManipulationCog(cmd: CommandDef, message: Message, args: string[]): Promise<boolean> {
   if (cmd.cog !== 'manipulation') return false;
   const name = cmd.name;
-  const imageUrl = message.attachments.first()?.url ?? args.find((a) => a.startsWith('http'));
 
-  if (name === 'media') {
-    await replyInfo(message, 'Media', `Effects: ${MEDIA_TYPES.slice(0, 15).join(', ')}...\nUsage: \`,media <effect>\` with an image attached.`);
+  if (name === 'media' && args.length === 0) {
+    await replyInfo(
+      message,
+      'Media',
+      `Image effects for avatars and attachments.\n\n**Usage:** \`,media <effect>\` with an image attached, a user mention, or image URL.\n\n**Examples:** \`,media blur\`, \`,media deepfry\`, \`,media magik\`\n\n**Effects:** ${MEDIA_EFFECT_NAMES.slice(0, 18).join(', ')}, …`,
+    );
     return true;
   }
 
-  const effect = name.startsWith('media ') ? name.replace('media ', '') : name;
-  if (!MEDIA_TYPES.includes(effect) && !name.startsWith('media')) return false;
+  const effect = name.startsWith('media ') ? name.slice('media '.length) : name;
+  if (!name.startsWith('media') && !MEDIA_EFFECT_NAMES.includes(effect)) return false;
+  if (name.startsWith('media') && effect === 'media') return false;
 
+  const imageUrl = resolveImageUrl(message, args);
   if (!imageUrl) {
-    await replyError(message, `Attach an image or provide a URL for **${effect}**.`);
+    await replyError(message, `Attach an image, mention a user, or pass a URL for **${effect}**.`);
     return true;
   }
 
-  const result = await nekoBot(effect === 'magik' ? 'gifmagik' : effect, imageUrl);
-  if (result) {
-    await message.reply({ embeds: [deeloEmbed(effect, '').setImage(result)] });
-  } else {
-    await replyInfo(message, effect, `Applied **${effect}** effect.\n[View original](${imageUrl})`);
+  try {
+    const result = await generateMediaEffect(effect, imageUrl);
+    if (result.buffer) {
+      const file = new AttachmentBuilder(result.buffer, { name: result.filename });
+      await message.reply({
+        embeds: [deeloEmbed(effect, '').setImage(`attachment://${result.filename}`)],
+        files: [file],
+      });
+      return true;
+    }
+    if (result.url) {
+      await message.reply({ embeds: [deeloEmbed(effect, '').setImage(result.url)] });
+      return true;
+    }
+    await replyError(message, `Could not generate **${effect}**.`);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : 'Image effect failed.';
+    await replyError(message, msg.replace(/\*\*/g, ''));
   }
   return true;
 }
