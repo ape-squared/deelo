@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getDashboardSession, fetchUserGuilds, canManageServer } from '@/lib/session';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { getBotGuildIds } from '@/lib/discord-bot';
+import { getDiscordBotToken, resolveBotPresenceForGuilds } from '@/lib/discord-bot';
 import { resolveEffectivePlan } from '@/lib/plan-resolve';
 
 export async function GET() {
@@ -33,15 +33,24 @@ export async function GET() {
 
     const db = createAdminClient();
     const ids = manageable.map((g) => g.id);
-    const [botGuildsResult, subsResult, botMemberIds] = await Promise.all([
+    const [botGuildsResult, subsResult] = await Promise.all([
       ids.length
         ? db.from('guilds').select('id, plan, prefix, plan_expires_at').in('id', ids)
         : Promise.resolve({ data: [], error: null }),
       ids.length
         ? db.from('subscriptions').select('guild_id, plan, status, expires_at').in('guild_id', ids).eq('status', 'active')
         : Promise.resolve({ data: [], error: null }),
-      getBotGuildIds(),
     ]);
+
+    const botMemberIds = await resolveBotPresenceForGuilds(ids);
+
+    // If Discord API is unreachable but we have guild rows, trust DB (bot registered the server).
+    if (botMemberIds.size === 0 && ids.length && getDiscordBotToken()) {
+      const dbIds = new Set((botGuildsResult.data ?? []).map((g) => g.id));
+      for (const id of ids) {
+        if (dbIds.has(id)) botMemberIds.add(id);
+      }
+    }
 
     const { data: botGuilds, error } = botGuildsResult;
     const subsByGuild = new Map((subsResult.data ?? []).map((s) => [s.guild_id, s]));
@@ -76,6 +85,8 @@ export async function GET() {
       meta: {
         totalDiscordGuilds: result.guilds.length,
         manageableGuilds: manageable.length,
+        botTokenConfigured: !!getDiscordBotToken(),
+        botGuildCount: botMemberIds.size,
       },
     });
   } catch (err) {
