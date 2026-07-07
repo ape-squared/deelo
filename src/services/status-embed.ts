@@ -1,5 +1,6 @@
 import { EmbedBuilder, type Client, type TextChannel, ChannelType } from 'discord.js';
 import { config } from '../config';
+import { fetchAppJson, probeAppReachable, primaryAppUrl } from '../lib/app-urls';
 
 const STATUS_TITLE = 'Deelo System Status';
 const REFRESH_MS = 5 * 60 * 1000;
@@ -37,18 +38,8 @@ const STATUS_COLOR: Record<OverallStatus, number> = {
 
 let statusMessageId: string | null = process.env.STATUS_MESSAGE_ID ?? null;
 
-function appUrl(): string {
-  return (process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || '').replace(/\/$/, '');
-}
-
 async function fetchStatusApi(): Promise<StatusApiPayload | null> {
-  try {
-    const res = await fetch(`${appUrl()}/api/status`, { signal: AbortSignal.timeout(10_000) });
-    if (!res.ok) return null;
-    return (await res.json()) as StatusApiPayload;
-  } catch {
-    return null;
-  }
+  return fetchAppJson<StatusApiPayload>('/api/status');
 }
 
 async function buildLocalStatus(client: Client): Promise<StatusApiPayload> {
@@ -61,6 +52,7 @@ async function buildLocalStatus(client: Client): Promise<StatusApiPayload> {
     dbOk = false;
   }
 
+  const dashboard = await probeAppReachable();
   const latencyMs = client.ws.ping;
   const guildCount = client.guilds.cache.size;
   const online = client.isReady();
@@ -83,8 +75,8 @@ async function buildLocalStatus(client: Client): Promise<StatusApiPayload> {
     },
     {
       label: 'Web Dashboard',
-      status: 'degraded',
-      detail: 'Status API unreachable — using local metrics',
+      status: dashboard.ok ? 'operational' : 'degraded',
+      detail: dashboard.detail,
     },
   ];
 
@@ -150,7 +142,7 @@ export function buildStatusEmbed(data: StatusApiPayload, uptimeSec?: number): Em
         inline: true,
       },
     )
-    .setURL(`${appUrl()}/status`)
+    .setURL(`${primaryAppUrl()}/status`)
     .setFooter({ text: `deelo.bot/status · Updates every 5 min` })
     .setTimestamp(new Date(data.bot.checkedAt));
 
@@ -163,11 +155,18 @@ export function buildStatusEmbed(data: StatusApiPayload, uptimeSec?: number): Em
 
 async function resolveStatusChannel(client: Client): Promise<TextChannel | null> {
   const channelId = process.env.STATUS_CHANNEL_ID;
-  const guildId = process.env.STATUS_GUILD_ID || config.supportGuildId;
+  const guildId = process.env.STATUS_GUILD_ID || config.supportGuildId || process.env.OFFICIAL_GUILD_ID;
 
   if (channelId) {
     const ch = await client.channels.fetch(channelId).catch(() => null);
-    if (ch?.isTextBased() && 'guild' in ch) return ch as TextChannel;
+    if (ch?.isTextBased() && 'guild' in ch) {
+      const channel = ch as TextChannel;
+      if (guildId && channel.guildId !== guildId) {
+        console.warn(`[status] Channel ${channelId} is not in configured guild ${guildId}`);
+        return null;
+      }
+      return channel;
+    }
   }
 
   if (!guildId) return null;

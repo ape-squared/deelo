@@ -27,7 +27,9 @@ async function main() {
   registerEvents(client);
   registerButtonHandlers(client);
   const { startStatusEmbedLoop } = await import('./services/status-embed');
+  const { startChangelogAnnounceLoop } = await import('./services/changelog-announce');
   startStatusEmbedLoop(client);
+  startChangelogAnnounceLoop(client);
 
   await client.login(process.env.DISCORD_TOKEN);
 
