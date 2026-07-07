@@ -1,5 +1,10 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import ws from 'ws';
 import { config } from '../config';
+
+if (!globalThis.WebSocket) {
+  globalThis.WebSocket = ws as unknown as typeof WebSocket;
+}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let client: SupabaseClient<any, 'public', any> | null = null;

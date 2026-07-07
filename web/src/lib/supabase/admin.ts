@@ -1,4 +1,9 @@
 import { createClient } from '@supabase/supabase-js';
+import ws from 'ws';
+
+if (!globalThis.WebSocket) {
+  globalThis.WebSocket = ws as unknown as typeof WebSocket;
+}
 
 export function createAdminClient() {
   const url = process.env.SUPABASE_URL;
