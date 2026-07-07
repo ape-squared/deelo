@@ -24,6 +24,7 @@ const IDLE_LEAVE_MS = 120_000;
 export class GuildPlayer {
   readonly state: import('./store').GuildMusicState;
   private connection: VoiceConnection | null = null;
+  private boundConnection: VoiceConnection | null = null;
   private busy = false;
   private pendingIdle = false;
   private playGeneration = 0;
@@ -146,22 +147,55 @@ export class GuildPlayer {
     }
   }
 
+  private bindConnectionEvents(conn: VoiceConnection): void {
+    if (this.boundConnection === conn) return;
+    this.boundConnection = conn;
+    conn.on('error', (err) => {
+      console.error(`[music:${this.guildId}] voice error:`, err.message);
+    });
+  }
+
+  private async destroyVoice(): Promise<void> {
+    this.clearIdleTimer();
+    try {
+      this.connection?.destroy();
+    } catch {
+      // ignore
+    }
+    try {
+      getVoiceConnection(this.guildId)?.destroy();
+    } catch {
+      // ignore
+    }
+    this.connection = null;
+    this.boundConnection = null;
+    await new Promise((r) => setTimeout(r, 400));
+  }
+
   async connect(guild: Guild, channelId: string): Promise<VoiceConnection> {
     const existing = getVoiceConnection(guild.id);
-    if (existing && existing.state.status !== VoiceConnectionStatus.Destroyed) {
+    if (existing?.state.status === VoiceConnectionStatus.Ready) {
       this.connection = existing;
       this.state.voiceChannelId = channelId;
-      if (existing.state.status !== VoiceConnectionStatus.Ready) {
-        await entersState(existing, VoiceConnectionStatus.Ready, 15_000);
-      }
+      this.bindConnectionEvents(existing);
       existing.subscribe(this.player);
       return existing;
     }
 
-    // Bot may appear in VC after restart while this process has no voice connection yet
-    getVoiceConnection(guild.id)?.destroy();
+    if (existing) {
+      await this.destroyVoice();
+    }
 
     const fullGuild = await guild.client.guilds.fetch(guild.id);
+    const me = fullGuild.members.me ?? (await fullGuild.members.fetchMe().catch(() => null));
+
+    // Bot can still appear in VC after a crash/restart while this process has no voice socket
+    if (me?.voice.channelId) {
+      console.log(`[music:${this.guildId}] clearing ghost voice state before join`);
+      await me.voice.disconnect().catch(() => {});
+      await new Promise((r) => setTimeout(r, 750));
+    }
+
     const channel =
       fullGuild.channels.cache.get(channelId) ??
       (await fullGuild.channels.fetch(channelId).catch(() => null));
@@ -173,45 +207,59 @@ export class GuildPlayer {
       throw new Error('I cannot join that voice channel. Check Connect and Speak permissions.');
     }
 
-    this.connection = joinVoiceChannel({
-      channelId: channel.id,
-      guildId: fullGuild.id,
-      adapterCreator: fullGuild.voiceAdapterCreator,
-      selfDeaf: false,
-      selfMute: false,
-    });
-    this.state.voiceChannelId = channelId;
-
-    this.connection.on(VoiceConnectionStatus.Disconnected, async () => {
+    let lastError: unknown;
+    for (let attempt = 1; attempt <= 3; attempt++) {
       try {
-        await Promise.race([
-          entersState(this.connection!, VoiceConnectionStatus.Signalling, 5_000),
-          entersState(this.connection!, VoiceConnectionStatus.Connecting, 5_000),
-        ]);
-      } catch {
-        if (this.connection?.state.status === VoiceConnectionStatus.Disconnected) {
-          this.disconnect();
+        console.log(`[music:${this.guildId}] joining voice (attempt ${attempt})`);
+
+        this.connection = joinVoiceChannel({
+          channelId: channel.id,
+          guildId: fullGuild.id,
+          adapterCreator: fullGuild.voiceAdapterCreator,
+          selfDeaf: false,
+          selfMute: false,
+        });
+        this.state.voiceChannelId = channelId;
+        this.bindConnectionEvents(this.connection);
+
+        this.connection.on(VoiceConnectionStatus.Disconnected, async () => {
+          try {
+            await Promise.race([
+              entersState(this.connection!, VoiceConnectionStatus.Signalling, 5_000),
+              entersState(this.connection!, VoiceConnectionStatus.Connecting, 5_000),
+            ]);
+          } catch {
+            if (this.connection?.state.status === VoiceConnectionStatus.Disconnected) {
+              void this.destroyVoice();
+            }
+          }
+        });
+
+        await entersState(this.connection, VoiceConnectionStatus.Ready, 30_000);
+
+        if (channel.type === ChannelType.GuildStageVoice) {
+          await fullGuild.members.me?.voice.setSuppressed(false).catch(() => {});
+        }
+
+        this.connection.subscribe(this.player);
+        return this.connection;
+      } catch (err) {
+        lastError = err;
+        console.error(`[music:${this.guildId}] voice join failed (attempt ${attempt}):`, err);
+        await this.destroyVoice();
+        if (attempt < 3) {
+          await new Promise((r) => setTimeout(r, attempt * 600));
         }
       }
-    });
-
-    await entersState(this.connection, VoiceConnectionStatus.Ready, 30_000);
-
-    if (channel.type === ChannelType.GuildStageVoice) {
-      await fullGuild.members.me?.voice.setSuppressed(false).catch(() => {});
     }
 
-    this.connection.subscribe(this.player);
-    return this.connection;
+    throw lastError instanceof Error
+      ? lastError
+      : new Error('Could not connect to voice. Try `,stop` then `,play` again.');
   }
 
   disconnect(): void {
-    this.clearIdleTimer();
-    if (this.connection) {
-      this.connection.destroy();
-      this.connection = null;
-    }
-    getVoiceConnection(this.guildId)?.destroy();
+    void this.destroyVoice();
   }
 
   async enqueue(
@@ -246,6 +294,7 @@ export class GuildPlayer {
     console.log(
       `[music:${this.guildId}] queued ${tracks.length} track(s) at position ${this.state.queue.length} (already playing)`,
     );
+    this.ensureVoiceSubscription();
     return { position: this.state.queue.length, track, started: false };
   }
 
@@ -398,19 +447,26 @@ export class GuildPlayer {
     return true;
   }
 
-  /** Re-link voice after bot restart while still in a channel. */
+  /** Re-link voice after bot restart — only if a healthy connection exists. */
   async recover(guild: Guild, voiceChannelId: string): Promise<void> {
     this.init();
     this.pruneStaleState();
     this.state.voiceChannelId = voiceChannelId;
+
     const conn = getVoiceConnection(guild.id);
-    if (conn && conn.state.status !== VoiceConnectionStatus.Destroyed) {
+    if (conn?.state.status === VoiceConnectionStatus.Ready) {
       this.connection = conn;
+      this.bindConnectionEvents(conn);
       conn.subscribe(this.player);
+      console.log(`[music:${this.guildId}] recovered ready voice connection`);
+      return;
     }
-    console.log(
-      `[music:${this.guildId}] recovered (channel=${voiceChannelId}, status=${this.player.state.status}, current=${this.state.current?.title ?? 'none'})`,
-    );
+
+    const me = guild.members.me;
+    if (me?.voice.channelId) {
+      console.log(`[music:${this.guildId}] clearing stale voice from previous session`);
+      await me.voice.disconnect().catch(() => {});
+    }
   }
 }
 
