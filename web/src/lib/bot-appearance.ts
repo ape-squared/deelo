@@ -60,6 +60,27 @@ export function resolveGuildEmbedColor(
   return parseEmbedColor(raw);
 }
 
+export interface BotAppearanceSnapshot {
+  nickname: string | null;
+  embedColor: number | null;
+  embedFooter: string | null;
+}
+
+export function getBotAppearanceSnapshot(
+  extra: Record<string, unknown> | null | undefined,
+  plan: PlanTier,
+): BotAppearanceSnapshot {
+  if (plan !== 'premium' && plan !== 'premium_plus') {
+    return { nickname: null, embedColor: null, embedFooter: null };
+  }
+
+  return {
+    nickname: sanitizeBotNickname(getExtraConfigPath(extra ?? {}, 'bot.nickname')),
+    embedColor: resolveGuildEmbedColor(extra, plan) ?? null,
+    embedFooter: sanitizeBotEmbedFooter(getExtraConfigPath(extra ?? {}, 'bot.embed_footer')),
+  };
+}
+
 export function sanitizeBotAppearancePath(path: string, value: unknown): unknown {
   switch (path) {
     case 'bot.nickname':

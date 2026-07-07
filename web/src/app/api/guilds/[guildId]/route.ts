@@ -4,6 +4,7 @@ import { requireGuildManager } from '@/lib/guild-auth';
 import { normalizeGuildPatch } from '@/lib/guild-patch';
 import { loadGuildWithPlan } from '@/lib/guild-plan-loader';
 import { resolveEffectivePlan } from '@/lib/plan-resolve';
+import { appearanceConfigTouched, syncBotCustomizationToDiscord } from '@/lib/discord-guild-sync';
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ guildId: string }> }) {
   const { guildId } = await params;
@@ -96,6 +97,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ gu
   const { updates, error, eventToggles } = normalizeGuildPatch(body, plan, extra);
   if (error) return NextResponse.json({ error }, { status: 400 });
 
+  const touchedAppearance = appearanceConfigTouched(body);
+
   await db.from('guilds').upsert({ id: guildId, ...updates }, { onConflict: 'id' });
 
   for (const { event, enabled } of eventToggles) {
@@ -106,5 +109,13 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ gu
   }
 
   const { guild } = await loadGuildWithPlan(db, guildId);
-  return NextResponse.json({ guild, synced: { eventToggles } });
+
+  let botSync = null;
+  if (touchedAppearance || 'extra_config' in updates) {
+    botSync = await syncBotCustomizationToDiscord(guildId, guild, {
+      sendPreview: touchedAppearance,
+    });
+  }
+
+  return NextResponse.json({ guild, synced: { eventToggles, bot: botSync } });
 }

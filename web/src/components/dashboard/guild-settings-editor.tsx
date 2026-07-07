@@ -92,9 +92,14 @@ export function GuildSettingsEditor({
           return Array.from(map.values());
         });
       }
-      setMessage('Settings saved — bot updated instantly');
+      const botSync = data.synced?.bot as { nickname?: { ok: boolean; error?: string } } | undefined;
+      if (botSync?.nickname && !botSync.nickname.ok) {
+        setMessage(`Saved, but nickname sync failed: ${botSync.nickname.error ?? 'unknown error'}`);
+      } else {
+        setMessage('Settings saved — bot updated instantly');
+      }
       setDirty(false);
-      setTimeout(() => setMessage(''), 4000);
+      setTimeout(() => setMessage(''), 5000);
     } else {
       setMessage(data.error ?? 'Failed to save');
     }
@@ -201,7 +206,7 @@ export function GuildSettingsEditor({
         {tab === 'appearance' && (
           <Section
             title="Bot appearance"
-            desc="Customize how Deelo looks in this server. Nickname is per-server; status and avatar are global to the bot."
+            desc="Customize how Deelo looks in this server. Nickname updates immediately on save; embed color and footer apply to the next bot embed (or post a preview to your mod log channel)."
           >
             {!isPremium ? (
               <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4">
