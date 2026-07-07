@@ -28,6 +28,16 @@ export function operatorCanUseDevTools(op: PlatformOperator): boolean {
   return platformHasPermission(op.role, 'dev.tools');
 }
 
+export function operatorCanReadCms(op: PlatformOperator): boolean {
+  if (op.kind === 'email') return adminHasPermission(op.role, 'website.read');
+  return platformHasPermission(op.role, 'cms.read');
+}
+
+export function operatorCanWriteCms(op: PlatformOperator): boolean {
+  if (op.kind === 'email') return adminHasPermission(op.role, 'website.write');
+  return platformHasPermission(op.role, 'cms.write');
+}
+
 export function operatorHasAdminPermission(op: PlatformOperator, permission: AdminPermission): boolean {
   return op.kind === 'email' && adminHasPermission(op.role, permission);
 }

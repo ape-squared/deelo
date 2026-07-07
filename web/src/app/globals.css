@@ -746,6 +746,38 @@ body {
   box-shadow: inset 3px 0 0 0 var(--accent);
 }
 
+.staff-nav-label {
+  @apply px-3 py-2 text-[10px] font-semibold uppercase tracking-widest text-muted;
+}
+
+.staff-page-header {
+  @apply mb-8 flex flex-wrap items-start justify-between gap-4 pb-6 border-b border-border/60;
+}
+
+.staff-hub-card {
+  @apply rounded-2xl border border-border bg-card/80 p-6 backdrop-blur-sm transition-all duration-200 block;
+}
+.staff-hub-card:hover {
+  @apply border-accent/40 bg-card-hover;
+  transform: translateY(-2px);
+}
+
+.staff-hub-card-icon {
+  @apply flex h-12 w-12 items-center justify-center rounded-xl border border-accent/30 bg-accent/10 text-accent;
+}
+
+.staff-stat-card {
+  @apply rounded-2xl border border-border bg-card/80 p-5 backdrop-blur-sm;
+}
+
+.staff-stat-value {
+  @apply text-2xl font-bold tracking-tight;
+}
+
+.staff-stat-label {
+  @apply text-sm text-muted mt-1;
+}
+
 .dashboard-v3-badge {
   @apply inline-flex items-center rounded-md bg-accent/15 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-accent;
 }

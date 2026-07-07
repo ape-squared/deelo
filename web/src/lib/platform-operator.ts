@@ -11,18 +11,38 @@ import {
   operatorCanManageStaff,
   operatorCanReadGuilds,
   operatorCanUseDevTools,
+  operatorCanReadCms,
+  operatorCanWriteCms,
   operatorHasAdminPermission,
   operatorHasPlatformPermission,
 } from '@/lib/platform-operator-shared';
+import { logAdminAction } from '@/lib/admin';
+import { logStaffAction } from '@/lib/platform-staff';
 
 export type { PlatformOperator } from '@/lib/platform-operator-shared';
 export {
   operatorCanManageStaff,
   operatorCanReadGuilds,
   operatorCanUseDevTools,
+  operatorCanReadCms,
+  operatorCanWriteCms,
   operatorHasAdminPermission,
   operatorHasPlatformPermission,
 } from '@/lib/platform-operator-shared';
+
+export async function logPlatformAction(
+  op: PlatformOperator,
+  action: string,
+  targetType?: string,
+  targetId?: string,
+  metadata?: Record<string, unknown>,
+) {
+  if (op.kind === 'email') {
+    await logAdminAction(op.id, action, targetType, targetId, metadata);
+  } else {
+    await logStaffAction(op.id, action, targetType, targetId, metadata);
+  }
+}
 
 export async function getPlatformOperator(): Promise<PlatformOperator | null> {
   const admin = await getAdminUser();
@@ -50,6 +70,8 @@ export async function requirePlatformOperator(options: {
   manageStaff?: boolean;
   readGuilds?: boolean;
   devTools?: boolean;
+  cmsRead?: boolean;
+  cmsWrite?: boolean;
 }) {
   const op = await getPlatformOperator();
   if (!op) {
@@ -63,6 +85,12 @@ export async function requirePlatformOperator(options: {
     return { error: NextResponse.json({ error: 'Forbidden' }, { status: 403 }) };
   }
   if (options.devTools && !operatorCanUseDevTools(op)) {
+    return { error: NextResponse.json({ error: 'Forbidden' }, { status: 403 }) };
+  }
+  if (options.cmsRead && !operatorCanReadCms(op)) {
+    return { error: NextResponse.json({ error: 'Forbidden' }, { status: 403 }) };
+  }
+  if (options.cmsWrite && !operatorCanWriteCms(op)) {
     return { error: NextResponse.json({ error: 'Forbidden' }, { status: 403 }) };
   }
   if (options.adminPermission && !operatorHasAdminPermission(op, options.adminPermission)) {

@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
 
-export default function StaffDevelopersRedirect() {
-  redirect('/admin/developers');
+export default function LegacyStaffDevelopersRedirect() {
+  redirect('/staff/developer');
 }

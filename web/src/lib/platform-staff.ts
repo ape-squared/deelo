@@ -77,3 +77,19 @@ export async function requirePlatformStaff(permission?: PlatformPermission) {
 
   return { session, staff };
 }
+
+export async function logStaffAction(
+  discordId: string,
+  action: string,
+  targetType?: string,
+  targetId?: string,
+  metadata?: Record<string, unknown>,
+) {
+  await createAdminClient().from('admin_audit_log').insert({
+    admin_id: null,
+    action,
+    target_type: targetType,
+    target_id: targetId,
+    metadata: { staff_discord_id: discordId, ...metadata },
+  });
+}

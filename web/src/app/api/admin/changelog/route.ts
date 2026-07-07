@@ -1,19 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAdmin, logAdminAction } from '@/lib/admin';
+import { requirePlatformOperator, logPlatformAction } from '@/lib/platform-operator';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getAllChangelogAdmin } from '@/lib/site-data';
 
 export async function GET() {
-  const auth = await requireAdmin('website.read');
-  if (auth.error) return auth.error;
+  const auth = await requirePlatformOperator({ cmsRead: true });
+  if ('error' in auth) return auth.error;
   const entries = await getAllChangelogAdmin();
   return NextResponse.json({ entries });
 }
 
 export async function POST(req: NextRequest) {
-  const auth = await requireAdmin('website.write');
-  if (auth.error) return auth.error;
-  const admin = auth.admin;
+  const auth = await requirePlatformOperator({ cmsWrite: true });
+  if ('error' in auth) return auth.error;
+  const { operator } = auth;
 
   const body = await req.json();
   const title = String(body.title ?? '').trim();
@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
     category,
     status,
     published_at: status === 'published' ? now : null,
-    created_by: admin.id,
+    created_by: operator.id,
     updated_at: now,
   };
 
@@ -40,14 +40,14 @@ export async function POST(req: NextRequest) {
   const { data, error } = await db.from('site_changelog').insert(row).select().single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  await logAdminAction(admin.id, 'changelog.create', 'site_changelog', String(data.id), { title, category, status });
+  await logPlatformAction(operator, 'changelog.create', 'site_changelog', String(data.id), { title, category, status });
   return NextResponse.json({ entry: data });
 }
 
 export async function PATCH(req: NextRequest) {
-  const auth = await requireAdmin('website.write');
-  if (auth.error) return auth.error;
-  const admin = auth.admin;
+  const auth = await requirePlatformOperator({ cmsWrite: true });
+  if ('error' in auth) return auth.error;
+  const { operator } = auth;
 
   const body = await req.json();
   const id = parseInt(String(body.id ?? ''), 10);
@@ -70,14 +70,14 @@ export async function PATCH(req: NextRequest) {
   const { data, error } = await db.from('site_changelog').update(updates).eq('id', id).select().single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  await logAdminAction(admin.id, 'changelog.update', 'site_changelog', String(id), updates);
+  await logPlatformAction(operator, 'changelog.update', 'site_changelog', String(id), updates);
   return NextResponse.json({ entry: data });
 }
 
 export async function DELETE(req: NextRequest) {
-  const auth = await requireAdmin('website.write');
-  if (auth.error) return auth.error;
-  const admin = auth.admin;
+  const auth = await requirePlatformOperator({ cmsWrite: true });
+  if ('error' in auth) return auth.error;
+  const { operator } = auth;
 
   const { searchParams } = new URL(req.url);
   const id = parseInt(searchParams.get('id') ?? '', 10);
@@ -87,6 +87,6 @@ export async function DELETE(req: NextRequest) {
   const { error } = await db.from('site_changelog').delete().eq('id', id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  await logAdminAction(admin.id, 'changelog.delete', 'site_changelog', String(id));
+  await logPlatformAction(operator, 'changelog.delete', 'site_changelog', String(id));
   return NextResponse.json({ ok: true });
 }

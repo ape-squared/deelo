@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requirePlatformStaff } from '@/lib/platform-staff';
+import { requirePlatformStaff, logStaffAction } from '@/lib/platform-staff';
+import { setGuildSubscription } from '@/lib/admin-subscriptions';
 import { createAdminClient } from '@/lib/supabase/admin';
 
 export async function GET(req: NextRequest) {
@@ -29,4 +30,30 @@ export async function GET(req: NextRequest) {
     .limit(25);
 
   return NextResponse.json({ guilds: guilds ?? [] });
+}
+
+export async function PATCH(req: NextRequest) {
+  const auth = await requirePlatformStaff('guilds.write');
+  if (auth.error) return auth.error;
+  const { staff } = auth;
+
+  const { guildId, plan, days } = (await req.json()) as { guildId: string; plan: string; days?: number };
+  if (!guildId || !plan) return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
+
+  const expiresAt = plan === 'free' || !days
+    ? null
+    : new Date(Date.now() + days * 86400000).toISOString();
+
+  const db = createAdminClient();
+  await setGuildSubscription(db, {
+    guildId,
+    plan,
+    expiresAt,
+    notes: `Set by staff ${staff.discordId}`,
+  });
+
+  await logStaffAction(staff.discordId, 'guild.plan_update', 'guild', guildId, { plan, days });
+
+  const { data: guild } = await db.from('guilds').select('id, plan, prefix, plan_expires_at').eq('id', guildId).single();
+  return NextResponse.json({ guild });
 }

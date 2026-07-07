@@ -1,19 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAdmin, logAdminAction } from '@/lib/admin';
+import { requirePlatformOperator, logPlatformAction } from '@/lib/platform-operator';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getSiteSettingsAdmin } from '@/lib/site-data';
 
 export async function GET() {
-  const auth = await requireAdmin('website.read');
-  if (auth.error) return auth.error;
+  const auth = await requirePlatformOperator({ cmsRead: true });
+  if ('error' in auth) return auth.error;
   const settings = await getSiteSettingsAdmin();
   return NextResponse.json({ settings });
 }
 
 export async function PATCH(req: NextRequest) {
-  const auth = await requireAdmin('website.write');
-  if (auth.error) return auth.error;
-  const admin = auth.admin;
+  const auth = await requirePlatformOperator({ cmsWrite: true });
+  if ('error' in auth) return auth.error;
+  const { operator } = auth;
 
   const body = await req.json();
   const key = String(body.key ?? '');
@@ -29,13 +29,13 @@ export async function PATCH(req: NextRequest) {
       key,
       value,
       updated_at: new Date().toISOString(),
-      updated_by: admin.id,
+      updated_by: operator.id,
     })
     .select()
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  await logAdminAction(admin.id, 'site_settings.update', 'site_settings', key, { value });
+  await logPlatformAction(operator, 'site_settings.update', 'site_settings', key, { value });
   return NextResponse.json({ setting: data });
 }

@@ -52,8 +52,8 @@ export function platformRoleLabel(role: PlatformStaffRole): string {
   switch (role) {
     case 'lead': return 'Lead';
     case 'developer': return 'Developer';
-    case 'moderator': return 'Moderator';
-    case 'support': return 'Support';
+    case 'moderator': return 'Bot moderator';
+    case 'support': return 'Support staff';
   }
 }
 

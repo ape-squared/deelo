@@ -5,7 +5,15 @@ import { Plus, Copy, Ban, Check, Loader2, Ticket } from 'lucide-react';
 import { AdminCard, AdminEmpty, AdminStatCard, AdminTable } from '@/components/admin/ui';
 import type { RedeemCodeRow } from '@/lib/redeem-codes';
 
-export function RedeemCodeManager({ initial }: { initial: RedeemCodeRow[] }) {
+export function RedeemCodeManager({
+  initial,
+  readOnly = false,
+  apiEndpoint = '/api/admin/redeem-codes',
+}: {
+  initial: RedeemCodeRow[];
+  readOnly?: boolean;
+  apiEndpoint?: string;
+}) {
   const [codes, setCodes] = useState(initial);
   const [plan, setPlan] = useState<'premium' | 'premium_plus'>('premium');
   const [days, setDays] = useState(30);
@@ -23,7 +31,7 @@ export function RedeemCodeManager({ initial }: { initial: RedeemCodeRow[] }) {
   async function create() {
     setCreating(true);
     setMessage('');
-    const res = await fetch('/api/admin/redeem-codes', {
+    const res = await fetch(apiEndpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -49,7 +57,7 @@ export function RedeemCodeManager({ initial }: { initial: RedeemCodeRow[] }) {
   }
 
   async function toggleDisable(id: number, disabled: boolean) {
-    const res = await fetch('/api/admin/redeem-codes', {
+    const res = await fetch(apiEndpoint, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id, disabled }),
@@ -80,6 +88,7 @@ export function RedeemCodeManager({ initial }: { initial: RedeemCodeRow[] }) {
         <AdminStatCard label="Total redemptions" value={totalUses} icon="users" />
       </div>
 
+      {!readOnly && (
       <AdminCard title="Create redeem code" desc="Users redeem with ,redeem in Discord or the dashboard.">
         <div className="p-5 lg:p-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div className="sm:col-span-2">
@@ -117,6 +126,7 @@ export function RedeemCodeManager({ initial }: { initial: RedeemCodeRow[] }) {
           </div>
         </div>
       </AdminCard>
+      )}
 
       <AdminCard title="All codes">
         <AdminTable>
@@ -155,12 +165,12 @@ export function RedeemCodeManager({ initial }: { initial: RedeemCodeRow[] }) {
                       : <span className="badge badge-success">Active</span>}
                   </td>
                   <td className="p-4">
-                    {!c.disabled && (
+                    {!readOnly && !c.disabled && (
                       <button type="button" onClick={() => toggleDisable(c.id, true)} className="text-xs text-red-400 hover:text-red-300 inline-flex items-center gap-1">
                         <Ban className="h-3 w-3" /> Disable
                       </button>
                     )}
-                    {c.disabled && (
+                    {!readOnly && c.disabled && (
                       <button type="button" onClick={() => toggleDisable(c.id, false)} className="text-xs text-accent hover:underline">
                         Re-enable
                       </button>

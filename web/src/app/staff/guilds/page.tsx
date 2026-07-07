@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
 
-export default function StaffGuildsRedirect() {
-  redirect('/admin/guild-lookup');
+export default function LegacyStaffGuildsRedirect() {
+  redirect('/staff/support/guilds');
 }

@@ -22,10 +22,14 @@ export function SubscriptionManager({
   initial,
   guildPlans,
   duplicateCount: initialDupes,
+  readOnly = false,
+  apiEndpoint = '/api/admin/subscriptions',
 }: {
   initial: SubscriptionRow[];
   guildPlans: Record<string, string>;
   duplicateCount: number;
+  readOnly?: boolean;
+  apiEndpoint?: string;
 }) {
   const [allSubs, setAllSubs] = useState(initial);
   const [guildId, setGuildId] = useState('');
@@ -68,7 +72,7 @@ export function SubscriptionManager({
     allSubs.filter((s) => s.guild_id === guildId).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
   async function refresh() {
-    const res = await fetch('/api/admin/subscriptions');
+    const res = await fetch(apiEndpoint);
     if (res.ok) {
       const data = await res.json();
       setAllSubs(data.subscriptions ?? []);
@@ -79,7 +83,7 @@ export function SubscriptionManager({
     if (!guildId.trim()) return;
     setCreating(true);
     setMessage('');
-    const res = await fetch('/api/admin/subscriptions', {
+    const res = await fetch(apiEndpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ guildId: guildId.trim(), plan, days, notes: notes || undefined }),
@@ -98,7 +102,7 @@ export function SubscriptionManager({
 
   async function cancel(id: number) {
     setCancelling(id);
-    const res = await fetch('/api/admin/subscriptions', {
+    const res = await fetch(apiEndpoint, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id, status: 'cancelled' }),
@@ -109,7 +113,7 @@ export function SubscriptionManager({
 
   async function extend(id: number, extraDays: number) {
     setExtending(id);
-    const res = await fetch('/api/admin/subscriptions', {
+    const res = await fetch(apiEndpoint, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id, days: extraDays }),
@@ -143,6 +147,7 @@ export function SubscriptionManager({
         <AdminStatCard label="Expiring in 7 days" value={stats.expiringSoon} icon="clock" variant={stats.expiringSoon ? 'warning' : 'default'} />
       </div>
 
+      {!readOnly && (
       <AdminCard title="Grant subscription" desc="Replaces any existing active subscription for the guild.">
         <div className="p-5 lg:p-6">
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 items-end">
@@ -172,6 +177,7 @@ export function SubscriptionManager({
           </div>
         </div>
       </AdminCard>
+      )}
 
       <AdminCard>
         <div className="flex flex-wrap items-center gap-3 border-b border-border px-5 py-4">
@@ -205,7 +211,7 @@ export function SubscriptionManager({
               <th className="p-4 font-medium">Status</th>
               <th className="p-4 font-medium">Expires</th>
               <th className="p-4 font-medium">Created</th>
-              <th className="p-4 font-medium">Actions</th>
+              {!readOnly && <th className="p-4 font-medium">Actions</th>}
             </tr>
           </thead>
           <tbody>
@@ -220,6 +226,7 @@ export function SubscriptionManager({
                 extending={extending}
                 onCancel={cancel}
                 onExtend={extend}
+                readOnly={readOnly}
               />
             ))}
           </tbody>
@@ -239,6 +246,7 @@ function SubscriptionRowView({
   extending,
   onCancel,
   onExtend,
+  readOnly = false,
 }: {
   sub: SubscriptionView;
   expanded: boolean;
@@ -248,6 +256,7 @@ function SubscriptionRowView({
   extending: number | null;
   onCancel: (id: number) => void;
   onExtend: (id: number, days: number) => void;
+  readOnly?: boolean;
 }) {
   const planMismatch = sub.guildPlan && sub.guildPlan !== sub.plan && sub.status === 'active';
 
@@ -279,6 +288,7 @@ function SubscriptionRowView({
           <div className="text-muted">{formatRelative(sub.expires_at)}</div>
         </td>
         <td className="p-4 text-xs text-muted">{new Date(sub.created_at).toLocaleDateString()}</td>
+        {!readOnly && (
         <td className="p-4">
           <div className="flex flex-wrap gap-2">
             {sub.status === 'active' && (
@@ -295,10 +305,11 @@ function SubscriptionRowView({
             )}
           </div>
         </td>
+        )}
       </tr>
       {expanded && history.length > 1 && (
         <tr className="bg-white/[0.02]">
-          <td colSpan={6} className="px-4 pb-4">
+          <td colSpan={readOnly ? 5 : 6} className="px-4 pb-4">
             <div className="rounded-lg border border-border p-3 space-y-2">
               <p className="text-xs font-medium text-muted">Subscription history</p>
               {history.map((h) => (

@@ -19,7 +19,13 @@ const PLANS = [
   { id: 'premium_plus', label: 'Premium+', color: 'border-amber-500/40 bg-amber-500/10 text-amber-400' },
 ] as const;
 
-export function GuildPlanEditor({ guilds }: { guilds: Guild[] }) {
+export function GuildPlanEditor({
+  guilds,
+  patchEndpoint = '/api/admin/guilds',
+}: {
+  guilds: Guild[];
+  patchEndpoint?: string;
+}) {
   const [list, setList] = useState(guilds);
   const [search, setSearch] = useState('');
   const [planFilter, setPlanFilter] = useState<string>('all');
@@ -44,7 +50,7 @@ export function GuildPlanEditor({ guilds }: { guilds: Guild[] }) {
   async function updatePlan(guildId: string, plan: string, days?: number) {
     setMsg('');
     setLoading(guildId);
-    const res = await fetch('/api/admin/guilds', {
+    const res = await fetch(patchEndpoint, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ guildId, plan, days }),
