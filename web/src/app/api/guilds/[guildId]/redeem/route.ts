@@ -7,7 +7,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 export async function POST(req: NextRequest, { params }: { params: Promise<{ guildId: string }> }) {
   const { guildId } = await params;
   const auth = await requireGuildManager(guildId);
-  if (auth.error) return auth.error;
+  if ('error' in auth) return auth.error;
 
   const body = await req.json();
   const code = String(body.code ?? '');

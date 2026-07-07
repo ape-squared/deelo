@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAdminUser, logAdminAction } from '@/lib/admin';
+import { requireAdmin, logAdminAction } from '@/lib/admin';
 import { setGuildSubscription } from '@/lib/admin-subscriptions';
 import { createAdminClient } from '@/lib/supabase/admin';
 
 export async function GET() {
-  const admin = await getAdminUser();
-  if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  const auth = await requireAdmin();
+  if (auth.error) return auth.error;
+  const admin = auth.admin;
 
   const db = createAdminClient();
   const [{ data: subs }, { data: guilds }] = await Promise.all([
@@ -18,8 +19,9 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  const admin = await getAdminUser();
-  if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  const auth = await requireAdmin('subscriptions.write');
+  if (auth.error) return auth.error;
+  const admin = auth.admin;
 
   const body = await req.json();
   const db = createAdminClient();
@@ -66,8 +68,9 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PATCH(req: NextRequest) {
-  const admin = await getAdminUser();
-  if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  const auth = await requireAdmin('subscriptions.write');
+  if (auth.error) return auth.error;
+  const admin = auth.admin;
 
   const body = await req.json();
   const db = createAdminClient();

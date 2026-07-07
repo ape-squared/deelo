@@ -6,16 +6,17 @@ import {
   LayoutDashboard, Server, Users, CreditCard, ScrollText, Shield, LogOut, ExternalLink, Ticket, BarChart3, Activity, Globe,
 } from 'lucide-react';
 import { DeeloIcon, DeeloWordmark } from '@/components/brand/logo';
+import { adminHasPermission, type AdminPermission, type AdminUserRole } from '@/lib/platform-roles';
 
-const NAV = [
-  { href: '/admin', label: 'Overview', icon: LayoutDashboard, exact: true },
-  { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
-  { href: '/admin/website', label: 'Website', icon: Globe },
-  { href: '/admin/guilds', label: 'Guilds', icon: Server },
-  { href: '/admin/users', label: 'Users', icon: Users },
-  { href: '/admin/subscriptions', label: 'Subscriptions', icon: CreditCard },
-  { href: '/admin/redeem-codes', label: 'Redeem Codes', icon: Ticket },
-  { href: '/admin/audit', label: 'Audit Log', icon: ScrollText },
+const NAV: { href: string; label: string; icon: typeof LayoutDashboard; permission: AdminPermission; exact?: boolean }[] = [
+  { href: '/admin', label: 'Overview', icon: LayoutDashboard, permission: 'analytics', exact: true },
+  { href: '/admin/analytics', label: 'Analytics', icon: BarChart3, permission: 'analytics' },
+  { href: '/admin/website', label: 'Website', icon: Globe, permission: 'website.read' },
+  { href: '/admin/guilds', label: 'Guilds', icon: Server, permission: 'guilds.write' },
+  { href: '/admin/users', label: 'Users', icon: Users, permission: 'users.read' },
+  { href: '/admin/subscriptions', label: 'Subscriptions', icon: CreditCard, permission: 'subscriptions.write' },
+  { href: '/admin/redeem-codes', label: 'Redeem Codes', icon: Ticket, permission: 'redeem.write' },
+  { href: '/admin/audit', label: 'Audit Log', icon: ScrollText, permission: 'audit.read' },
 ];
 
 export function AdminShell({
@@ -25,9 +26,10 @@ export function AdminShell({
 }: {
   children: React.ReactNode;
   email: string;
-  role: string;
+  role: AdminUserRole;
 }) {
   const pathname = usePathname();
+  const visibleNav = NAV.filter((item) => adminHasPermission(role, item.permission));
 
   async function logout() {
     await fetch('/api/admin/logout', { method: 'POST' });
@@ -35,13 +37,13 @@ export function AdminShell({
   }
 
   return (
-    <div className="admin-app mesh-bg flex min-h-screen">
+    <div className="admin-app mesh-bg v3-mesh flex min-h-screen">
       <aside className="admin-sidebar">
         <div className="admin-sidebar-brand">
           <DeeloIcon size={36} className="shadow-lg shadow-accent/25" />
           <div>
             <DeeloWordmark height={18} />
-            <p className="text-[10px] uppercase tracking-widest text-muted">Admin</p>
+            <p className="text-[10px] uppercase tracking-widest text-muted">Admin v3</p>
           </div>
         </div>
 
@@ -55,7 +57,7 @@ export function AdminShell({
 
         <nav className="admin-nav flex-1 overflow-y-auto px-3 py-2">
           <p className="admin-nav-label">Manage</p>
-          {NAV.map(({ href, label, icon: Icon, exact }) => {
+          {visibleNav.map(({ href, label, icon: Icon, exact }) => {
             const active = exact ? pathname === href : pathname.startsWith(href);
             return (
               <Link key={href} href={href} className={`admin-nav-link ${active ? 'admin-nav-link-active' : ''}`}>
@@ -67,6 +69,10 @@ export function AdminShell({
         </nav>
 
         <div className="admin-sidebar-footer">
+          <Link href="/staff" className="admin-nav-link text-xs">
+            <Shield className="h-3.5 w-3.5" />
+            Staff portal
+          </Link>
           <Link href="/status" className="admin-nav-link text-xs">
             <Activity className="h-3.5 w-3.5" />
             Public status

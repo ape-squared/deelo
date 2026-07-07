@@ -686,3 +686,68 @@ body {
 .content-body strong {
   @apply text-foreground font-medium;
 }
+
+/* ── Deelo v3 ── */
+.v3-mesh {
+  background-image:
+    radial-gradient(ellipse 100% 80% at 50% -30%, rgba(0, 71, 255, 0.22), transparent 55%),
+    radial-gradient(ellipse 40% 30% at 0% 50%, rgba(99, 102, 241, 0.08), transparent 50%),
+    radial-gradient(ellipse 35% 28% at 100% 80%, rgba(0, 71, 255, 0.06), transparent 50%);
+}
+
+.staff-app {
+  --staff-sidebar: 260px;
+}
+
+.staff-sidebar {
+  width: var(--staff-sidebar);
+  @apply hidden shrink-0 flex-col border-r border-border bg-sidebar/95 backdrop-blur-xl lg:flex;
+}
+
+.staff-main {
+  @apply min-h-screen flex-1 overflow-y-auto p-0;
+}
+
+.staff-sidebar-brand {
+  @apply flex items-center gap-3 border-b border-border px-5 py-5;
+}
+
+.staff-sidebar-user {
+  @apply mx-4 mt-4 rounded-xl border border-accent/20 bg-accent/5 px-3 py-3;
+}
+
+.staff-sidebar-footer {
+  @apply mt-auto border-t border-border p-3;
+}
+
+.staff-nav-link {
+  @apply flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm text-muted transition hover:bg-white/5 hover:text-foreground;
+}
+
+.staff-nav-link-active {
+  @apply bg-accent/15 text-accent font-medium;
+  box-shadow: inset 3px 0 0 0 var(--accent);
+}
+
+.dashboard-v3-badge {
+  @apply inline-flex items-center rounded-md bg-accent/15 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-accent;
+}
+
+.module-nav-link-v3 {
+  @apply relative overflow-hidden;
+}
+
+.module-content-pad {
+  @apply p-4 sm:p-6 lg:p-8;
+  animation: fade-in 0.5s ease-out both;
+}
+
+.dashboard-stagger > * {
+  animation: fade-up 0.5s ease-out both;
+}
+.dashboard-stagger > *:nth-child(1) { animation-delay: 0ms; }
+.dashboard-stagger > *:nth-child(2) { animation-delay: 40ms; }
+.dashboard-stagger > *:nth-child(3) { animation-delay: 80ms; }
+.dashboard-stagger > *:nth-child(4) { animation-delay: 120ms; }
+.dashboard-stagger > *:nth-child(5) { animation-delay: 160ms; }
+.dashboard-stagger > *:nth-child(6) { animation-delay: 200ms; }

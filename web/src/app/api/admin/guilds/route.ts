@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAdminUser, logAdminAction } from '@/lib/admin';
+import { requireAdmin, logAdminAction } from '@/lib/admin';
 import { setGuildSubscription } from '@/lib/admin-subscriptions';
 import { createAdminClient } from '@/lib/supabase/admin';
 
 export async function PATCH(req: NextRequest) {
-  const admin = await getAdminUser();
-  if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  const auth = await requireAdmin('guilds.write');
+  if (auth.error) return auth.error;
+  const admin = auth.admin;
 
   const { guildId, plan, days } = (await req.json()) as { guildId: string; plan: string; days?: number };
   if (!guildId || !plan) return NextResponse.json({ error: 'Missing fields' }, { status: 400 });

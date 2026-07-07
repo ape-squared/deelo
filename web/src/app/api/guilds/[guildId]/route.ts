@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { requireGuildManager } from '@/lib/guild-auth';
+import { requireGuildAccess, logGuildDashboardAction } from '@/lib/guild-access';
 import { normalizeGuildPatch } from '@/lib/guild-patch';
 import { loadGuildWithPlan } from '@/lib/guild-plan-loader';
 import { resolveEffectivePlan } from '@/lib/plan-resolve';
@@ -8,8 +8,8 @@ import { appearanceConfigTouched, syncBotCustomizationToDiscord } from '@/lib/di
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ guildId: string }> }) {
   const { guildId } = await params;
-  const auth = await requireGuildManager(guildId);
-  if (auth.error) return auth.error;
+  const auth = await requireGuildAccess(guildId, { module: 'overview' });
+  if ('error' in auth) return auth.error;
 
   const db = createAdminClient();
   const { guild, subscription: activeSub } = await loadGuildWithPlan(db, guildId);
@@ -66,13 +66,14 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ gui
     buttonRoles: buttonRolesRes.data ?? [],
     tickets: ticketsRes.data ?? [],
     embeds: embedsRes.data ?? [],
+    access: auth.access,
   });
 }
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ guildId: string }> }) {
   const { guildId } = await params;
-  const auth = await requireGuildManager(guildId);
-  if (auth.error) return auth.error;
+  const auth = await requireGuildAccess(guildId, { module: 'general', write: true });
+  if ('error' in auth) return auth.error;
 
   const body = (await req.json()) as Record<string, unknown>;
   const db = createAdminClient();
@@ -117,5 +118,9 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ gu
     });
   }
 
-  return NextResponse.json({ guild, synced: { eventToggles, bot: botSync } });
+  await logGuildDashboardAction(guildId, auth.access.discordId, 'settings.patch', 'general', {
+    fields: Object.keys(updates),
+  });
+
+  return NextResponse.json({ guild, synced: { eventToggles, bot: botSync }, access: auth.access });
 }

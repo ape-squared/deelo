@@ -29,10 +29,22 @@ export async function GET() {
       });
     }
 
-    const manageable = result.guilds.filter((g) => canManageServer(g));
-
     const db = createAdminClient();
-    const ids = manageable.map((g) => g.id);
+    const { data: delegated } = await db
+      .from('guild_dashboard_members')
+      .select('guild_id, role')
+      .eq('discord_id', session.discordId);
+
+    const manageable = result.guilds.filter((g) => canManageServer(g));
+    const delegatedIds = new Set((delegated ?? []).map((d) => d.guild_id));
+    const discordById = new Map(result.guilds.map((g) => [g.id, g]));
+
+    const allIds = new Set([
+      ...manageable.map((g) => g.id),
+      ...delegatedIds,
+    ]);
+
+    const ids = [...allIds];
     const [botGuildsResult, subsResult] = await Promise.all([
       ids.length
         ? db.from('guilds').select('id, plan, prefix, plan_expires_at').in('id', ids)
@@ -60,22 +72,26 @@ export async function GET() {
       return NextResponse.json({ error: `Database error: ${error.message}` }, { status: 500 });
     }
 
-    const guilds = manageable.map((g) => {
-      const bot = botGuilds?.find((b) => b.id === g.id);
-      const sub = subsByGuild.get(g.id);
+    const guilds = ids.map((id) => {
+      const g = discordById.get(id);
+      const delegatedRole = (delegated ?? []).find((d) => d.guild_id === id)?.role;
+      const bot = botGuilds?.find((b) => b.id === id);
+      const sub = subsByGuild.get(id);
       const effective = resolveEffectivePlan(
         { plan: bot?.plan ?? 'free', plan_expires_at: bot?.plan_expires_at },
         sub,
       );
+      const isDiscordAdmin = g ? canManageServer(g) : false;
       return {
-        id: g.id,
-        name: g.name,
-        icon: g.icon,
-        owner: g.owner,
-        botPresent: botMemberIds.has(g.id),
+        id,
+        name: g?.name ?? `Server ${id.slice(-6)}`,
+        icon: g?.icon ?? null,
+        owner: g?.owner ?? false,
+        botPresent: botMemberIds.has(id),
         plan: effective.plan,
         prefix: bot?.prefix ?? ',',
         planExpiresAt: effective.plan_expires_at,
+        dashboardRole: g?.owner ? 'owner' : isDiscordAdmin ? 'admin' : delegatedRole ?? null,
       };
     });
 

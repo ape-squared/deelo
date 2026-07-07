@@ -16,15 +16,19 @@ import { ChannelSelect, GuildChannelsProvider, MiniChannelSelect } from '@/compo
 import { RedeemCodePanel } from '@/components/dashboard/redeem-panel';
 import { ModuleOverview } from '@/components/dashboard/module-overview';
 import { EmbedsTab } from '@/components/dashboard/embed-builder';
+import { TeamTab } from '@/components/dashboard/team-tab';
+import { guildRoleCanRead, type GuildDashboardRole } from '@/lib/guild-permissions';
 
 export function GuildSettingsEditor({
   guildId,
   config: initial,
   onReload,
+  dashboardRole = 'admin',
 }: {
   guildId: string;
   config: GuildFullConfig;
   onReload: () => Promise<void>;
+  dashboardRole?: GuildDashboardRole;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -48,8 +52,12 @@ export function GuildSettingsEditor({
 
   const extra = (guild.extra_config ?? {}) as Record<string, unknown>;
   const isPremium = guild.plan !== 'free';
-  const activeModule = MODULE_GROUPS.flatMap((g) => g.modules).find((m) => m.id === tab);
-  const showSaveBar = !['filters', 'responders', 'autoreact', 'tickets', 'social', 'events', 'overview', 'embeds'].includes(tab);
+  const visibleGroups = MODULE_GROUPS.map((g) => ({
+    ...g,
+    modules: g.modules.filter((m) => guildRoleCanRead(dashboardRole, m.id)),
+  })).filter((g) => g.modules.length > 0);
+  const activeModule = visibleGroups.flatMap((g) => g.modules).find((m) => m.id === tab);
+  const showSaveBar = !['filters', 'responders', 'autoreact', 'tickets', 'social', 'events', 'overview', 'embeds', 'team'].includes(tab);
 
   function update<K extends keyof DashboardGuildSettings>(key: K, value: DashboardGuildSettings[K]) {
     setGuild((g) => ({ ...g, [key]: value }));
@@ -142,7 +150,7 @@ export function GuildSettingsEditor({
     <div className="module-layout">
       <aside className="module-sidebar">
         <div className="module-sidebar-inner">
-          {MODULE_GROUPS.map((group) => (
+          {visibleGroups.map((group) => (
             <div key={group.label} className="module-nav-group">
               <p className="module-nav-label">{group.label}</p>
               {group.modules.map((mod) => {
@@ -377,6 +385,10 @@ export function GuildSettingsEditor({
             <SocialFeedsList guildId={guildId} items={initial.socialFeeds} onReload={onReload} />
             <CountersList guildId={guildId} items={initial.counters} onReload={onReload} />
           </>
+        )}
+
+        {tab === 'team' && (
+          <TeamTab guildId={guildId} setMessage={setMessage} />
         )}
 
         {tab === 'embeds' && (

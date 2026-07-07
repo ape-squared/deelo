@@ -24,7 +24,8 @@ export type ModuleId =
   | 'events'
   | 'social'
   | 'embeds'
-  | 'advanced';
+  | 'advanced'
+  | 'team';
 
 export interface DashboardModule {
   id: ModuleId;
@@ -46,6 +47,7 @@ export const MODULE_GROUPS: ModuleGroup[] = [
       { id: 'overview', label: 'Overview', description: 'Module status and quick access', icon: LayoutGrid },
       { id: 'general', label: 'General', description: 'Prefix, plan, and core settings', icon: Sparkles },
       { id: 'appearance', label: 'Bot appearance', description: 'Nickname, embed color, and footer', icon: Palette, premium: true },
+      { id: 'team', label: 'Team', description: 'Delegate dashboard access to trusted staff', icon: Users },
     ],
   },
   {
@@ -188,6 +190,8 @@ export function getModuleStatus(
         enabled: config.commandAliases.length > 0,
         detail: `${config.commandAliases.length} aliases`,
       };
+    case 'team':
+      return { enabled: true, detail: 'Manage dashboard delegates' };
     default:
       return { enabled: false, detail: '' };
   }

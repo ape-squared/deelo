@@ -1,5 +1,7 @@
+import { NextResponse } from 'next/server';
 import { getAdminSession } from '@/lib/admin-session';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { adminHasPermission, adminMeetsRole, type AdminPermission, type AdminUserRole } from '@/lib/platform-roles';
 
 export async function getAdminUser() {
   const session = await getAdminSession();
@@ -12,7 +14,21 @@ export async function getAdminUser() {
     .maybeSingle();
 
   if (error || !admin) return null;
-  return { ...admin, authUser: { id: session.userId, email: session.email } };
+  return { ...admin, role: admin.role as AdminUserRole, authUser: { id: session.userId, email: session.email } };
+}
+
+export async function requireAdmin(permission?: AdminPermission, minimumRole?: AdminUserRole) {
+  const admin = await getAdminUser();
+  if (!admin) {
+    return { error: NextResponse.json({ error: 'Forbidden' }, { status: 403 }) };
+  }
+  if (minimumRole && !adminMeetsRole(admin.role, minimumRole)) {
+    return { error: NextResponse.json({ error: 'Insufficient admin role' }, { status: 403 }) };
+  }
+  if (permission && !adminHasPermission(admin.role, permission)) {
+    return { error: NextResponse.json({ error: 'Insufficient admin permissions' }, { status: 403 }) };
+  }
+  return { admin };
 }
 
 export async function logAdminAction(

@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ guildId: string }> }) {
   const { guildId } = await params;
   const auth = await requireGuildManager(guildId);
-  if (auth.error) return auth.error;
+  if ('error' in auth) return auth.error;
 
   if (!(await isBotInGuild(guildId))) {
     return NextResponse.json(

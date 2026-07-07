@@ -1,16 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { requireGuildManager } from '@/lib/guild-auth';
+import { requireGuildAccess } from '@/lib/guild-access';
+import type { ModuleId } from '@/lib/dashboard-modules';
 
-type Handler = (req: NextRequest, ctx: { guildId: string; db: ReturnType<typeof createAdminClient> }) => Promise<NextResponse>;
+type Handler = (
+  req: NextRequest,
+  ctx: { guildId: string; db: ReturnType<typeof createAdminClient>; access: import('@/lib/guild-access').GuildAccess },
+) => Promise<NextResponse>;
 
-export function guildRoute(handler: Handler) {
+export function guildRoute(handler: Handler, options: { module?: ModuleId; write?: boolean } = {}) {
   return async (req: NextRequest, { params }: { params: Promise<{ guildId: string }> }) => {
     const { guildId } = await params;
-    const auth = await requireGuildManager(guildId);
-    if (auth.error) return auth.error;
+    const write = options.write ?? ['POST', 'PATCH', 'PUT', 'DELETE'].includes(req.method);
+    const auth = await requireGuildAccess(guildId, { module: options.module, write });
+    if ('error' in auth) return auth.error;
     const db = createAdminClient();
-    return handler(req, { guildId, db });
+    return handler(req, { guildId, db, access: auth.access });
   };
 }
 

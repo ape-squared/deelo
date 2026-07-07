@@ -1,19 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAdminUser, logAdminAction } from '@/lib/admin';
+import { requireAdmin, logAdminAction } from '@/lib/admin';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getAllAnnouncementsAdmin } from '@/lib/site-data';
 import { slugify } from '@/lib/site-content';
 
 export async function GET() {
-  const admin = await getAdminUser();
-  if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  const auth = await requireAdmin('website.read');
+  if (auth.error) return auth.error;
   const announcements = await getAllAnnouncementsAdmin();
   return NextResponse.json({ announcements });
 }
 
 export async function POST(req: NextRequest) {
-  const admin = await getAdminUser();
-  if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  const auth = await requireAdmin('website.write');
+  if (auth.error) return auth.error;
+  const admin = auth.admin;
 
   const body = await req.json();
   const title = String(body.title ?? '').trim();
@@ -48,8 +49,9 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PATCH(req: NextRequest) {
-  const admin = await getAdminUser();
-  if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  const auth = await requireAdmin('website.write');
+  if (auth.error) return auth.error;
+  const admin = auth.admin;
 
   const body = await req.json();
   const id = parseInt(String(body.id ?? ''), 10);
@@ -83,8 +85,9 @@ export async function PATCH(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-  const admin = await getAdminUser();
-  if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  const auth = await requireAdmin('website.write');
+  if (auth.error) return auth.error;
+  const admin = auth.admin;
 
   const { searchParams } = new URL(req.url);
   const id = parseInt(searchParams.get('id') ?? '', 10);

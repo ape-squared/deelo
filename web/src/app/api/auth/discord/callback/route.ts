@@ -49,5 +49,9 @@ export async function GET(req: NextRequest) {
     avatar: user.avatar,
   });
 
-  return NextResponse.redirect(new URL('/dashboard', appUrl));
+  const returnTo = req.nextUrl.searchParams.get('state');
+  const safeReturn =
+    returnTo && returnTo.startsWith('/') && !returnTo.startsWith('//') ? returnTo : '/dashboard';
+
+  return NextResponse.redirect(new URL(safeReturn, appUrl));
 }

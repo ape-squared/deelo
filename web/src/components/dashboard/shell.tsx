@@ -29,19 +29,21 @@ export function DashboardShell({
   guilds,
   currentGuild,
   onLogout,
+  dashboardRole,
 }: {
   children: React.ReactNode;
   user?: { username: string; avatar: string | null } | null;
   guilds?: DashboardGuild[];
   currentGuild?: DashboardGuild | null;
   onLogout?: () => void;
+  dashboardRole?: string;
 }) {
   const pathname = usePathname();
   const isGuildPage = pathname.startsWith('/dashboard/') && pathname !== '/dashboard';
   const activeGuilds = (guilds ?? []).filter((g) => g.botPresent !== false);
 
   return (
-    <div className="dashboard-app mesh-bg flex min-h-screen flex-col">
+    <div className="dashboard-app mesh-bg v3-mesh flex min-h-screen flex-col">
       <header className="dashboard-topbar shrink-0">
         <div className="flex items-center gap-4">
           <Link href="/dashboard" className="flex items-center gap-2.5 font-bold transition hover:opacity-90">
@@ -51,6 +53,7 @@ export function DashboardShell({
             <span className="hidden sm:inline pt-0.5">
               <DeeloWordmark height={20} />
             </span>
+            <span className="hidden md:inline-flex badge badge-accent text-[10px] py-0">v3</span>
           </Link>
           {currentGuild && (
             <div className="hidden items-center gap-2 border-l border-border pl-4 md:flex">
@@ -59,6 +62,9 @@ export function DashboardShell({
                 <p className="truncate text-sm font-semibold leading-tight">{currentGuild.name}</p>
                 {currentGuild.plan && (
                   <p className="text-[11px] capitalize text-muted">{currentGuild.plan.replace('_', ' ')}</p>
+                )}
+                {dashboardRole && dashboardRole !== 'admin' && dashboardRole !== 'owner' && (
+                  <p className="text-[10px] capitalize text-accent-bright">{dashboardRole} access</p>
                 )}
               </div>
             </div>

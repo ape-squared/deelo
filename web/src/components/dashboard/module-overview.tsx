@@ -26,7 +26,7 @@ export function ModuleOverview({
         <p className="text-sm font-medium text-accent">Server dashboard</p>
         <h2 className="mt-1 text-xl font-bold sm:text-2xl">Modules</h2>
         <p className="mt-2 max-w-2xl text-sm text-muted">
-          Enable and configure Deelo features for your server. Click a module to open its settings — changes sync instantly with the bot.
+          Enable and configure Deelo features for your server. Click a module to open its settings — changes sync with the bot. v3 adds team roles and module permissions.
         </p>
         <div className="mt-6 grid gap-3 sm:grid-cols-3">
           <StatBox label="Plan" value={guild.plan.replace('_', ' ')} />

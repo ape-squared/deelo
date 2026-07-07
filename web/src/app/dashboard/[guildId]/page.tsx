@@ -7,6 +7,7 @@ import { DashboardShell } from '@/components/dashboard/shell';
 import { LoadingScreen } from '@/components/ui/animate';
 import { GuildSettingsEditor } from '@/components/dashboard/guild-settings-editor';
 import { discordAvatarUrl } from '@/lib/discord-avatar';
+import type { GuildDashboardRole } from '@/lib/guild-permissions';
 import type { GuildFullConfig } from '@/lib/guild-types';
 
 interface GuildMeta {
@@ -15,6 +16,7 @@ interface GuildMeta {
   icon: string | null;
   botPresent: boolean;
   plan: string;
+  dashboardRole?: string | null;
 }
 
 export default function GuildDashboardPage() {
@@ -23,12 +25,14 @@ export default function GuildDashboardPage() {
   const [config, setConfig] = useState<GuildFullConfig | null>(null);
   const [user, setUser] = useState<{ username: string; avatar: string | null } | null>(null);
   const [guilds, setGuilds] = useState<GuildMeta[]>([]);
+  const [dashboardRole, setDashboardRole] = useState<GuildDashboardRole>('admin');
 
   const load = useCallback(async () => {
     const r = await fetch(`/api/guilds/${guildId}`);
     if (r.status === 401 || r.status === 403) { router.push('/dashboard'); return; }
     if (!r.ok) return;
     const data = await r.json();
+    if (data.access?.role) setDashboardRole(data.access.role);
     setConfig({
       guild: data.guild,
       subscription: data.subscription ?? null,
@@ -71,7 +75,10 @@ export default function GuildDashboardPage() {
           icon: g.icon,
           botPresent: g.botPresent,
           plan: g.plan,
+          dashboardRole: g.dashboardRole,
         })));
+        const current = data.guilds.find((g: GuildMeta) => g.id === guildId);
+        if (current?.dashboardRole) setDashboardRole(current.dashboardRole as GuildDashboardRole);
       }
     })().catch(() => {
       if (!cancelled) router.push('/dashboard');
@@ -79,7 +86,7 @@ export default function GuildDashboardPage() {
     return () => {
       cancelled = true;
     };
-  }, [load, router]);
+  }, [load, router, guildId]);
 
   const currentGuild = useMemo(
     () => guilds.find((g) => g.id === guildId) ?? null,
@@ -100,10 +107,11 @@ export default function GuildDashboardPage() {
       guilds={guilds}
       currentGuild={currentGuild ? { ...currentGuild, plan: config.guild.plan } : { id: guildId, name: 'Server', icon: null, plan: config.guild.plan }}
       onLogout={logout}
+      dashboardRole={dashboardRole}
     >
       <div className="flex min-h-0 flex-1 flex-col">
       <Suspense fallback={<LoadingScreen label="Loading server settings..." />}>
-        <GuildSettingsEditor guildId={guildId} config={config} onReload={load} />
+        <GuildSettingsEditor guildId={guildId} config={config} onReload={load} dashboardRole={dashboardRole} />
       </Suspense>
       </div>
     </DashboardShell>

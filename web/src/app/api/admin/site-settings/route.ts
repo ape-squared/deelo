@@ -1,18 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAdminUser, logAdminAction } from '@/lib/admin';
+import { requireAdmin, logAdminAction } from '@/lib/admin';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getSiteSettingsAdmin } from '@/lib/site-data';
 
 export async function GET() {
-  const admin = await getAdminUser();
-  if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  const auth = await requireAdmin('website.read');
+  if (auth.error) return auth.error;
   const settings = await getSiteSettingsAdmin();
   return NextResponse.json({ settings });
 }
 
 export async function PATCH(req: NextRequest) {
-  const admin = await getAdminUser();
-  if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  const auth = await requireAdmin('website.write');
+  if (auth.error) return auth.error;
+  const admin = auth.admin;
 
   const body = await req.json();
   const key = String(body.key ?? '');
