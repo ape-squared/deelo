@@ -2,7 +2,8 @@ import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
 import { discordAvatarUrl as buildDiscordAvatarUrl } from '@/lib/discord-avatar';
 import { DISCORD_API } from '@/lib/discord-api';
-import { getDiscordClientId, getDiscordClientSecret, getSessionSecret, resolveAppUrl } from '@/lib/runtime-env';
+import { DISCORD_OAUTH_TOKEN_URL, getDiscordOAuthClientId, getDiscordOAuthClientSecret } from '@/lib/discord-oauth';
+import { getSessionSecret, resolveAppUrl } from '@/lib/runtime-env';
 
 export { DISCORD_API };
 
@@ -86,12 +87,12 @@ function sleep(ms: number) {
 }
 
 async function refreshDiscordToken(discordId: string, refreshToken: string): Promise<string | null> {
-  const tokenRes = await fetch(`${DISCORD_API}/oauth2/token`, {
+  const tokenRes = await fetch(DISCORD_OAUTH_TOKEN_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({
-      client_id: getDiscordClientId(),
-      client_secret: getDiscordClientSecret(),
+      client_id: getDiscordOAuthClientId(),
+      client_secret: getDiscordOAuthClientSecret(),
       grant_type: 'refresh_token',
       refresh_token: refreshToken,
     }),

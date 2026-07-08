@@ -1,15 +1,17 @@
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { getDiscordClientId, oauthCallbackPath, resolveOAuthAppUrl } from '@/lib/runtime-env';
+import { getDiscordOAuthClientId, getOAuthRedirectUri } from '@/lib/discord-oauth';
+import { resolveOAuthAppUrl } from '@/lib/runtime-env';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(req: Request) {
-  const clientId = getDiscordClientId();
-  resolveOAuthAppUrl(await headers()); // validate env is configured
+  const h = await headers();
+  const clientId = getDiscordOAuthClientId();
+  resolveOAuthAppUrl(h);
   const url = new URL(req.url);
   const returnTo = url.searchParams.get('return') || '/dashboard';
-  const redirectUri = encodeURIComponent(oauthCallbackPath());
+  const redirectUri = encodeURIComponent(getOAuthRedirectUri(h));
   const scope = encodeURIComponent('identify guilds');
   const state = encodeURIComponent(returnTo);
   redirect(

@@ -28,7 +28,16 @@ interface User {
 }
 
 const AUTH_ERRORS: Record<string, string> = {
-  token: 'Discord sign-in failed. Try again — if it keeps failing, check that DISCORD_CLIENT_SECRET matches your Discord app and the callback URL is registered.',
+  token: 'Discord sign-in failed. Try again in a fresh tab (don’t refresh the callback URL).',
+  invalid_client:
+    'Discord rejected the client secret. In Dokploy, set DISCORD_CLIENT_SECRET on the web service to match Discord Developer Portal → OAuth2 → Client Secret (reset there if unsure).',
+  missing_secret:
+    'DISCORD_CLIENT_SECRET is not set on the web container. Add it in Dokploy environment variables for the web service.',
+  redirect_uri:
+    'Redirect URI mismatch. Register exactly https://deelo.nikkithewikki.top/api/auth/discord/callback in Discord OAuth2 redirects.',
+  invalid_grant:
+    'Authorization expired or already used. Click “Continue with Discord” again — don’t reload the page after approving.',
+  server_config: 'Server OAuth configuration error. Check web container logs.',
   no_code: 'Discord did not return an authorization code. Try signing in again.',
   user: 'Could not load your Discord profile after sign-in. Try again.',
 };

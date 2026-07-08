@@ -1,5 +1,5 @@
 /** Runtime env read — bracket access avoids Next.js inlining empty build-time values in standalone Docker */
-function env(key: string): string | undefined {
+export function env(key: string): string | undefined {
   return process.env[key];
 }
 
@@ -52,12 +52,12 @@ export function resolveOAuthAppUrl(headers?: Headers): string {
   return resolveAppUrl(headers);
 }
 
-export function oauthCallbackPath(): string {
-  return `${resolveOAuthAppUrl()}/api/auth/discord/callback`;
+export function oauthCallbackPath(headers?: Headers): string {
+  return `${resolveOAuthAppUrl(headers)}/api/auth/discord/callback`;
 }
 
 export function getDiscordClientId(): string {
-  const id = env('DISCORD_CLIENT_ID') || env('NEXT_PUBLIC_DISCORD_CLIENT_ID');
+  const id = (env('DISCORD_CLIENT_ID') || env('NEXT_PUBLIC_DISCORD_CLIENT_ID'))?.trim();
   if (!id) {
     throw new Error('DISCORD_CLIENT_ID or NEXT_PUBLIC_DISCORD_CLIENT_ID is required');
   }
@@ -65,7 +65,7 @@ export function getDiscordClientId(): string {
 }
 
 export function getDiscordClientSecret(): string {
-  const secret = env('DISCORD_CLIENT_SECRET');
+  const secret = env('DISCORD_CLIENT_SECRET')?.trim();
   if (!secret) {
     throw new Error('DISCORD_CLIENT_SECRET is required');
   }
