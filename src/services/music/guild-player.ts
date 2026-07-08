@@ -343,6 +343,31 @@ export class GuildPlayer {
     void this.destroyVoice();
   }
 
+  async playNow(
+    guild: Guild,
+    voiceChannelId: string,
+    textChannelId: string,
+    track: Track,
+  ): Promise<void> {
+    this.init();
+    this.pruneStaleState();
+    this.clearLiveReconnectTimer();
+    this.liveRetries = 0;
+    this.livePlayStartedAt = 0;
+    this.pendingIdle = false;
+    this.state.voiceChannelId = voiceChannelId;
+    this.state.textChannelId = textChannelId;
+    this.playGeneration++;
+    this.player.stop(true);
+    this.state.current = null;
+    await this.connect(guild, voiceChannelId);
+    this.state.queue.unshift(track);
+    await this.playNext();
+    if (!this.inPlaybackSession() && !this.state.current) {
+      throw new Error('Could not start radio stream. Check the URL and try again.');
+    }
+  }
+
   async enqueue(
     guild: Guild,
     voiceChannelId: string,
@@ -449,6 +474,16 @@ export class GuildPlayer {
 
     const skipped = this.state.current ?? this.state.lastPlayed;
     this.playGeneration++;
+
+    // Live stream with nothing queued — skip means stop, not reconnect same station
+    if (this.state.current?.live && !this.state.queue.some((t) => t.live)) {
+      this.clearLiveReconnectTimer();
+      this.liveRetries = 0;
+      this.state.current = null;
+      this.player.stop(true);
+      this.scheduleLeave();
+      return skipped;
+    }
 
     const status = this.player.state.status;
     console.log(

@@ -51,10 +51,22 @@ export { spotifyConfigured, trackDisplayUrl } from './spotify';
 export { resolveQuery } from './resolver';
 export { resolveRadioStream, isStreamableRadioUrl } from './radio';
 export {
+  getLiveQueueTracks,
+  isRadioActive,
+  clearLiveQueue,
+  removeLiveQueueTrack,
+  parseStreamUrlInput,
+  buildRadioHelpEmbed,
+  buildRadioQueueEmbed,
+  buildRadioSwitchedEmbed,
+} from './radio-session';
+export {
   getMusicQueue,
   getOrCreateQueue,
   deleteQueue,
   enqueueTracks,
+  playRadioNow,
+  playRadioQueueIndex,
   skipTrack,
   pausePlayback,
   resumePlayback,

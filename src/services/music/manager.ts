@@ -7,6 +7,7 @@ import { trackDisplayUrl } from './spotify';
 import { getPreset, listPresetLines, normalizePresetId } from './presets';
 import { getGuildPlayer } from './guild-player';
 import { getAudioPlayer, getGuildState } from './store';
+import { takeLiveQueueTrack } from './radio-session';
 
 function gp(guildId: string) {
   return getGuildPlayer(guildId);
@@ -99,6 +100,28 @@ export async function enqueueTracks(
   tracks: Track[],
 ): Promise<{ position: number; track: Track; started: boolean }> {
   return gp(guild.id).enqueue(guild, voiceChannelId, textChannelId, tracks);
+}
+
+export async function playRadioNow(
+  guild: Guild,
+  voiceChannelId: string,
+  textChannelId: string,
+  track: Track,
+): Promise<void> {
+  return gp(guild.id).playNow(guild, voiceChannelId, textChannelId, track);
+}
+
+export async function playRadioQueueIndex(
+  guild: Guild,
+  voiceChannelId: string,
+  textChannelId: string,
+  oneBasedIndex: number,
+): Promise<Track> {
+  const state = getGuildState(guild.id);
+  const target = takeLiveQueueTrack(state, oneBasedIndex);
+  if (!target) throw new Error(`Invalid station **#${oneBasedIndex}**. Use \`,stream queue\` to see positions.`);
+  await playRadioNow(guild, voiceChannelId, textChannelId, target);
+  return target;
 }
 
 export async function skipTrack(guildId: string): Promise<Track | null> {

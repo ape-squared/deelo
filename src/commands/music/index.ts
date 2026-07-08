@@ -2,8 +2,6 @@ import type { Command } from '../../types/command';
 import { deeloEmbed, errorEmbed } from '../../utils/embeds';
 import {
   resolveQuery,
-  resolveRadioStream,
-  isStreamableRadioUrl,
   enqueueTracks,
   skipTrack,
   pausePlayback,
@@ -23,6 +21,7 @@ import {
   recallTrack,
 } from '../../services/music';
 import { getGuildState } from '../../services/music/store';
+import { handleStreamCommand } from './stream';
 
 const music: Command[] = [
   {
@@ -80,60 +79,11 @@ const music: Command[] = [
   {
     name: 'stream',
     aliases: ['radio', 'listen'],
-    description: 'Play an internet radio stream (Icecast, Shoutcast, .pls, .m3u)',
+    description: 'Internet radio — play, switch stations, queue, skip, volume, and more',
     category: 'music',
-    usage: 'stream [name] <url>',
+    usage: 'stream [subcommand] [args]',
     premiumFeature: 'music',
-    run: async ({ message, args }) => {
-      const raw = args.join(' ').trim();
-      if (!raw) {
-        return void message.reply({
-          embeds: [errorEmbed(
-            'Usage: `,stream <url>` or `,stream <name> <url>`\nSupports Icecast, Shoutcast, and `.pls` / `.m3u` playlists.',
-          )],
-        });
-      }
-
-      const urlMatch = raw.match(/https?:\/\/\S+/i);
-      const url = urlMatch?.[0] ?? raw;
-      const customTitle = urlMatch ? raw.replace(urlMatch[0], '').trim() : undefined;
-
-      if (!isStreamableRadioUrl(url)) {
-        return void message.reply({
-          embeds: [errorEmbed('Provide a valid `http://` or `https://` stream URL. Use `,play` for YouTube or Spotify.')],
-        });
-      }
-
-      const voice = message.member?.voice.channel;
-      if (!voice) return void message.reply({ embeds: [errorEmbed('Join a voice channel first.')] });
-
-      const { getGuildPlan } = await import('../../database');
-      const { getLimit } = await import('../../config/plans');
-      const plan = await getGuildPlan(message.guild!.id);
-      const state = getGuildState(message.guild!.id);
-      const currentSize = state.queue.length + (state.current ? 1 : 0);
-      if (currentSize + 1 > getLimit(plan, 'maxMusicQueue')) {
-        return void message.reply({ embeds: [errorEmbed('Queue limit reached for your plan.')] });
-      }
-
-      if (message.channel.isSendable()) {
-        await message.channel.sendTyping().catch(() => {});
-      }
-
-      try {
-        const track = await resolveRadioStream(url, message.author.id, customTitle);
-        const { position, track: t, started } = await enqueueTracks(
-          message.guild!,
-          voice.id,
-          message.channel.id,
-          [track],
-        );
-        await message.reply({ embeds: [buildAddedEmbed(t, position, started)] });
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : 'Could not connect to that stream.';
-        await message.reply({ embeds: [errorEmbed(msg)] });
-      }
-    },
+    run: async ({ message, args }) => handleStreamCommand(message, args),
   },
   {
     name: 'queue',
