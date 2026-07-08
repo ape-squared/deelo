@@ -75,6 +75,7 @@ export function SiteHeader() {
             type="button"
             className="btn-ghost inline-flex p-2.5 lg:hidden"
             aria-expanded={open}
+            aria-controls="site-mobile-nav"
             aria-label={open ? 'Close menu' : 'Open menu'}
             onClick={() => setOpen((v) => !v)}
           >
@@ -84,7 +85,7 @@ export function SiteHeader() {
       </div>
 
       {open && (
-        <div className="site-mobile-nav lg:hidden">
+        <div className="site-mobile-nav lg:hidden" id="site-mobile-nav">
           <nav className="mx-auto flex max-w-6xl flex-col gap-1 px-4 py-4" aria-label="Mobile">
             {NAV.map(({ href, label }) => (
               <NavLink key={href} href={href} label={label} onNavigate={() => setOpen(false)} />
