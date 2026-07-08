@@ -292,42 +292,45 @@ body {
   @apply bg-accent-soft text-accent;
 }
 
-/* Dyno-style dashboard */
+/* Deelo dashboard — control center */
 .dashboard-app {
-  --dyno-rail: 72px;
-  --dyno-sidebar: 240px;
-  --dyno-topbar: 3.5rem;
+  --dash-rail: 76px;
+  --dash-sidebar: 252px;
+  --dash-topbar: 3.75rem;
   height: 100dvh;
   overflow: hidden;
+  background: radial-gradient(1200px 600px at 0% -10%, rgba(0, 71, 255, 0.12), transparent 55%),
+    radial-gradient(900px 500px at 100% 0%, rgba(99, 102, 241, 0.08), transparent 50%);
 }
 
 .dashboard-topbar {
-  @apply z-30 flex h-14 shrink-0 items-center justify-between border-b border-border bg-sidebar/90 px-4 backdrop-blur-xl sm:px-6;
+  @apply z-30 flex h-[var(--dash-topbar)] shrink-0 items-center justify-between border-b border-white/[0.06] bg-[#0a0c12]/80 px-4 backdrop-blur-2xl sm:px-6;
 }
 
 .server-rail {
-  width: var(--dyno-rail);
-  @apply hidden shrink-0 flex-col border-r border-border bg-sidebar/80 backdrop-blur-xl sm:flex;
-  height: calc(100dvh - var(--dyno-topbar));
+  width: var(--dash-rail);
+  @apply hidden shrink-0 flex-col border-r border-white/[0.06] bg-[#080a10]/90 backdrop-blur-xl sm:flex;
+  height: calc(100dvh - var(--dash-topbar));
 }
 
 .server-rail-scroll {
-  @apply flex min-h-0 w-full flex-1 flex-col items-center gap-1 overflow-y-auto overflow-x-hidden py-2;
+  @apply flex min-h-0 w-full flex-1 flex-col items-center gap-1.5 overflow-y-auto overflow-x-hidden py-3;
   scrollbar-width: thin;
 }
 
 .server-rail-footer {
-  @apply flex w-full shrink-0 flex-col items-center gap-1 border-t border-border pt-2 pb-3;
+  @apply flex w-full shrink-0 flex-col items-center gap-1.5 border-t border-white/[0.06] pt-3 pb-4;
 }
 
 .server-rail-btn {
-  @apply flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-muted transition-colors duration-200;
+  @apply relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-muted transition-all duration-200;
 }
 .server-rail-btn:hover {
-  @apply bg-white/5 text-foreground;
+  @apply bg-white/[0.06] text-foreground;
 }
 .server-rail-btn-active {
-  @apply rounded-2xl bg-accent/15 ring-2 ring-accent/50;
+  @apply bg-accent/20 text-accent;
+  box-shadow: 0 0 0 2px rgba(0, 71, 255, 0.35), 0 8px 24px -8px rgba(0, 71, 255, 0.45);
 }
 
 .module-layout {
@@ -336,8 +339,8 @@ body {
 
 .module-sidebar {
   width: 100%;
-  @apply shrink-0 border-b border-border bg-sidebar/50 lg:w-[var(--dyno-sidebar)] lg:border-b-0 lg:border-r;
-  max-height: min(40vh, 280px);
+  @apply shrink-0 border-b border-white/[0.06] bg-[#080a10]/60 lg:w-[var(--dash-sidebar)] lg:border-b-0 lg:border-r;
+  max-height: min(36vh, 260px);
 }
 
 @media (min-width: 1024px) {
@@ -348,7 +351,7 @@ body {
 }
 
 .module-sidebar-inner {
-  @apply overflow-y-auto p-3 lg:h-full lg:max-h-none lg:p-4;
+  @apply overflow-y-auto p-3 lg:h-full lg:p-4;
   scrollbar-width: thin;
 }
 
@@ -356,27 +359,39 @@ body {
   .module-sidebar-inner {
     position: sticky;
     top: 0;
-    max-height: calc(100dvh - var(--dyno-topbar));
+    max-height: calc(100dvh - var(--dash-topbar));
   }
 }
 
+.module-sidebar-heading {
+  @apply mb-3 hidden px-3 text-xs font-semibold uppercase tracking-widest text-muted lg:block;
+}
+
 .module-nav-group {
-  @apply mb-4;
+  @apply mb-3;
 }
 
 .module-nav-label {
-  @apply mb-1.5 px-3 text-[10px] font-semibold uppercase tracking-widest text-muted;
+  @apply mb-1 px-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-muted/80;
 }
 
 .module-nav-link {
-  @apply flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-muted transition-colors duration-150;
+  @apply flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm text-muted transition-all duration-200;
 }
 .module-nav-link:hover {
-  @apply bg-white/5 text-foreground;
+  @apply bg-white/[0.04] text-foreground;
 }
 .module-nav-link-active {
-  @apply bg-accent/15 font-medium text-accent;
-  box-shadow: inset 3px 0 0 0 var(--accent);
+  @apply bg-accent/12 font-medium text-accent;
+  box-shadow: inset 3px 0 0 0 var(--accent), 0 4px 20px -12px rgba(0, 71, 255, 0.5);
+}
+
+.module-nav-dot {
+  @apply ml-auto h-1.5 w-1.5 shrink-0 rounded-full bg-white/15;
+}
+.module-nav-dot-on {
+  @apply bg-emerald-400;
+  box-shadow: 0 0 8px rgba(52, 211, 153, 0.6);
 }
 
 .module-content {
@@ -385,11 +400,82 @@ body {
 }
 
 .module-content-pad {
-  @apply p-4 pb-28 sm:p-6 sm:pb-28 lg:p-8 lg:pb-28;
+  @apply p-4 pb-28 sm:p-6 lg:p-8;
+  animation: fade-in 0.45s ease-out both;
 }
 
-.module-hero {
-  background: linear-gradient(135deg, rgba(0, 71, 255, 0.1) 0%, transparent 55%);
+.dash-overview {
+  @apply max-w-6xl;
+}
+
+.dash-hero {
+  @apply relative overflow-hidden rounded-2xl border border-white/[0.08] p-6 sm:p-8;
+  background: linear-gradient(145deg, rgba(0, 71, 255, 0.14) 0%, rgba(15, 18, 28, 0.9) 45%, rgba(10, 12, 18, 0.95) 100%);
+}
+
+.dash-hero-glow {
+  @apply pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full opacity-60;
+  background: radial-gradient(circle, rgba(0, 71, 255, 0.35) 0%, transparent 70%);
+}
+
+.dash-pill {
+  @apply inline-flex items-center gap-1.5 rounded-full border border-accent/25 bg-accent/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-accent;
+}
+
+.dash-pill-muted {
+  @apply border-white/10 bg-white/[0.04] text-muted;
+}
+
+.dash-section-label {
+  @apply mb-4 text-[11px] font-semibold uppercase tracking-[0.2em] text-muted;
+}
+
+.dash-stat {
+  @apply rounded-xl border border-white/[0.06] bg-black/20 px-4 py-3.5 backdrop-blur-sm;
+}
+
+.dash-stat-accent {
+  @apply border-accent/25 bg-accent/10;
+}
+
+.dash-module-card {
+  @apply relative overflow-hidden rounded-2xl border border-white/[0.07] bg-[#0c0e14]/80 p-5 backdrop-blur-sm transition-all duration-300;
+}
+.dash-module-card::before {
+  content: '';
+  @apply pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300;
+  background: linear-gradient(135deg, rgba(0, 71, 255, 0.08), transparent 50%);
+}
+.dash-module-card:hover {
+  @apply border-accent/25;
+  box-shadow: 0 12px 40px -16px rgba(0, 71, 255, 0.35);
+}
+.dash-module-card:hover::before {
+  @apply opacity-100;
+}
+.dash-module-card-on {
+  @apply border-emerald-500/20;
+}
+
+.dash-module-icon {
+  @apply flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-accent/20 to-accent/5 text-accent ring-1 ring-accent/20;
+}
+
+.dash-module-badge-always {
+  @apply rounded-full bg-white/[0.06] px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted;
+}
+
+.module-toggle {
+  @apply relative h-6 w-11 shrink-0 rounded-full bg-white/10 transition-colors duration-200;
+}
+.module-toggle-on {
+  @apply bg-accent;
+}
+.module-toggle-thumb {
+  @apply absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow-md transition-transform duration-200;
+}
+.module-toggle-on .module-toggle-thumb {
+  transform: translateX(1.25rem);
 }
 
 .module-group-title {
@@ -405,15 +491,15 @@ body {
 }
 
 .dashboard-stagger > * {
-  animation: fade-in 0.45s ease-out both;
+  animation: fade-up 0.5s ease-out both;
 }
 .dashboard-stagger > *:nth-child(1) { animation-delay: 0ms; }
-.dashboard-stagger > *:nth-child(2) { animation-delay: 40ms; }
-.dashboard-stagger > *:nth-child(3) { animation-delay: 80ms; }
-.dashboard-stagger > *:nth-child(4) { animation-delay: 120ms; }
-.dashboard-stagger > *:nth-child(5) { animation-delay: 160ms; }
-.dashboard-stagger > *:nth-child(6) { animation-delay: 200ms; }
-.dashboard-stagger > *:nth-child(n+7) { animation-delay: 240ms; }
+.dashboard-stagger > *:nth-child(2) { animation-delay: 50ms; }
+.dashboard-stagger > *:nth-child(3) { animation-delay: 100ms; }
+.dashboard-stagger > *:nth-child(4) { animation-delay: 150ms; }
+.dashboard-stagger > *:nth-child(5) { animation-delay: 200ms; }
+.dashboard-stagger > *:nth-child(6) { animation-delay: 250ms; }
+.dashboard-stagger > *:nth-child(n+7) { animation-delay: 300ms; }
 
 .module-status {
   @apply rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide;
@@ -425,15 +511,22 @@ body {
   @apply bg-white/5 text-muted;
 }
 
+.dash-picker-hero {
+  @apply relative mb-10 overflow-hidden rounded-2xl border border-white/[0.08] p-6 sm:p-8;
+  background: linear-gradient(135deg, rgba(0, 71, 255, 0.1) 0%, rgba(10, 12, 18, 0.95) 60%);
+}
+
 .server-picker-grid {
   @apply grid gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6;
 }
 
 .server-picker-card {
-  @apply relative flex flex-col items-center overflow-hidden rounded-2xl border border-transparent p-4 transition-[border-color,background-color] duration-200;
+  @apply relative flex flex-col items-center overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0c0e14]/50 p-4 transition-all duration-300;
 }
 .server-picker-card:hover {
-  @apply border-border bg-card/60;
+  @apply border-accent/30 bg-[#12151f]/80;
+  box-shadow: 0 16px 48px -20px rgba(0, 71, 255, 0.4);
+  transform: translateY(-2px);
 }
 .server-picker-card:hover .server-picker-icon {
   @apply scale-105;
@@ -441,12 +534,9 @@ body {
 .server-picker-card:hover .server-picker-overlay {
   @apply opacity-100;
 }
-.server-picker-card-active .server-picker-icon {
-  @apply ring-2 ring-accent ring-offset-2 ring-offset-background;
-}
 
 .server-picker-icon {
-  @apply relative z-0 rounded-2xl transition-transform duration-200;
+  @apply relative z-0 rounded-2xl transition-transform duration-300;
 }
 
 .server-picker-name {
@@ -454,11 +544,11 @@ body {
 }
 
 .server-picker-overlay {
-  @apply pointer-events-none absolute inset-0 z-20 flex items-center justify-center rounded-2xl bg-background/80 opacity-0 transition-opacity duration-200;
+  @apply pointer-events-none absolute inset-0 z-20 flex items-center justify-center rounded-2xl bg-background/75 opacity-0 backdrop-blur-sm transition-opacity duration-200;
 }
 
 .save-bar {
-  @apply sticky bottom-0 z-20 -mx-4 mt-8 border-t border-border bg-sidebar/95 px-4 py-3 backdrop-blur-xl sm:-mx-6 lg:-mx-8;
+  @apply sticky bottom-0 z-20 -mx-4 mt-8 border-t border-white/[0.06] bg-[#0a0c12]/95 px-4 py-3 backdrop-blur-xl sm:-mx-6 lg:-mx-8;
 }
 
 /* Admin panel */
@@ -852,29 +942,6 @@ body {
 .staff-stat-label {
   @apply text-sm text-muted mt-1;
 }
-
-.dashboard-v3-badge {
-  @apply inline-flex items-center rounded-md bg-accent/15 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-accent;
-}
-
-.module-nav-link-v3 {
-  @apply relative overflow-hidden;
-}
-
-.module-content-pad {
-  @apply p-4 sm:p-6 lg:p-8;
-  animation: fade-in 0.5s ease-out both;
-}
-
-.dashboard-stagger > * {
-  animation: fade-up 0.5s ease-out both;
-}
-.dashboard-stagger > *:nth-child(1) { animation-delay: 0ms; }
-.dashboard-stagger > *:nth-child(2) { animation-delay: 40ms; }
-.dashboard-stagger > *:nth-child(3) { animation-delay: 80ms; }
-.dashboard-stagger > *:nth-child(4) { animation-delay: 120ms; }
-.dashboard-stagger > *:nth-child(5) { animation-delay: 160ms; }
-.dashboard-stagger > *:nth-child(6) { animation-delay: 200ms; }
 
 /* ── Deelo v3 public site ── */
 .site-v3 {

@@ -6,7 +6,7 @@ import { Suspense, useEffect, useState } from 'react';
 import { inviteApiPath } from '@/lib/invite';
 import { dashboardRedeemPath, DASHBOARD_REDEEM_QUERY } from '@/lib/dashboard-paths';
 import { discordAvatarUrl } from '@/lib/discord-avatar';
-import { DashboardShell, GuildIcon, PageHeader } from '@/components/dashboard/shell';
+import { DashboardShell, GuildIcon } from '@/components/dashboard/shell';
 import { WelcomeChecklist } from '@/components/dashboard/welcome-checklist';
 import { LoadingScreen, EmptyState } from '@/components/ui/animate';
 import { DiscordIcon } from '@/components/icons/discord';
@@ -134,18 +134,24 @@ function DashboardContent() {
       onLogout={logout}
     >
       <div className="h-full overflow-y-auto">
-        <div className="p-4 sm:p-6 lg:p-8 animate-fade-in">
-          <PageHeader
-            title="Select a server"
-            description="Choose a server to manage its modules and settings."
-            badge={<span className="badge badge-accent">{withBot.length} active</span>}
-            action={
-              <a href={inviteApiPath()} className="btn-primary text-sm py-2.5" target="_blank" rel="noreferrer">
-                <Plus className="h-4 w-4" />
-                Add to server
-              </a>
-            }
-          />
+        <div className="p-4 sm:p-6 lg:p-8 animate-fade-in max-w-6xl mx-auto w-full">
+          <div className="dash-picker-hero mb-8">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-accent">Dashboard</p>
+            <h1 className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl">Pick a server</h1>
+            <p className="mt-2 max-w-lg text-sm text-muted">
+              Manage modules, moderation, and integrations — all synced live with Deelo in Discord.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-end justify-between gap-4 mb-8">
+            <div>
+              <p className="text-sm text-muted">{withBot.length} server{withBot.length === 1 ? '' : 's'} with Deelo</p>
+            </div>
+            <a href={inviteApiPath()} className="btn-primary text-sm py-2.5" target="_blank" rel="noreferrer">
+              <Plus className="h-4 w-4" />
+              Add to server
+            </a>
+          </div>
 
           <WelcomeChecklist hasBot={withBot.length > 0} show={welcomeIntent} />
 

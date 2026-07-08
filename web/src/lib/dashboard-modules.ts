@@ -184,8 +184,8 @@ export function getModuleStatus(
       };
     case 'events':
       return {
-        enabled: config.eventToggles.some((t) => !t.enabled),
-        detail: `${config.eventToggles.filter((t) => t.enabled).length} active`,
+        enabled: config.eventToggles.every((t) => t.enabled),
+        detail: `${config.eventToggles.filter((t) => t.enabled).length}/${config.eventToggles.length} handlers on`,
       };
     case 'advanced':
       return {

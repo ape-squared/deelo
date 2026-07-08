@@ -10,7 +10,8 @@ import { BOT_APPEARANCE_FIELDS } from '@/lib/bot-appearance';
 import type { GuildFullConfig } from '@/lib/guild-types';
 import type { ChannelKind } from '@/lib/discord-channels';
 import { EXTRA_CONFIG_FIELDS, KNOWN_EVENTS } from '@/lib/guild-types';
-import { MODULE_GROUPS, isValidModuleId, type ModuleId } from '@/lib/dashboard-modules';
+import { MODULE_GROUPS, isValidModuleId, moduleById, type ModuleId } from '@/lib/dashboard-modules';
+import { buildModuleTogglePatch, isModuleEnabled } from '@/lib/module-toggles';
 import { AddRow, CrudList, MiniInput, MiniSelect } from '@/components/dashboard/guild-crud';
 import { ChannelSelect, GuildChannelsProvider, MiniChannelSelect } from '@/components/dashboard/discord-resources';
 import { RedeemCodePanel } from '@/components/dashboard/redeem-panel';
@@ -49,6 +50,7 @@ export function GuildSettingsEditor({
   const [dirty, setDirty] = useState(false);
   const [toggles, setToggles] = useState(initial.eventToggles);
   const [extraDraft, setExtraDraft] = useState<Record<string, string>>({});
+  const [togglingId, setTogglingId] = useState<ModuleId | null>(null);
 
   const extra = (guild.extra_config ?? {}) as Record<string, unknown>;
   const isPremium = guild.plan !== 'free';
@@ -128,6 +130,42 @@ export function GuildSettingsEditor({
     setTimeout(() => setMessage(''), 3000);
   }
 
+  async function toggleModule(id: ModuleId, enabled: boolean) {
+    setTogglingId(id);
+    setMessage('');
+    const { guild: guildPatch, extra } = buildModuleTogglePatch(id, enabled, guild);
+    const res = await fetch(`/api/guilds/${guildId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...guild,
+        ...guildPatch,
+        extra_config: { ...extraDraft, ...extra },
+        _module: 'overview',
+      }),
+    });
+    setTogglingId(null);
+    const data = await res.json();
+    if (res.ok) {
+      setGuild(data.guild);
+      setExtraDraft({});
+      if (data.synced?.eventToggles) {
+        setToggles((prev) => {
+          const map = new Map(prev.map((t) => [t.event, t]));
+          for (const s of data.synced.eventToggles) map.set(s.event, s);
+          return Array.from(map.values());
+        });
+      }
+      const label = moduleById(id)?.label ?? id;
+      setMessage(`${label} ${enabled ? 'enabled' : 'disabled'}`);
+      if (!enabled && tab === id) setTab('overview');
+      await onReload();
+      setTimeout(() => setMessage(''), 4000);
+    } else {
+      setMessage(data.error ?? 'Failed to update module');
+    }
+  }
+
   async function apiDelete(path: string) {
     await fetch(path, { method: 'DELETE' });
     await onReload();
@@ -150,11 +188,13 @@ export function GuildSettingsEditor({
     <div className="module-layout">
       <aside className="module-sidebar">
         <div className="module-sidebar-inner">
+          <p className="module-sidebar-heading">Modules</p>
           {visibleGroups.map((group) => (
             <div key={group.label} className="module-nav-group">
               <p className="module-nav-label">{group.label}</p>
               {group.modules.map((mod) => {
                 const Icon = mod.icon;
+                const enabled = mod.id === 'overview' || isModuleEnabled(mod.id, guild, { ...initial, guild, eventToggles: toggles });
                 return (
                   <button
                     key={mod.id}
@@ -164,7 +204,10 @@ export function GuildSettingsEditor({
                   >
                     <Icon className="h-4 w-4 shrink-0" />
                     <span className="truncate">{mod.label}</span>
-                    {mod.premium && <span className="ml-auto text-[9px] text-amber-400">PRO</span>}
+                    {mod.id !== 'overview' && (
+                      <span className={`module-nav-dot ${enabled ? 'module-nav-dot-on' : ''}`} aria-hidden />
+                    )}
+                    {mod.premium && <span className="ml-auto text-[9px] font-semibold text-amber-400/90">PRO</span>}
                   </button>
                 );
               })}
@@ -189,7 +232,13 @@ export function GuildSettingsEditor({
         )}
 
         {tab === 'overview' ? (
-          <ModuleOverview guild={guild} config={{ ...initial, guild }} onSelect={setTab} />
+          <ModuleOverview
+            guild={guild}
+            config={{ ...initial, guild, eventToggles: toggles }}
+            onSelect={setTab}
+            onToggle={toggleModule}
+            togglingId={togglingId}
+          />
         ) : (
           <form onSubmit={save} className="space-y-6">
         {tab === 'general' && (
