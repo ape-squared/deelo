@@ -1,13 +1,18 @@
 {
-  "generated_at": "2026-07-08T00:14:17.328Z",
+  "generated_at": "2026-07-08T00:19:02.337Z",
   "latest": {
     "id": "release-2026-07-07",
-    "version": "6ef77cb",
-    "published_at": "2026-07-07T20:03:55-04:00",
+    "version": "c98b117",
+    "published_at": "2026-07-07T20:14:59-04:00",
     "title": "Updates for July 7, 2026",
     "category": "feature",
-    "body": "- Overhaul ,stream with station switching and queue controls\n- Fix radio playback using fetch and demuxProbe\n- Align marketing site with pricing and fix radio reconnect loop\n- Fix duplicate command replies using site_settings dedup\n- Update July 7 changelog with stream, pricing, and dedup fixes\n- Fix duplicate command replies across bot instances\n- Add ,stream command for Icecast and Shoutcast radio playback\n- Overhaul pricing page with bot stack comparison and switch incentives\n- Prevent duplicate changelog embeds on bot startup\n- Remove false-negative changelog permission preflight check\n- Fix changelog embed sync skipping posts on first bot run\n- Fix bot crash by excluding .d.ts files from command loader",
+    "body": "- Add community feature requests with Discord OAuth and server gating\n- Overhaul ,stream with station switching and queue controls\n- Fix radio playback using fetch and demuxProbe\n- Align marketing site with pricing and fix radio reconnect loop\n- Fix duplicate command replies using site_settings dedup\n- Update July 7 changelog with stream, pricing, and dedup fixes\n- Fix duplicate command replies across bot instances\n- Add ,stream command for Icecast and Shoutcast radio playback\n- Overhaul pricing page with bot stack comparison and switch incentives\n- Prevent duplicate changelog embeds on bot startup\n- Remove false-negative changelog permission preflight check\n- Fix changelog embed sync skipping posts on first bot run",
     "items": [
+      {
+        "title": "Add community feature requests with Discord OAuth and server gating",
+        "category": "feature",
+        "hash": "c98b117"
+      },
       {
         "title": "Overhaul ,stream with station switching and queue controls",
         "category": "feature",
@@ -62,11 +67,6 @@
         "title": "Fix changelog embed sync skipping posts on first bot run",
         "category": "fix",
         "hash": "8f8f7a6"
-      },
-      {
-        "title": "Fix bot crash by excluding .d.ts files from command loader",
-        "category": "fix",
-        "hash": "2ecc84b"
       }
     ],
     "source": "git"
@@ -74,12 +74,17 @@
   "releases": [
     {
       "id": "release-2026-07-07",
-      "version": "6ef77cb",
-      "published_at": "2026-07-07T20:03:55-04:00",
+      "version": "c98b117",
+      "published_at": "2026-07-07T20:14:59-04:00",
       "title": "Updates for July 7, 2026",
       "category": "feature",
-      "body": "- Overhaul ,stream with station switching and queue controls\n- Fix radio playback using fetch and demuxProbe\n- Align marketing site with pricing and fix radio reconnect loop\n- Fix duplicate command replies using site_settings dedup\n- Update July 7 changelog with stream, pricing, and dedup fixes\n- Fix duplicate command replies across bot instances\n- Add ,stream command for Icecast and Shoutcast radio playback\n- Overhaul pricing page with bot stack comparison and switch incentives\n- Prevent duplicate changelog embeds on bot startup\n- Remove false-negative changelog permission preflight check\n- Fix changelog embed sync skipping posts on first bot run\n- Fix bot crash by excluding .d.ts files from command loader",
+      "body": "- Add community feature requests with Discord OAuth and server gating\n- Overhaul ,stream with station switching and queue controls\n- Fix radio playback using fetch and demuxProbe\n- Align marketing site with pricing and fix radio reconnect loop\n- Fix duplicate command replies using site_settings dedup\n- Update July 7 changelog with stream, pricing, and dedup fixes\n- Fix duplicate command replies across bot instances\n- Add ,stream command for Icecast and Shoutcast radio playback\n- Overhaul pricing page with bot stack comparison and switch incentives\n- Prevent duplicate changelog embeds on bot startup\n- Remove false-negative changelog permission preflight check\n- Fix changelog embed sync skipping posts on first bot run",
       "items": [
+        {
+          "title": "Add community feature requests with Discord OAuth and server gating",
+          "category": "feature",
+          "hash": "c98b117"
+        },
         {
           "title": "Overhaul ,stream with station switching and queue controls",
           "category": "feature",
@@ -134,11 +139,6 @@
           "title": "Fix changelog embed sync skipping posts on first bot run",
           "category": "fix",
           "hash": "8f8f7a6"
-        },
-        {
-          "title": "Fix bot crash by excluding .d.ts files from command loader",
-          "category": "fix",
-          "hash": "2ecc84b"
         }
       ],
       "source": "git"

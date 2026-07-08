@@ -2,12 +2,18 @@ import { NextRequest, NextResponse } from 'next/server';
 import { setDashboardSession, DISCORD_API } from '@/lib/session';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { invalidateOfficialGuildCache } from '@/lib/official-guild';
-import { getDiscordClientId, getDiscordClientSecret, resolveAppUrl } from '@/lib/runtime-env';
+import {
+  getDiscordClientId,
+  getDiscordClientSecret,
+  oauthCallbackPath,
+  resolveOAuthAppUrl,
+} from '@/lib/runtime-env';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
-  const appUrl = resolveAppUrl(req.headers);
+  const appUrl = resolveOAuthAppUrl(req.headers);
+  const redirectUri = oauthCallbackPath();
   const code = req.nextUrl.searchParams.get('code');
   if (!code) return NextResponse.redirect(new URL('/dashboard?error=no_code', appUrl));
 
@@ -19,11 +25,15 @@ export async function GET(req: NextRequest) {
       client_secret: getDiscordClientSecret(),
       grant_type: 'authorization_code',
       code,
-      redirect_uri: `${appUrl}/api/auth/discord/callback`,
+      redirect_uri: redirectUri,
     }),
   });
 
-  if (!tokenRes.ok) return NextResponse.redirect(new URL('/dashboard?error=token', appUrl));
+  if (!tokenRes.ok) {
+    const detail = await tokenRes.text();
+    console.error('[discord/oauth] token exchange failed:', tokenRes.status, detail, { redirectUri });
+    return NextResponse.redirect(new URL('/dashboard?error=token', appUrl));
+  }
   const tokens = (await tokenRes.json()) as { access_token: string; refresh_token: string; expires_in: number };
 
   const userRes = await fetch(`${DISCORD_API}/users/@me`, {

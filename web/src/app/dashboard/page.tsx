@@ -27,8 +27,15 @@ interface User {
   avatar: string | null;
 }
 
+const AUTH_ERRORS: Record<string, string> = {
+  token: 'Discord sign-in failed. Try again — if it keeps failing, check that DISCORD_CLIENT_SECRET matches your Discord app and the callback URL is registered.',
+  no_code: 'Discord did not return an authorization code. Try signing in again.',
+  user: 'Could not load your Discord profile after sign-in. Try again.',
+};
+
 export default function DashboardPage() {
   const router = useRouter();
+  const [authError, setAuthError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
   const [guilds, setGuilds] = useState<Guild[]>([]);
@@ -36,6 +43,11 @@ export default function DashboardPage() {
   const [search, setSearch] = useState('');
   const [officialMember, setOfficialMember] = useState<boolean | null>(null);
   const [officialGuildInvite, setOfficialGuildInvite] = useState('https://discord.gg/deelo');
+
+  useEffect(() => {
+    const err = new URLSearchParams(window.location.search).get('error');
+    if (err) setAuthError(err);
+  }, []);
 
   useEffect(() => {
     fetch('/api/guilds')
@@ -72,6 +84,11 @@ export default function DashboardPage() {
           </div>
           <h1 className="text-2xl font-bold mb-2">Welcome back</h1>
           <p className="text-muted mb-8 text-sm">Sign in with Discord to manage Deelo across your servers.</p>
+          {authError && (
+            <div className="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-left text-sm text-red-200">
+              {AUTH_ERRORS[authError] ?? 'Sign-in failed. Please try again.'}
+            </div>
+          )}
           <a href="/api/auth/discord" className="btn-primary w-full bg-[#5865F2] hover:bg-[#4752C4]">
             Continue with Discord
           </a>

@@ -45,6 +45,17 @@ export function resolveAppUrl(headers?: Headers): string {
   throw new Error('Set NEXT_PUBLIC_APP_URL or APP_URL in the deployment environment');
 }
 
+/** Stable redirect base for Discord OAuth — always prefer configured APP_URL over proxy headers. */
+export function resolveOAuthAppUrl(headers?: Headers): string {
+  const fromEnv = trimUrl(env('NEXT_PUBLIC_APP_URL') || env('APP_URL') || '');
+  if (fromEnv && !isLocalhostUrl(fromEnv)) return fromEnv;
+  return resolveAppUrl(headers);
+}
+
+export function oauthCallbackPath(): string {
+  return `${resolveOAuthAppUrl()}/api/auth/discord/callback`;
+}
+
 export function getDiscordClientId(): string {
   const id = env('DISCORD_CLIENT_ID') || env('NEXT_PUBLIC_DISCORD_CLIENT_ID');
   if (!id) {
