@@ -24,6 +24,7 @@ export const SUPPORTED_COGS = new Set([
   'alias',
   'bumpreminder',
   'logs',
+  'timers',
 ]);
 
 /** Cogs with real commands for common actions; many catalog entries still coming soon. */
@@ -48,7 +49,6 @@ export const PARTIAL_COGS = new Set([
   'network',
   'reaction',
   'snipe',
-  'timers',
 ]);
 
 export type CommandImplementationStatus = 'supported' | 'partial' | 'coming-soon';

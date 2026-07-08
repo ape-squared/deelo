@@ -2,6 +2,13 @@ import { PermissionFlagsBits } from 'discord.js';
 import type { Command } from '../../types/command';
 import { deeloEmbed, errorEmbed, successEmbed } from '../../utils/embeds';
 import { getGuild, updateGuild, getPrefix, toggleEvent } from '../../database';
+import { WELCOME_VARIABLES, formatGuildMessageForUser } from '../../lib/welcome-format';
+import {
+  addGuildMessage,
+  getGuildMessage,
+  listGuildMessages,
+  removeGuildMessage,
+} from '../../services/guild-messages';
 
 const configCommands: Command[] = [
   {
@@ -30,11 +37,78 @@ const configCommands: Command[] = [
     name: 'welcome',
     description: 'Configure welcome messages',
     category: 'config',
-    usage: 'welcome <channel|message|test>',
+    usage: 'welcome <channel|message|add|list|remove|view|variables|test>',
     permissions: [PermissionFlagsBits.ManageGuild],
     ack: 'only',
     run: async ({ message, args }) => {
+      const guildId = message.guild!.id;
       const sub = args[0]?.toLowerCase();
+
+      if (sub === 'variables' || sub === 'vars') {
+        return void message.reply({
+          embeds: [deeloEmbed('Welcome variables', `Use these in your message:\n${WELCOME_VARIABLES}`)],
+        });
+      }
+
+      if (sub === 'add' || sub === 'create' || sub === 'set') {
+        const ch = message.mentions.channels.first();
+        const textArgs = ch ? args.slice(2) : args.slice(1);
+        const msg = textArgs.join(' ');
+        const channelId = ch?.id ?? message.channel.id;
+        if (!msg) {
+          return void message.reply({
+            embeds: [errorEmbed('Usage: `,welcome add #channel <message>` or `,welcome add <message>` in the target channel')],
+          });
+        }
+        const row = await addGuildMessage(guildId, 'welcome', channelId, msg);
+        return void message.reply({
+          embeds: [successEmbed(`Welcome message **#${row.id}** added for <#${channelId}>.`)],
+        });
+      }
+
+      if (sub === 'list') {
+        const rows = await listGuildMessages(guildId, 'welcome');
+        const guild = await getGuild(guildId);
+        const lines: string[] = [];
+        if (guild.welcome_channel && guild.welcome_message) {
+          lines.push(`**primary** · <#${guild.welcome_channel}> · ${guild.welcome_message.slice(0, 80)}`);
+        }
+        for (const row of rows) {
+          lines.push(`**#${row.id}** · <#${row.channel_id}> · ${row.message.slice(0, 80)}`);
+        }
+        return void message.reply({
+          embeds: [deeloEmbed('Welcome messages', lines.join('\n') || '*No welcome messages configured.*')],
+        });
+      }
+
+      if (sub === 'remove' || sub === 'delete' || sub === 'del') {
+        const id = parseInt(args[1] ?? '', 10);
+        if (!id) {
+          return void message.reply({ embeds: [errorEmbed('Usage: `,welcome remove <id>` — use `,welcome list` for IDs')] });
+        }
+        const ok = await removeGuildMessage(guildId, id);
+        return void message.reply({
+          embeds: [ok ? successEmbed(`Removed welcome message **#${id}**.`) : errorEmbed(`No welcome message with ID **${id}**.`)],
+        });
+      }
+
+      if (sub === 'view' || sub === 'check') {
+        const id = parseInt(args[1] ?? '', 10);
+        if (id) {
+          const row = await getGuildMessage(guildId, id);
+          if (!row || row.kind !== 'welcome') {
+            return void message.reply({ embeds: [errorEmbed(`No welcome message with ID **${id}**.`)] });
+          }
+          return void message.reply({
+            embeds: [deeloEmbed(`Welcome #${row.id}`, `**Channel:** <#${row.channel_id}>\n**Message:** ${row.message}`)],
+          });
+        }
+        const guild = await getGuild(guildId);
+        return void message.reply({
+          embeds: [deeloEmbed('Welcome (primary)', `**Channel:** ${guild.welcome_channel ? `<#${guild.welcome_channel}>` : 'None'}\n**Message:** ${guild.welcome_message ?? 'None'}`)],
+        });
+      }
+
       if (sub === 'channel') {
         const ch = message.mentions.channels.first();
         if (!ch) return void message.reply({ embeds: [errorEmbed('Mention a channel.')] });
@@ -48,24 +122,108 @@ const configCommands: Command[] = [
         return;
       }
       if (sub === 'test') {
-        const guild = await getGuild(message.guild!.id);
-        if (!guild.welcome_message) return void message.reply({ embeds: [errorEmbed('No welcome message set.')] });
-        const msg = guild.welcome_message.replace(/{user}/g, message.author.toString()).replace(/{server}/g, message.guild!.name).replace(/{membercount}/g, message.guild!.memberCount.toString());
+        const guild = await getGuild(guildId);
+        const rows = await listGuildMessages(guildId, 'welcome');
+        const template = rows[0]?.message ?? guild.welcome_message;
+        if (!template) return void message.reply({ embeds: [errorEmbed('No welcome message set.')] });
+        const msg = formatGuildMessageForUser(template, message.author, message.guild!);
         return void message.reply({ content: msg });
       }
-      const guild = await getGuild(message.guild!.id);
-      await message.reply({ embeds: [deeloEmbed('Welcome', `**Channel:** ${guild.welcome_channel ? `<#${guild.welcome_channel}>` : 'None'}\n**Message:** ${guild.welcome_message ?? 'None'}`)] });
+      const guild = await getGuild(guildId);
+      const rows = await listGuildMessages(guildId, 'welcome');
+      await message.reply({
+        embeds: [
+          deeloEmbed(
+            'Welcome',
+            [
+              `**Primary channel:** ${guild.welcome_channel ? `<#${guild.welcome_channel}>` : 'None'}`,
+              `**Primary message:** ${guild.welcome_message ?? 'None'}`,
+              `**Extra messages:** ${rows.length}`,
+              '',
+              '**Add:** `,welcome add #channel <message>`',
+              '**List:** `,welcome list`',
+            ].join('\n'),
+          ),
+        ],
+      });
     },
   },
   {
     name: 'goodbye',
     description: 'Configure goodbye messages',
     category: 'config',
-    usage: 'goodbye <channel|message>',
+    usage: 'goodbye <channel|message|add|list|remove|view|variables>',
     permissions: [PermissionFlagsBits.ManageGuild],
     ack: 'only',
     run: async ({ message, args }) => {
+      const guildId = message.guild!.id;
       const sub = args[0]?.toLowerCase();
+
+      if (sub === 'variables' || sub === 'vars') {
+        return void message.reply({
+          embeds: [deeloEmbed('Goodbye variables', `Use these in your message:\n${WELCOME_VARIABLES}`)],
+        });
+      }
+
+      if (sub === 'add' || sub === 'create') {
+        const ch = message.mentions.channels.first();
+        const textArgs = ch ? args.slice(2) : args.slice(1);
+        const msg = textArgs.join(' ');
+        const channelId = ch?.id ?? message.channel.id;
+        if (!msg) {
+          return void message.reply({
+            embeds: [errorEmbed('Usage: `,goodbye add #channel <message>` or `,goodbye add <message>` in the target channel')],
+          });
+        }
+        const row = await addGuildMessage(guildId, 'goodbye', channelId, msg);
+        return void message.reply({
+          embeds: [successEmbed(`Goodbye message **#${row.id}** added for <#${channelId}>.`)],
+        });
+      }
+
+      if (sub === 'list') {
+        const rows = await listGuildMessages(guildId, 'goodbye');
+        const guild = await getGuild(guildId);
+        const lines: string[] = [];
+        if (guild.goodbye_channel && guild.goodbye_message) {
+          lines.push(`**primary** · <#${guild.goodbye_channel}> · ${guild.goodbye_message.slice(0, 80)}`);
+        }
+        for (const row of rows) {
+          lines.push(`**#${row.id}** · <#${row.channel_id}> · ${row.message.slice(0, 80)}`);
+        }
+        return void message.reply({
+          embeds: [deeloEmbed('Goodbye messages', lines.join('\n') || '*No goodbye messages configured.*')],
+        });
+      }
+
+      if (sub === 'remove' || sub === 'delete' || sub === 'del') {
+        const id = parseInt(args[1] ?? '', 10);
+        if (!id) {
+          return void message.reply({ embeds: [errorEmbed('Usage: `,goodbye remove <id>`')] });
+        }
+        const ok = await removeGuildMessage(guildId, id);
+        return void message.reply({
+          embeds: [ok ? successEmbed(`Removed goodbye message **#${id}**.`) : errorEmbed(`No goodbye message with ID **${id}**.`)],
+        });
+      }
+
+      if (sub === 'view' || sub === 'check') {
+        const id = parseInt(args[1] ?? '', 10);
+        if (id) {
+          const row = await getGuildMessage(guildId, id);
+          if (!row || row.kind !== 'goodbye') {
+            return void message.reply({ embeds: [errorEmbed(`No goodbye message with ID **${id}**.`)] });
+          }
+          return void message.reply({
+            embeds: [deeloEmbed(`Goodbye #${row.id}`, `**Channel:** <#${row.channel_id}>\n**Message:** ${row.message}`)],
+          });
+        }
+        const guild = await getGuild(guildId);
+        return void message.reply({
+          embeds: [deeloEmbed('Goodbye (primary)', `**Channel:** ${guild.goodbye_channel ? `<#${guild.goodbye_channel}>` : 'None'}\n**Message:** ${guild.goodbye_message ?? 'None'}`)],
+        });
+      }
+
       if (sub === 'channel') {
         const ch = message.mentions.channels.first();
         if (!ch) return void message.reply({ embeds: [errorEmbed('Mention a channel.')] });
@@ -78,8 +236,23 @@ const configCommands: Command[] = [
         await updateGuild(message.guild!.id, { goodbye_message: msg });
         return;
       }
-      const guild = await getGuild(message.guild!.id);
-      await message.reply({ embeds: [deeloEmbed('Goodbye', `**Channel:** ${guild.goodbye_channel ? `<#${guild.goodbye_channel}>` : 'None'}\n**Message:** ${guild.goodbye_message ?? 'None'}`)] });
+      const guild = await getGuild(guildId);
+      const rows = await listGuildMessages(guildId, 'goodbye');
+      await message.reply({
+        embeds: [
+          deeloEmbed(
+            'Goodbye',
+            [
+              `**Primary channel:** ${guild.goodbye_channel ? `<#${guild.goodbye_channel}>` : 'None'}`,
+              `**Primary message:** ${guild.goodbye_message ?? 'None'}`,
+              `**Extra messages:** ${rows.length}`,
+              '',
+              '**Add:** `,goodbye add #channel <message>`',
+              '**List:** `,goodbye list`',
+            ].join('\n'),
+          ),
+        ],
+      });
     },
   },
   {

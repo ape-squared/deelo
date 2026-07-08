@@ -309,22 +309,97 @@ async function handleReaction(name: string, message: Message, args: string[]) {
 }
 
 async function handleTimers(name: string, message: Message, args: string[]) {
+  const guildId = message.guild!.id;
+  const {
+    createGuildTimer,
+    listGuildTimers,
+    getGuildTimer,
+    removeGuildTimer,
+  } = await import('../../services/timers');
+
   if (name === 'timer add' || name === 'timers add') {
-    const dur = parseDuration(args[0] ?? '');
-    const text = args.slice(1).join(' ');
-    if (!dur || !text) { await replyError(message, 'Usage: `,timer add <duration> <message>`'); return true; }
-    setTimeout(() => {
-      const ch = message.channel;
-      if (ch.isTextBased() && 'send' in ch) ch.send(`⏰ ${text}`).catch(() => {});
-    }, dur);
-    await replySuccess(message, `Timer set for ${formatDuration(dur)}.`);
+    const ch = mentionChannel(message);
+    let durArg = args[0] ?? '';
+    let textArgs = args.slice(1);
+    if (ch) {
+      durArg = args[1] ?? '';
+      textArgs = args.slice(2);
+    }
+    const dur = parseDuration(durArg);
+    const text = textArgs.join(' ');
+    if (!dur || !text) {
+      await replyError(message, 'Usage: `,timer add <duration> <message>` or `,timer add <duration> #channel <message>`');
+      return true;
+    }
+    try {
+      const row = await createGuildTimer({
+        guildId,
+        channelId: ch?.id ?? message.channel.id,
+        creatorId: message.author.id,
+        message: text,
+        durationMs: dur,
+      });
+      await replySuccess(message, `Timer **#${row.id}** set for ${formatDuration(dur)} in <#${row.channel_id}>.`);
+    } catch (err) {
+      await replyError(message, err instanceof Error ? err.message : 'Could not create timer.');
+    }
     return true;
   }
-  if (name.startsWith('timer')) {
-    await setExtraConfig(message.guild!.id, `timers.${name.replace(/ /g, '.')}`, args.join(' ') || true);
-    await replySuccess(message, 'Timer configured.');
+
+  if (name === 'timer list' || name === 'timers list') {
+    const rows = await listGuildTimers(guildId);
+    if (!rows.length) {
+      await replyInfo(message, 'Timers', '*No active timers.*');
+      return true;
+    }
+    const lines = rows.map((row) => {
+      const when = Math.floor(new Date(row.fires_at).getTime() / 1000);
+      return `**#${row.id}** · <#${row.channel_id}> · <t:${when}:R> · ${row.message.slice(0, 60)}`;
+    });
+    await replyInfo(message, 'Active timers', lines.join('\n'));
     return true;
   }
+
+  if (name === 'timer view' || name === 'timer check' || name === 'timers view') {
+    const id = parseInt(args[0] ?? '', 10);
+    if (!id) {
+      await replyError(message, 'Usage: `,timer view <id>`');
+      return true;
+    }
+    const row = await getGuildTimer(guildId, id);
+    if (!row || row.sent) {
+      await replyError(message, `No active timer with ID **${id}**.`);
+      return true;
+    }
+    const when = Math.floor(new Date(row.fires_at).getTime() / 1000);
+    await replyInfo(
+      message,
+      `Timer #${row.id}`,
+      `**Channel:** <#${row.channel_id}>\n**Fires:** <t:${when}:F> (<t:${when}:R>)\n**Message:** ${row.message}`,
+    );
+    return true;
+  }
+
+  if (name === 'timer remove' || name === 'timer delete' || name === 'timer del' || name === 'timers remove') {
+    const id = parseInt(args[0] ?? '', 10);
+    if (!id) {
+      await replyError(message, 'Usage: `,timer remove <id>`');
+      return true;
+    }
+    const ok = await removeGuildTimer(guildId, id);
+    await replySuccess(message, ok ? `Removed timer **#${id}**.` : `No timer with ID **${id}**.`);
+    return true;
+  }
+
+  if (name === 'timer' || name === 'timers') {
+    await replyInfo(
+      message,
+      'Timers',
+      '**`,timer add <duration> <message>`** — schedule a message\n**`,timer list`** — active timers\n**`,timer view <id>`** — timer details\n**`,timer remove <id>`** — cancel a timer',
+    );
+    return true;
+  }
+
   return false;
 }
 

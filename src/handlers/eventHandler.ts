@@ -14,6 +14,7 @@ export function registerEvents(client: DeeloClient): void {
     void import('../services/social-poll').then(({ startSocialPollLoop }) => startSocialPollLoop(client));
     void import('../services/counters').then(({ startCounterSyncLoop }) => startCounterSyncLoop(client));
     void import('../services/bump-reminder').then(({ startBumpReminderLoop }) => startBumpReminderLoop(client));
+    void import('../services/timers').then(({ startTimerLoop }) => startTimerLoop(client));
   });
 
   client.on('messageCreate', async (message) => {
@@ -219,17 +220,8 @@ export function registerEvents(client: DeeloClient): void {
       if (role) await member.roles.add(role).catch(() => {});
     }
 
-    if (guild.welcome_channel && guild.welcome_message) {
-      const channel = member.guild.channels.cache.get(guild.welcome_channel);
-      if (channel?.isTextBased()) {
-        const msg = guild.welcome_message
-          .replace(/{user}/g, member.toString())
-          .replace(/{user.name}/g, member.user.username)
-          .replace(/{server}/g, member.guild.name)
-          .replace(/{membercount}/g, member.guild.memberCount.toString());
-        await channel.send(msg).catch(() => {});
-      }
-    }
+    const { sendWelcomeMessages } = await import('../services/guild-messages');
+    await sendWelcomeMessages(member).catch(() => {});
 
     const { sendEventLog } = await import('../services/logging');
     await sendEventLog(
@@ -279,16 +271,8 @@ export function registerEvents(client: DeeloClient): void {
       { userId: member.id },
     );
 
-    if (guild.goodbye_channel && guild.goodbye_message) {
-      const channel = member.guild.channels.cache.get(guild.goodbye_channel);
-      if (channel?.isTextBased()) {
-        const msg = guild.goodbye_message
-          .replace(/{user}/g, member.user?.username ?? 'Unknown')
-          .replace(/{server}/g, member.guild.name)
-          .replace(/{membercount}/g, member.guild.memberCount.toString());
-        await channel.send(msg).catch(() => {});
-      }
-    }
+    const { sendGoodbyeMessages } = await import('../services/guild-messages');
+    await sendGoodbyeMessages(member).catch(() => {});
 
     const { updateGuildCounters } = await import('../services/counters');
     await updateGuildCounters(member.guild).catch(() => {});
