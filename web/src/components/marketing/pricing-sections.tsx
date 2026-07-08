@@ -24,6 +24,7 @@ import {
   TYPICAL_STACK_COST,
 } from '@/lib/plans';
 import { getInviteUrl } from '@/lib/invite';
+import { dashboardRedeemPath } from '@/lib/dashboard-paths';
 import type { FeatureMatrixValue } from '@/lib/plans';
 
 const PLAN_ICONS = { free: Zap, premium: Sparkles, premium_plus: Crown } as const;
@@ -85,8 +86,8 @@ export function PricingHero() {
             Switch to Deelo — free
             <ArrowRight className="h-4 w-4" />
           </a>
-          <Link href="/dashboard" className="btn-secondary text-base">
-            Open dashboard
+          <Link href={dashboardRedeemPath()} className="btn-secondary text-base">
+            Redeem a code
           </Link>
         </div>
       </div>
@@ -166,13 +167,23 @@ export function PricingPlanCards() {
                   ))}
                 </ul>
 
-                <Link
-                  href={key === 'free' ? getInviteUrl() : '/dashboard'}
-                  className={`mt-8 w-full text-center ${key === 'free' ? 'btn-secondary' : 'btn-primary'}`}
-                  {...(key === 'free' ? { target: '_blank', rel: 'noreferrer' } : {})}
-                >
-                  {key === 'free' ? 'Add to Discord — free' : 'Redeem code in dashboard'}
-                </Link>
+                {key === 'free' ? (
+                  <a
+                    href={getInviteUrl()}
+                    className="btn-secondary mt-8 w-full text-center"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Add to Discord — free
+                  </a>
+                ) : (
+                  <Link
+                    href={dashboardRedeemPath()}
+                    className="btn-primary mt-8 w-full text-center"
+                  >
+                    Redeem code in dashboard
+                  </Link>
+                )}
               </div>
             );
           })}

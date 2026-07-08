@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { DeeloIcon, DeeloWordmark } from '@/components/brand/logo';
 import { inviteApiPath } from '@/lib/invite';
+import { dashboardRedeemPath } from '@/lib/dashboard-paths';
 
 export interface DashboardGuild {
   id: string;
@@ -19,9 +20,8 @@ export interface DashboardGuild {
 }
 
 const FOOTER_NAV = [
-  { href: '/pricing', label: 'Upgrade', icon: CreditCard },
   { href: '/commands', label: 'Commands', icon: BookOpen },
-];
+] as const;
 
 export function DashboardShell({
   children,
@@ -41,6 +41,7 @@ export function DashboardShell({
   const pathname = usePathname();
   const isGuildPage = pathname.startsWith('/dashboard/') && pathname !== '/dashboard';
   const activeGuilds = (guilds ?? []).filter((g) => g.botPresent !== false);
+  const redeemHref = currentGuild ? dashboardRedeemPath(currentGuild.id) : dashboardRedeemPath();
 
   return (
     <div className="dashboard-app mesh-bg v3-mesh flex min-h-screen flex-col">
@@ -128,6 +129,9 @@ export function DashboardShell({
             >
               <Plus className="h-5 w-5" />
             </a>
+            <Link href={redeemHref} className="server-rail-btn text-muted hover:text-foreground" title="Redeem code">
+              <CreditCard className="h-4 w-4" />
+            </Link>
             {FOOTER_NAV.map(({ href, label, icon: Icon }) => (
               <Link key={href} href={href} className="server-rail-btn text-muted hover:text-foreground" title={label}>
                 <Icon className="h-4 w-4" />

@@ -15,6 +15,7 @@ import {
 import { getLimit } from '@/lib/plan-limits';
 import type { PlanTier } from '@/lib/guild-settings';
 import { ChannelSelect } from '@/components/dashboard/discord-resources';
+import { dashboardRedeemPath } from '@/lib/dashboard-paths';
 
 export function EmbedsTab({
   guildId,
@@ -173,7 +174,7 @@ export function EmbedsTab({
             <p className="mt-2 text-xs text-muted">
               {items.length} / {maxEmbeds} saved embeds
               {!isPremium && (
-                <> · <Link href="/pricing" className="text-accent hover:underline">Upgrade</Link> for fields, images, and send</>
+                <> · <Link href={dashboardRedeemPath(guildId)} className="text-accent hover:underline">Redeem a code</Link> for fields, images, and send</>
               )}
             </p>
           </div>

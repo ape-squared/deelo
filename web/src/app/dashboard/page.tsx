@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
 import { inviteApiPath } from '@/lib/invite';
+import { dashboardRedeemPath, DASHBOARD_REDEEM_QUERY } from '@/lib/dashboard-paths';
 import { discordAvatarUrl } from '@/lib/discord-avatar';
 import { DashboardShell, GuildIcon, PageHeader } from '@/components/dashboard/shell';
 import { WelcomeChecklist } from '@/components/dashboard/welcome-checklist';
@@ -49,6 +50,8 @@ function DashboardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const authError = searchParams.get('error');
+  const redeemIntent = searchParams.get('redeem') === '1';
+  const welcomeIntent = searchParams.get('welcome') === '1';
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
   const [guilds, setGuilds] = useState<Guild[]>([]);
@@ -74,6 +77,20 @@ function DashboardContent() {
       .catch(() => setLoading(false));
   }, []);
 
+  useEffect(() => {
+    if (!redeemIntent || loading || !user) return;
+    const withBot = guilds.filter((g) => g.botPresent);
+    if (withBot.length === 1) {
+      router.replace(dashboardRedeemPath(withBot[0].id));
+    }
+  }, [redeemIntent, loading, user, guilds, router]);
+
+  const loginReturnPath = redeemIntent
+    ? DASHBOARD_REDEEM_QUERY
+    : welcomeIntent
+      ? '/dashboard?welcome=1'
+      : '/dashboard';
+
   async function logout() {
     await fetch('/api/auth/logout', { method: 'POST' });
     router.refresh();
@@ -97,7 +114,7 @@ function DashboardContent() {
               {authErrorMessage(authError)}
             </div>
           )}
-          <a href="/api/auth/discord?return=/dashboard%3Fwelcome%3D1" className="btn-primary w-full bg-[#5865F2] hover:bg-[#4752C4]">
+          <a href={`/api/auth/discord?return=${encodeURIComponent(loginReturnPath)}`} className="btn-primary w-full bg-[#5865F2] hover:bg-[#4752C4]">
             Continue with Discord
           </a>
         </div>
@@ -130,7 +147,21 @@ function DashboardContent() {
             }
           />
 
-          <WelcomeChecklist hasBot={withBot.length > 0} show={searchParams.get('welcome') === '1'} />
+          <WelcomeChecklist hasBot={withBot.length > 0} show={welcomeIntent} />
+
+          {redeemIntent && withBot.length > 1 && (
+            <div className="card mb-8 border-accent/25 bg-accent/5 p-5 text-sm">
+              <p className="font-medium">Redeem your premium code</p>
+              <p className="mt-1 text-muted">Select a server below — you&apos;ll land on General settings where you can enter your code.</p>
+            </div>
+          )}
+
+          {redeemIntent && guilds.length > 0 && withBot.length === 0 && (
+            <div className="card mb-8 border-amber-500/30 bg-amber-500/5 p-5 text-sm">
+              <p className="font-medium">Invite Deelo first</p>
+              <p className="mt-1 text-muted">Add the bot to a server below, then open it to redeem your code.</p>
+            </div>
+          )}
 
           {officialMember === false && (
             <div className="card mb-8 border-accent/20 bg-accent/5 p-5 text-sm">
@@ -172,7 +203,7 @@ function DashboardContent() {
                   <h2 className="module-group-title mb-4">Your servers</h2>
                   <div className="server-picker-grid dashboard-stagger">
                     {withBot.map((g) => (
-                      <ServerPickerCard key={g.id} guild={g} />
+                      <ServerPickerCard key={g.id} guild={g} redeemIntent={redeemIntent} />
                     ))}
                   </div>
                 </section>
@@ -203,7 +234,7 @@ export default function DashboardPage() {
   );
 }
 
-function ServerPickerCard({ guild: g, invite }: { guild: Guild; invite?: boolean }) {
+function ServerPickerCard({ guild: g, invite, redeemIntent }: { guild: Guild; invite?: boolean; redeemIntent?: boolean }) {
   const content = (
     <>
       <div className="server-picker-icon">
@@ -237,7 +268,7 @@ function ServerPickerCard({ guild: g, invite }: { guild: Guild; invite?: boolean
   }
 
   return (
-    <Link href={`/dashboard/${g.id}`} className="server-picker-card group relative">
+    <Link href={redeemIntent ? dashboardRedeemPath(g.id) : `/dashboard/${g.id}`} className="server-picker-card group relative">
       {content}
     </Link>
   );

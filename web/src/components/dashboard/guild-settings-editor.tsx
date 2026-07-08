@@ -207,7 +207,7 @@ export function GuildSettingsEditor({
               <input type="number" className="input max-w-[160px] font-mono" value={guild.bump_interval ?? 7200000} onChange={(e) => update('bump_interval', parseInt(e.target.value, 10) || 7200000)} />
             </Field>
             <Toggle label="Fake permissions mode" desc="Allow fake permission overrides (admin only)" checked={guild.fake_permissions_enabled ?? false} onChange={(v) => update('fake_permissions_enabled', v)} />
-            <PlanCard guild={guild} subscription={initial.subscription} />
+            <PlanCard guild={guild} subscription={initial.subscription} onRedeem={() => setTab('general')} />
           </Section>
         )}
 
@@ -220,7 +220,7 @@ export function GuildSettingsEditor({
               <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4">
                 <p className="text-sm font-medium">Premium required</p>
                 <p className="mt-1 text-sm text-muted">Upgrade to customize Deelo&apos;s nickname, embed color, and footer in your server.</p>
-                <Link href="/pricing" className="btn-primary text-sm py-2 inline-flex mt-3">View plans</Link>
+                <button type="button" onClick={() => setTab('general')} className="btn-primary text-sm py-2 inline-flex mt-3">Redeem a code</button>
               </div>
             ) : (
               BOT_APPEARANCE_FIELDS.map((f) => (
@@ -864,12 +864,14 @@ function ReactionTriggersList({ guildId, items, onReload }: { guildId: string; i
   );
 }
 
-function PlanCard({ guild, subscription }: { guild: DashboardGuildSettings; subscription: GuildFullConfig['subscription'] }) {
+function PlanCard({ guild, subscription, onRedeem }: { guild: DashboardGuildSettings; subscription: GuildFullConfig['subscription']; onRedeem?: () => void }) {
   return (
     <div className="rounded-xl border border-border bg-white/5 p-4 space-y-2">
       <p className="font-medium capitalize">{guild.plan.replace('_', ' ')} plan</p>
       {subscription && <p className="text-sm text-muted">Subscription: <span className="capitalize">{subscription.status}</span>{subscription.expires_at && <> · expires {new Date(subscription.expires_at).toLocaleDateString()}</>}</p>}
-      {guild.plan === 'free' && <Link href="/pricing" className="btn-primary text-sm py-2 inline-flex mt-2">Upgrade</Link>}
+      {guild.plan === 'free' && onRedeem && (
+        <button type="button" onClick={onRedeem} className="btn-primary text-sm py-2 inline-flex mt-2">Redeem a code</button>
+      )}
     </div>
   );
 }

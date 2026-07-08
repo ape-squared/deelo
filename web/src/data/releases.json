@@ -1,13 +1,18 @@
 {
-  "generated_at": "2026-07-08T01:14:41.924Z",
+  "generated_at": "2026-07-08T01:19:03.253Z",
   "latest": {
     "id": "release-2026-07-07",
-    "version": "068c9f5",
-    "published_at": "2026-07-07T21:03:47-04:00",
+    "version": "8a54ac2",
+    "published_at": "2026-07-07T21:15:26-04:00",
     "title": "Updates for July 7, 2026",
-    "category": "fix",
-    "body": "- Fix broken mobile menu X showing on desktop widths\n- Show hamburger nav only on mobile viewports\n- Fix mobile nav hamburger blocked by What's New modal\n- Edit Discord changelog embeds when git release content updates\n- Fix suggestions page modal, search field, and error handling\n- Improve Discord OAuth diagnostics and error mapping\n- Fix Discord dashboard login after guilds.join OAuth change\n- Add community feature requests with Discord OAuth and server gating\n- Overhaul ,stream with station switching and queue controls\n- Fix radio playback using fetch and demuxProbe\n- Align marketing site with pricing and fix radio reconnect loop\n- Fix duplicate command replies using site_settings dedup",
+    "category": "feature",
+    "body": "- Add launch-day SEO, UX, and dashboard polish for production readiness\n- Fix broken mobile menu X showing on desktop widths\n- Show hamburger nav only on mobile viewports\n- Fix mobile nav hamburger blocked by What's New modal\n- Edit Discord changelog embeds when git release content updates\n- Fix suggestions page modal, search field, and error handling\n- Improve Discord OAuth diagnostics and error mapping\n- Fix Discord dashboard login after guilds.join OAuth change\n- Add community feature requests with Discord OAuth and server gating\n- Overhaul ,stream with station switching and queue controls\n- Fix radio playback using fetch and demuxProbe\n- Align marketing site with pricing and fix radio reconnect loop",
     "items": [
+      {
+        "title": "Add launch-day SEO, UX, and dashboard polish for production readiness",
+        "category": "feature",
+        "hash": "8a54ac2"
+      },
       {
         "title": "Fix broken mobile menu X showing on desktop widths",
         "category": "fix",
@@ -62,11 +67,6 @@
         "title": "Align marketing site with pricing and fix radio reconnect loop",
         "category": "improvement",
         "hash": "c06ae87"
-      },
-      {
-        "title": "Fix duplicate command replies using site_settings dedup",
-        "category": "fix",
-        "hash": "c40f0f6"
       }
     ],
     "source": "git"
@@ -74,12 +74,17 @@
   "releases": [
     {
       "id": "release-2026-07-07",
-      "version": "068c9f5",
-      "published_at": "2026-07-07T21:03:47-04:00",
+      "version": "8a54ac2",
+      "published_at": "2026-07-07T21:15:26-04:00",
       "title": "Updates for July 7, 2026",
-      "category": "fix",
-      "body": "- Fix broken mobile menu X showing on desktop widths\n- Show hamburger nav only on mobile viewports\n- Fix mobile nav hamburger blocked by What's New modal\n- Edit Discord changelog embeds when git release content updates\n- Fix suggestions page modal, search field, and error handling\n- Improve Discord OAuth diagnostics and error mapping\n- Fix Discord dashboard login after guilds.join OAuth change\n- Add community feature requests with Discord OAuth and server gating\n- Overhaul ,stream with station switching and queue controls\n- Fix radio playback using fetch and demuxProbe\n- Align marketing site with pricing and fix radio reconnect loop\n- Fix duplicate command replies using site_settings dedup",
+      "category": "feature",
+      "body": "- Add launch-day SEO, UX, and dashboard polish for production readiness\n- Fix broken mobile menu X showing on desktop widths\n- Show hamburger nav only on mobile viewports\n- Fix mobile nav hamburger blocked by What's New modal\n- Edit Discord changelog embeds when git release content updates\n- Fix suggestions page modal, search field, and error handling\n- Improve Discord OAuth diagnostics and error mapping\n- Fix Discord dashboard login after guilds.join OAuth change\n- Add community feature requests with Discord OAuth and server gating\n- Overhaul ,stream with station switching and queue controls\n- Fix radio playback using fetch and demuxProbe\n- Align marketing site with pricing and fix radio reconnect loop",
       "items": [
+        {
+          "title": "Add launch-day SEO, UX, and dashboard polish for production readiness",
+          "category": "feature",
+          "hash": "8a54ac2"
+        },
         {
           "title": "Fix broken mobile menu X showing on desktop widths",
           "category": "fix",
@@ -134,11 +139,6 @@
           "title": "Align marketing site with pricing and fix radio reconnect loop",
           "category": "improvement",
           "hash": "c06ae87"
-        },
-        {
-          "title": "Fix duplicate command replies using site_settings dedup",
-          "category": "fix",
-          "hash": "c40f0f6"
         }
       ],
       "source": "git"
