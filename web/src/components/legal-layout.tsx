@@ -12,7 +12,7 @@ export function LegalLayout({
   children: React.ReactNode;
 }) {
   return (
-    <MarketingLayout banner={false}>
+    <MarketingLayout>
       <MarketingMain narrow>
         <SitePageHero
           label="Legal"
@@ -27,7 +27,7 @@ export function LegalLayout({
 
         <p className="mt-8 animate-fade-in text-center text-sm text-muted">
           Questions? Contact us through our{' '}
-          <Link href="/dashboard" className="text-accent hover:underline">support channels</Link>
+          <Link href="/support" className="text-accent hover:underline">support page</Link>
           {' '}or Discord server.
         </p>
       </MarketingMain>

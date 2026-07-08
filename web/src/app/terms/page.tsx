@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { LegalLayout, LegalSection } from '@/components/legal-layout';
+import { siteHost } from '@/lib/site-config';
 
 export const metadata: Metadata = {
   title: 'Terms of Service',
@@ -9,12 +10,14 @@ export const metadata: Metadata = {
 const UPDATED = 'July 6, 2026';
 
 export default function TermsPage() {
+  const host = siteHost();
+
   return (
     <LegalLayout title="Terms of Service" updated={UPDATED}>
       <LegalSection title="1. Agreement">
         <p>
           By inviting Deelo to a Discord server, using Deelo commands, or accessing the Deelo website and dashboard
-          at deelo.bot (the &quot;Service&quot;), you agree to these Terms of Service (&quot;Terms&quot;). If you do not agree,
+          at {host} (the &quot;Service&quot;), you agree to these Terms of Service (&quot;Terms&quot;). If you do not agree,
           do not use the Service.
         </p>
         <p>
@@ -154,7 +157,7 @@ export default function TermsPage() {
 
       <LegalSection title="14. Contact">
         <p>
-          For questions about these Terms, contact us through the support options listed on deelo.bot or our
+          For questions about these Terms, contact us through the support options at {host} or our
           official Discord community.
         </p>
       </LegalSection>

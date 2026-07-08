@@ -14,7 +14,7 @@ export default async function ChangelogPage() {
   const entries = await getPublishedChangelog();
 
   return (
-    <MarketingLayout banner={false}>
+    <MarketingLayout>
       <MarketingSubHero
         icon={ScrollText}
         label="Release notes"

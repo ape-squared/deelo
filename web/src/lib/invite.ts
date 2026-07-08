@@ -18,8 +18,17 @@ export function getInviteUrl(guildId?: string): string {
   return buildInviteUrl(getDiscordClientId(), guildId);
 }
 
+type UtmParams = Record<string, string | undefined>;
+
 /** Client-safe path — resolves invite URL on the server via /api/invite */
-export function inviteApiPath(guildId?: string): string {
-  if (!guildId) return '/api/invite';
-  return `/api/invite?guild_id=${encodeURIComponent(guildId)}`;
+export function inviteApiPath(guildId?: string, utm?: UtmParams): string {
+  const params = new URLSearchParams();
+  if (guildId) params.set('guild_id', guildId);
+  if (utm) {
+    for (const [key, value] of Object.entries(utm)) {
+      if (value) params.set(key, value);
+    }
+  }
+  const q = params.toString();
+  return q ? `/api/invite?${q}` : '/api/invite';
 }

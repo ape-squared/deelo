@@ -9,7 +9,7 @@ export default async function SuggestionDetailPage({ params }: { params: Promise
   const { slug } = await params;
 
   return (
-    <MarketingLayout banner={false}>
+    <MarketingLayout>
       <MarketingMain narrow className="!py-12 lg:!py-20">
         <Link href="/suggestions" className="mb-8 inline-flex items-center gap-2 text-sm text-muted transition hover:text-foreground">
           <ArrowLeft className="h-4 w-4" />

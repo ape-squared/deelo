@@ -1,11 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useEffect, useState } from 'react';
 import { inviteApiPath } from '@/lib/invite';
 import { discordAvatarUrl } from '@/lib/discord-avatar';
 import { DashboardShell, GuildIcon, PageHeader } from '@/components/dashboard/shell';
+import { WelcomeChecklist } from '@/components/dashboard/welcome-checklist';
 import { LoadingScreen, EmptyState } from '@/components/ui/animate';
 import { DiscordIcon } from '@/components/icons/discord';
 import { SearchField } from '@/components/search-field';
@@ -27,24 +28,27 @@ interface User {
   avatar: string | null;
 }
 
-const AUTH_ERRORS: Record<string, string> = {
-  token: 'Discord sign-in failed. Try again in a fresh tab (don’t refresh the callback URL).',
-  invalid_client:
-    'Discord rejected the client secret. In Dokploy, set DISCORD_CLIENT_SECRET on the web service to match Discord Developer Portal → OAuth2 → Client Secret (reset there if unsure).',
-  missing_secret:
-    'DISCORD_CLIENT_SECRET is not set on the web container. Add it in Dokploy environment variables for the web service.',
-  redirect_uri:
-    'Redirect URI mismatch. Register exactly https://deelo.nikkithewikki.top/api/auth/discord/callback in Discord OAuth2 redirects.',
-  invalid_grant:
-    'Authorization expired or already used. Click “Continue with Discord” again — don’t reload the page after approving.',
-  server_config: 'Server OAuth configuration error. Check web container logs.',
-  no_code: 'Discord did not return an authorization code. Try signing in again.',
-  user: 'Could not load your Discord profile after sign-in. Try again.',
-};
+function authErrorMessage(code: string): string {
+  const messages: Record<string, string> = {
+    token: 'Discord sign-in failed. Try again in a fresh tab (don’t refresh the callback URL).',
+    invalid_client:
+      'Discord rejected the client secret. Set DISCORD_CLIENT_SECRET on the web service to match Discord Developer Portal.',
+    missing_secret: 'DISCORD_CLIENT_SECRET is not set on the web container.',
+    redirect_uri:
+      'Redirect URI mismatch. Register your site URL + /api/auth/discord/callback in Discord OAuth2 redirects.',
+    invalid_grant:
+      'Authorization expired or already used. Click “Continue with Discord” again.',
+    server_config: 'Server OAuth configuration error. Check web container logs.',
+    no_code: 'Discord did not return an authorization code. Try signing in again.',
+    user: 'Could not load your Discord profile after sign-in. Try again.',
+  };
+  return messages[code] ?? 'Sign-in failed. Please try again.';
+}
 
-export default function DashboardPage() {
+function DashboardContent() {
   const router = useRouter();
-  const [authError, setAuthError] = useState<string | null>(null);
+  const searchParams = useSearchParams();
+  const authError = searchParams.get('error');
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
   const [guilds, setGuilds] = useState<Guild[]>([]);
@@ -52,11 +56,6 @@ export default function DashboardPage() {
   const [search, setSearch] = useState('');
   const [officialMember, setOfficialMember] = useState<boolean | null>(null);
   const [officialGuildInvite, setOfficialGuildInvite] = useState('https://discord.gg/deelo');
-
-  useEffect(() => {
-    const err = new URLSearchParams(window.location.search).get('error');
-    if (err) setAuthError(err);
-  }, []);
 
   useEffect(() => {
     fetch('/api/guilds')
@@ -95,10 +94,10 @@ export default function DashboardPage() {
           <p className="text-muted mb-8 text-sm">Sign in with Discord to manage Deelo across your servers.</p>
           {authError && (
             <div className="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-left text-sm text-red-200">
-              {AUTH_ERRORS[authError] ?? 'Sign-in failed. Please try again.'}
+              {authErrorMessage(authError)}
             </div>
           )}
-          <a href="/api/auth/discord" className="btn-primary w-full bg-[#5865F2] hover:bg-[#4752C4]">
+          <a href="/api/auth/discord?return=/dashboard%3Fwelcome%3D1" className="btn-primary w-full bg-[#5865F2] hover:bg-[#4752C4]">
             Continue with Discord
           </a>
         </div>
@@ -107,7 +106,6 @@ export default function DashboardPage() {
   }
 
   const userAvatar = discordAvatarUrl(user.id, user.avatar, 64);
-
   const filtered = guilds.filter((g) => g.name.toLowerCase().includes(search.toLowerCase()));
   const withBot = filtered.filter((g) => g.botPresent);
   const withoutBot = filtered.filter((g) => !g.botPresent);
@@ -119,86 +117,89 @@ export default function DashboardPage() {
       onLogout={logout}
     >
       <div className="h-full overflow-y-auto">
-      <div className="p-4 sm:p-6 lg:p-8 animate-fade-in">
-      <PageHeader
-        title="Select a server"
-        description="Choose a server to manage its modules and settings."
-        badge={officialMember ? <span className="badge badge-accent">{withBot.length} active</span> : undefined}
-        action={
-          officialMember ? (
-            <a href={inviteApiPath()} className="btn-primary text-sm py-2.5" target="_blank" rel="noreferrer">
-              <Plus className="h-4 w-4" />
-              Add to server
-            </a>
-          ) : undefined
-        }
-      />
+        <div className="p-4 sm:p-6 lg:p-8 animate-fade-in">
+          <PageHeader
+            title="Select a server"
+            description="Choose a server to manage its modules and settings."
+            badge={<span className="badge badge-accent">{withBot.length} active</span>}
+            action={
+              <a href={inviteApiPath()} className="btn-primary text-sm py-2.5" target="_blank" rel="noreferrer">
+                <Plus className="h-4 w-4" />
+                Add to server
+              </a>
+            }
+          />
 
-      {officialMember === false && (
-        <div className="card mb-8 border-amber-500/30 bg-amber-500/10 p-6">
-          <h2 className="text-lg font-semibold text-amber-100">Join the official Deelo Discord</h2>
-          <p className="mt-2 text-sm text-muted">
-            Dashboard access and community features require membership in our official server. After joining, refresh this page.
-          </p>
-          <div className="mt-4 flex flex-wrap gap-3">
-            <a href={officialGuildInvite} className="btn-primary text-sm" target="_blank" rel="noreferrer">
-              Join Discord server
-            </a>
-            <button type="button" className="btn-secondary text-sm" onClick={() => window.location.reload()}>
-              Refresh
-            </button>
-          </div>
-        </div>
-      )}
+          <WelcomeChecklist hasBot={withBot.length > 0} show={searchParams.get('welcome') === '1'} />
 
-      {officialMember && guilds.length > 0 && (
-        <SearchField
-          className="mb-8 max-w-md"
-          placeholder="Search servers..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-      )}
-
-      {officialMember && !guilds.length ? (
-        <EmptyState
-          icon={<Server className="h-7 w-7" />}
-          title="No servers found"
-          description={emptyHint}
-          action={
-            <div className="flex gap-3">
-              <a href="/api/auth/discord" className="btn-secondary text-sm">Re-login</a>
-              <a href={inviteApiPath()} className="btn-primary text-sm" target="_blank" rel="noreferrer">Invite bot</a>
+          {officialMember === false && (
+            <div className="card mb-8 border-accent/20 bg-accent/5 p-5 text-sm">
+              <p className="font-medium">Join our Discord community</p>
+              <p className="mt-1 text-muted">
+                Optional — unlock feature voting and suggestions. Dashboard configuration works without joining.
+              </p>
+              <a href={officialGuildInvite} className="btn-secondary mt-3 inline-flex text-sm" target="_blank" rel="noreferrer">
+                Join Discord server
+              </a>
             </div>
-          }
-        />
-      ) : officialMember ? (
-        <div className="space-y-10">
-          {withBot.length > 0 && (
-            <section>
-              <h2 className="module-group-title mb-4">Your servers</h2>
-              <div className="server-picker-grid dashboard-stagger">
-                {withBot.map((g) => (
-                  <ServerPickerCard key={g.id} guild={g} />
-                ))}
-              </div>
-            </section>
           )}
-          {withoutBot.length > 0 && (
-            <section>
-              <h2 className="module-group-title mb-4">Invite Deelo</h2>
-              <div className="server-picker-grid dashboard-stagger">
-                {withoutBot.map((g) => (
-                  <ServerPickerCard key={g.id} guild={g} invite />
-                ))}
-              </div>
-            </section>
+
+          {guilds.length > 0 && (
+            <SearchField
+              className="mb-8 max-w-md"
+              placeholder="Search servers..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          )}
+
+          {!guilds.length ? (
+            <EmptyState
+              icon={<Server className="h-7 w-7" />}
+              title="No servers found"
+              description={emptyHint}
+              action={
+                <div className="flex gap-3">
+                  <a href="/api/auth/discord" className="btn-secondary text-sm">Re-login</a>
+                  <a href={inviteApiPath()} className="btn-primary text-sm" target="_blank" rel="noreferrer">Invite bot</a>
+                </div>
+              }
+            />
+          ) : (
+            <div className="space-y-10">
+              {withBot.length > 0 && (
+                <section>
+                  <h2 className="module-group-title mb-4">Your servers</h2>
+                  <div className="server-picker-grid dashboard-stagger">
+                    {withBot.map((g) => (
+                      <ServerPickerCard key={g.id} guild={g} />
+                    ))}
+                  </div>
+                </section>
+              )}
+              {withoutBot.length > 0 && (
+                <section>
+                  <h2 className="module-group-title mb-4">Invite Deelo</h2>
+                  <div className="server-picker-grid dashboard-stagger">
+                    {withoutBot.map((g) => (
+                      <ServerPickerCard key={g.id} guild={g} invite />
+                    ))}
+                  </div>
+                </section>
+              )}
+            </div>
           )}
         </div>
-      ) : null}
-      </div>
       </div>
     </DashboardShell>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={<LoadingScreen label="Loading your servers..." />}>
+      <DashboardContent />
+    </Suspense>
   );
 }
 

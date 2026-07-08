@@ -12,7 +12,7 @@ export default async function AnnouncementsPage() {
   const announcements = await getPublishedAnnouncements();
 
   return (
-    <MarketingLayout banner={false}>
+    <MarketingLayout>
       <MarketingSubHero
         icon={Megaphone}
         label="Official updates"

@@ -7,7 +7,7 @@ export const metadata = { title: 'Feature Requests — Deelo' };
 
 export default function SuggestionsPage() {
   return (
-    <MarketingLayout banner={false}>
+    <MarketingLayout>
       <main className="flex-1">
         <MarketingSubHero
           icon={Lightbulb}

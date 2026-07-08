@@ -1,7 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import commands from '@/data/commands-catalog.json';
+import { useEffect, useMemo, useState } from 'react';
 import { mergeNativeCommands } from '@/lib/deelo-native-commands';
 import {
   COG_STATUS_LABEL,
@@ -9,7 +8,7 @@ import {
   type CommandImplementationStatus,
 } from '@/lib/command-implementation';
 import { SearchField } from '@/components/search-field';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
 
 type Cog = {
   cog_name: string;
@@ -19,12 +18,24 @@ type Cog = {
 };
 
 export function CommandsView() {
+  const [catalog, setCatalog] = useState<{ cogs: Cog[] } | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    void fetch('/api/commands/catalog')
+      .then((r) => r.json())
+      .then((data) => setCatalog(data))
+      .finally(() => setLoading(false));
+  }, []);
+
   const cogs = useMemo(
     () =>
-      mergeNativeCommands((commands as { cogs: Cog[] }).cogs)
-        .filter((c) => c.commands.length > 0)
-        .sort((a, b) => b.commands.length - a.commands.length),
-    [],
+      catalog
+        ? mergeNativeCommands(catalog.cogs)
+            .filter((c) => c.commands.length > 0)
+            .sort((a, b) => b.commands.length - a.commands.length)
+        : [],
+    [catalog],
   );
 
   const [search, setSearch] = useState('');
@@ -40,7 +51,7 @@ export function CommandsView() {
           (cmd) =>
             cmd.name.toLowerCase().includes(q) ||
             cmd.description?.toLowerCase().includes(q) ||
-            cog.cog_name.toLowerCase().includes(q)
+            cog.cog_name.toLowerCase().includes(q),
         ),
       }))
       .filter((cog) => cog.commands.length > 0);
@@ -53,91 +64,77 @@ export function CommandsView() {
       'coming-soon': 0,
     };
     for (const cog of cogs) {
-      counts[getCogImplementationStatus(cog.cog_name)] += cog.commands.length;
+      const status = getCogImplementationStatus(cog.cog_name);
+      counts[status] += cog.commands.length;
     }
     return counts;
   }, [cogs]);
 
+  if (loading) {
+    return (
+      <div className="flex justify-center py-20">
+        <Loader2 className="h-8 w-8 animate-spin text-accent" />
+      </div>
+    );
+  }
+
   return (
     <section className="site-section !pt-0">
-      <div className="mx-auto max-w-6xl lg:px-6">
+      <div className="mx-auto max-w-4xl px-4 lg:px-6">
+        <div className="mb-8 flex flex-wrap gap-2">
+          {(Object.keys(statusCounts) as CommandImplementationStatus[]).map((key) => (
+            <span key={key} className="badge badge-muted text-xs">
+              {COG_STATUS_LABEL[key]}: {statusCounts[key]}
+            </span>
+          ))}
+        </div>
+
         <SearchField
-          className="mb-10 max-w-md mx-auto animate-fade-up"
+          className="mb-8"
           placeholder="Search commands..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
+          aria-label="Search commands"
         />
 
-        <div className="space-y-4">
-          {filtered.map((cog, i) => {
-            const isOpen = expanded === cog.cog_name || !!search;
-            const displayName = cog.alt_name || cog.cog_name;
-            const cogStatus = getCogImplementationStatus(cog.cog_name);
-
+        <div className="space-y-3">
+          {filtered.map((cog) => {
+            const isOpen = expanded === cog.cog_name;
+            const status = getCogImplementationStatus(cog.cog_name);
             return (
-              <section
-                key={cog.cog_name}
-                className="card overflow-hidden animate-fade-up"
-                style={{ animationDelay: `${Math.min(i * 40, 400)}ms` }}
-              >
+              <div key={cog.cog_name} className="card overflow-hidden">
                 <button
                   type="button"
-                  onClick={() => !search && setExpanded(expanded === cog.cog_name ? null : cog.cog_name)}
-                  className="flex w-full items-center justify-between gap-4 p-6 text-left transition hover:bg-white/[0.02]"
+                  className="flex w-full items-center justify-between gap-4 p-4 text-left sm:p-5"
+                  onClick={() => setExpanded(isOpen ? null : cog.cog_name)}
+                  aria-expanded={isOpen}
                 >
                   <div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h2 className="text-lg font-semibold capitalize">{displayName}</h2>
-                      <span className={`badge text-[10px] ${
-                        cogStatus === 'supported' ? 'badge-accent' : cogStatus === 'partial' ? 'badge-warning' : 'border border-border text-muted'
-                      }`}>
-                        {COG_STATUS_LABEL[cogStatus]}
-                      </span>
-                    </div>
-                    <p className="text-sm text-muted mt-0.5">{cog.commands.length} command{cog.commands.length !== 1 ? 's' : ''}</p>
+                    <p className="font-semibold">{cog.alt_name ?? cog.cog_name}</p>
+                    <p className="text-xs text-muted">
+                      {cog.commands.length} commands · {COG_STATUS_LABEL[status]}
+                    </p>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <span className="badge badge-accent">{cog.commands.length}</span>
-                    {!search && (
-                      isOpen ? <ChevronUp className="h-5 w-5 text-muted" /> : <ChevronDown className="h-5 w-5 text-muted" />
-                    )}
-                  </div>
+                  {isOpen ? <ChevronUp className="h-5 w-5 text-muted" /> : <ChevronDown className="h-5 w-5 text-muted" />}
                 </button>
-
                 {isOpen && (
-                  <div className="border-t border-border px-6 pb-6 pt-2 animate-fade-in">
-                    <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                      {cog.commands.map((cmd) => (
-                        <div
-                          key={cmd.name}
-                          className="rounded-xl border border-border/50 bg-background/50 px-4 py-3 transition hover:border-accent/30 hover:bg-accent-soft/30"
-                        >
-                          <code className="text-sm text-accent font-mono">,{cmd.name}</code>
-                          {cmd.description && (
-                            <p className="mt-1.5 text-xs text-muted line-clamp-2">
-                              {cmd.description.replace(/bleed/gi, 'Deelo')}
-                            </p>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                  <ul className="border-t border-border px-4 py-3 sm:px-5">
+                    {cog.commands.map((cmd) => (
+                      <li key={cmd.name} className="border-b border-border/40 py-2.5 last:border-0">
+                        <p className="font-mono text-sm text-accent">{cmd.name}</p>
+                        {cmd.description && (
+                          <p className="mt-0.5 text-xs text-muted">
+                            {(cmd.description ?? '').replace(/\bbleed\b/gi, 'Deelo')}
+                          </p>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
                 )}
-              </section>
+              </div>
             );
           })}
         </div>
-
-        {!filtered.length && (
-          <div className="card p-12 text-center text-muted animate-fade-in">
-            No commands match &ldquo;{search}&rdquo;
-          </div>
-        )}
-
-        <p className="mt-10 text-center text-sm text-muted">
-          {statusCounts.supported.toLocaleString()} supported · {statusCounts.partial.toLocaleString()} partial ·{' '}
-          {statusCounts['coming-soon'].toLocaleString()} coming soon
-        </p>
       </div>
     </section>
   );

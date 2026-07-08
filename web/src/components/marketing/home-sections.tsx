@@ -208,7 +208,7 @@ export function HomeFinalCta({ discordInvite }: { discordInvite: string }) {
             Ready to ditch the bot stack?
           </h2>
           <p className="mx-auto mb-2 max-w-lg text-base text-muted sm:text-lg">
-            Join thousands of communities running Deelo as their only bot. Free forever — upgrade only when you need more.
+            Start running Deelo as your only bot. Free forever — upgrade with a redeem code when you need more.
           </p>
           <p className="mx-auto mb-8 text-sm font-medium text-green-400">
             Premium saves ~$22/mo vs a typical {TYPICAL_STACK_COST.bots.length}-bot setup

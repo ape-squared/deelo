@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { getBannerAnnouncement, getDiscordSettings } from '@/lib/site-data';
 import { SiteAnnouncementBanner } from '@/components/site-announcement-banner';
 import { DeeloWordmark, DeeloIcon } from '@/components/brand/logo';
+import { brandDomain, isBrandDomainLive, siteHost } from '@/lib/site-config';
 
 export { SiteHeader } from '@/components/site-header';
 
@@ -45,6 +46,7 @@ export async function SiteFooter() {
               <p className="site-footer-label">Product</p>
               <div className="site-footer-links">
                 <Link href="/commands">Commands</Link>
+                <Link href="/suggestions">Suggestions</Link>
                 <Link href="/pricing">Pricing</Link>
                 <Link href="/dashboard">Dashboard</Link>
                 <Link href="/status">Status</Link>
@@ -55,6 +57,7 @@ export async function SiteFooter() {
               <div className="site-footer-links">
                 <Link href="/changelog">Changelog</Link>
                 <Link href="/announcements">Announcements</Link>
+                <Link href="/support">Support</Link>
               </div>
             </div>
             <div>
@@ -68,7 +71,9 @@ export async function SiteFooter() {
         </div>
         <div className="mt-14 flex flex-wrap items-center justify-between gap-4 border-t border-border/60 pt-8 text-xs text-muted">
           <p>© {new Date().getFullYear()} Deelo. All rights reserved.</p>
-          <p className="font-mono text-accent/80">deelo.bot</p>
+          <p className="font-mono text-accent/80">
+            {isBrandDomainLive() ? brandDomain() : siteHost()}
+          </p>
         </div>
       </div>
     </footer>

@@ -119,7 +119,7 @@ export function PricingPlanCards() {
           <span className="section-label">Plans</span>
           <h2 className="section-heading">Start free. Upgrade when you outgrow it.</h2>
           <p className="section-sub mx-auto">
-            Transparent pricing, no hidden fees. Manage plans from your dashboard after inviting Deelo.
+            Transparent pricing, no hidden fees. Premium plans are activated via redeem codes in the dashboard — self-serve checkout coming soon.
           </p>
         </div>
 
@@ -171,7 +171,7 @@ export function PricingPlanCards() {
                   className={`mt-8 w-full text-center ${key === 'free' ? 'btn-secondary' : 'btn-primary'}`}
                   {...(key === 'free' ? { target: '_blank', rel: 'noreferrer' } : {})}
                 >
-                  {key === 'free' ? 'Add to Discord — free' : 'Upgrade in dashboard'}
+                  {key === 'free' ? 'Add to Discord — free' : 'Redeem code in dashboard'}
                 </Link>
               </div>
             );
@@ -384,7 +384,7 @@ export function PricingFinalCta() {
             Ready to ditch the bot stack?
           </h2>
           <p className="mx-auto mb-2 max-w-lg text-base text-muted">
-            Join thousands of communities running Deelo as their only bot. Free forever — upgrade only when you need more.
+            Start running Deelo as your only bot. Free forever — upgrade with a redeem code when you need more.
           </p>
           <p className="mx-auto mb-8 text-sm font-medium text-green-400">
             Premium saves ~$22/mo vs a typical {TYPICAL_STACK_COST.bots.length}-bot setup

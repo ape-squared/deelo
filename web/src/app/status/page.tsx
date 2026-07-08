@@ -5,7 +5,7 @@ import { Activity } from 'lucide-react';
 
 export default function StatusPage() {
   return (
-    <MarketingLayout banner={false}>
+    <MarketingLayout>
       <main className="flex-1">
         <MarketingSubHero
           icon={Activity}

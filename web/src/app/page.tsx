@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { getInviteUrl } from '@/lib/invite';
 import { getDiscordSettings, getHeroSettings, getLatestChangelog } from '@/lib/site-data';
@@ -28,6 +29,16 @@ import {
 
 export const dynamic = 'force-dynamic';
 
+export const metadata: Metadata = {
+  title: 'Deelo — All-in-One Discord Bot',
+  description:
+    'Replace your bot stack with Deelo — 1,144 commands, one prefix, one dashboard. Moderation, music, levels, tickets & more. Free forever.',
+  openGraph: {
+    title: 'Deelo — Replace your bot stack for a fraction of the cost',
+    description: '1,144 commands. One dashboard. Anti-nuke, music, levels & tickets — free to start.',
+  },
+};
+
 export default async function HomePage() {
   const [discord, hero, latestChangelog] = await Promise.all([
     getDiscordSettings(),
@@ -36,7 +47,7 @@ export default async function HomePage() {
   ]);
 
   return (
-    <MarketingLayout banner={false}>
+    <MarketingLayout>
       <main className="flex-1">
         <section className="site-hero">
           <div className="grid-pattern pointer-events-none absolute inset-0" />

@@ -1,13 +1,18 @@
 {
-  "generated_at": "2026-07-08T01:03:18.939Z",
+  "generated_at": "2026-07-08T01:14:41.924Z",
   "latest": {
     "id": "release-2026-07-07",
-    "version": "48063da",
-    "published_at": "2026-07-07T21:01:12-04:00",
+    "version": "068c9f5",
+    "published_at": "2026-07-07T21:03:47-04:00",
     "title": "Updates for July 7, 2026",
-    "category": "improvement",
-    "body": "- Show hamburger nav only on mobile viewports\n- Fix mobile nav hamburger blocked by What's New modal\n- Edit Discord changelog embeds when git release content updates\n- Fix suggestions page modal, search field, and error handling\n- Improve Discord OAuth diagnostics and error mapping\n- Fix Discord dashboard login after guilds.join OAuth change\n- Add community feature requests with Discord OAuth and server gating\n- Overhaul ,stream with station switching and queue controls\n- Fix radio playback using fetch and demuxProbe\n- Align marketing site with pricing and fix radio reconnect loop\n- Fix duplicate command replies using site_settings dedup\n- Update July 7 changelog with stream, pricing, and dedup fixes",
+    "category": "fix",
+    "body": "- Fix broken mobile menu X showing on desktop widths\n- Show hamburger nav only on mobile viewports\n- Fix mobile nav hamburger blocked by What's New modal\n- Edit Discord changelog embeds when git release content updates\n- Fix suggestions page modal, search field, and error handling\n- Improve Discord OAuth diagnostics and error mapping\n- Fix Discord dashboard login after guilds.join OAuth change\n- Add community feature requests with Discord OAuth and server gating\n- Overhaul ,stream with station switching and queue controls\n- Fix radio playback using fetch and demuxProbe\n- Align marketing site with pricing and fix radio reconnect loop\n- Fix duplicate command replies using site_settings dedup",
     "items": [
+      {
+        "title": "Fix broken mobile menu X showing on desktop widths",
+        "category": "fix",
+        "hash": "068c9f5"
+      },
       {
         "title": "Show hamburger nav only on mobile viewports",
         "category": "improvement",
@@ -62,11 +67,6 @@
         "title": "Fix duplicate command replies using site_settings dedup",
         "category": "fix",
         "hash": "c40f0f6"
-      },
-      {
-        "title": "Update July 7 changelog with stream, pricing, and dedup fixes",
-        "category": "improvement",
-        "hash": "0b26928"
       }
     ],
     "source": "git"
@@ -74,12 +74,17 @@
   "releases": [
     {
       "id": "release-2026-07-07",
-      "version": "48063da",
-      "published_at": "2026-07-07T21:01:12-04:00",
+      "version": "068c9f5",
+      "published_at": "2026-07-07T21:03:47-04:00",
       "title": "Updates for July 7, 2026",
-      "category": "improvement",
-      "body": "- Show hamburger nav only on mobile viewports\n- Fix mobile nav hamburger blocked by What's New modal\n- Edit Discord changelog embeds when git release content updates\n- Fix suggestions page modal, search field, and error handling\n- Improve Discord OAuth diagnostics and error mapping\n- Fix Discord dashboard login after guilds.join OAuth change\n- Add community feature requests with Discord OAuth and server gating\n- Overhaul ,stream with station switching and queue controls\n- Fix radio playback using fetch and demuxProbe\n- Align marketing site with pricing and fix radio reconnect loop\n- Fix duplicate command replies using site_settings dedup\n- Update July 7 changelog with stream, pricing, and dedup fixes",
+      "category": "fix",
+      "body": "- Fix broken mobile menu X showing on desktop widths\n- Show hamburger nav only on mobile viewports\n- Fix mobile nav hamburger blocked by What's New modal\n- Edit Discord changelog embeds when git release content updates\n- Fix suggestions page modal, search field, and error handling\n- Improve Discord OAuth diagnostics and error mapping\n- Fix Discord dashboard login after guilds.join OAuth change\n- Add community feature requests with Discord OAuth and server gating\n- Overhaul ,stream with station switching and queue controls\n- Fix radio playback using fetch and demuxProbe\n- Align marketing site with pricing and fix radio reconnect loop\n- Fix duplicate command replies using site_settings dedup",
       "items": [
+        {
+          "title": "Fix broken mobile menu X showing on desktop widths",
+          "category": "fix",
+          "hash": "068c9f5"
+        },
         {
           "title": "Show hamburger nav only on mobile viewports",
           "category": "improvement",
@@ -134,11 +139,6 @@
           "title": "Fix duplicate command replies using site_settings dedup",
           "category": "fix",
           "hash": "c40f0f6"
-        },
-        {
-          "title": "Update July 7 changelog with stream, pricing, and dedup fixes",
-          "category": "improvement",
-          "hash": "0b26928"
         }
       ],
       "source": "git"

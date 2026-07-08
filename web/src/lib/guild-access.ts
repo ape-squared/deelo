@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getDashboardSession, fetchUserGuilds, canManageServer } from '@/lib/session';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { isMemberOfOfficialGuild, getOfficialGuildInviteUrl } from '@/lib/official-guild';
 import type { ModuleId } from '@/lib/dashboard-modules';
 import {
   guildMeetsRole,
@@ -59,20 +58,6 @@ export async function requireGuildAccess(
   const session = await getDashboardSession();
   if (!session) {
     return { error: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }) };
-  }
-
-  const officialMember = await isMemberOfOfficialGuild(session.discordId);
-  if (!officialMember) {
-    return {
-      error: NextResponse.json(
-        {
-          error: 'Join the official Deelo Discord server to manage your dashboard.',
-          code: 'guild_required',
-          inviteUrl: getOfficialGuildInviteUrl(),
-        },
-        { status: 403 },
-      ),
-    };
   }
 
   const access = await resolveGuildAccess(session.discordId, guildId);

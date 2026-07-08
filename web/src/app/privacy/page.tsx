@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { LegalLayout, LegalSection } from '@/components/legal-layout';
+import { siteHost } from '@/lib/site-config';
 
 export const metadata: Metadata = {
   title: 'Privacy Policy',
@@ -9,6 +10,8 @@ export const metadata: Metadata = {
 const UPDATED = 'July 6, 2026';
 
 export default function PrivacyPage() {
+  const host = siteHost();
+
   return (
     <LegalLayout title="Privacy Policy" updated={UPDATED}>
       <LegalSection title="1. Overview">
@@ -18,7 +21,7 @@ export default function PrivacyPage() {
           agree to the practices described here.
         </p>
         <p>
-          Deelo is a Discord bot operated in connection with deelo.bot. We process data to provide bot features,
+          Deelo is a Discord bot operated at {host}. We process data to provide bot features,
           server configuration, moderation tools, and premium subscriptions.
         </p>
       </LegalSection>
@@ -156,7 +159,7 @@ export default function PrivacyPage() {
 
       <LegalSection title="13. Contact">
         <p>
-          For privacy-related questions or requests, contact us through the support options on deelo.bot or our
+          For privacy-related questions or requests, contact us through the support options at {host} or our
           official Discord community.
         </p>
       </LegalSection>

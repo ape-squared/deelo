@@ -159,6 +159,40 @@ body {
   @apply border-accent/60 ring-2 ring-accent/20;
 }
 
+.input:focus-visible,
+.btn-primary:focus-visible,
+.btn-secondary:focus-visible,
+.btn-ghost:focus-visible,
+.site-nav-link:focus-visible {
+  @apply outline-none ring-2 ring-accent/50 ring-offset-2 ring-offset-background;
+}
+
+.skip-link {
+  @apply sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[200] focus:rounded-lg focus:bg-accent focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-white;
+}
+
+.cookie-consent {
+  @apply fixed bottom-0 left-0 right-0 z-[120] flex flex-col gap-3 border-t border-border bg-card/95 p-4 backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between sm:px-6 md:bottom-4 md:left-4 md:right-auto md:max-w-lg md:rounded-xl md:border;
+}
+
+.mobile-cta-bar {
+  @apply fixed bottom-0 left-0 right-0 z-[90] flex gap-2 border-t border-border bg-background/95 p-3 backdrop-blur-xl;
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+}
+
+@media (min-width: 768px) {
+  .mobile-cta-bar {
+    display: none;
+  }
+}
+
+/* Extra bottom padding on mobile so sticky CTA bar doesn't cover content */
+@media (max-width: 767px) {
+  .site-footer-v3 {
+    padding-bottom: 4.5rem;
+  }
+}
+
 .label {
   @apply mb-1.5 block text-sm font-medium text-muted;
 }
