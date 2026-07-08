@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getPublishedChangelog, getLatestChangelog } from '@/lib/site-data';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   if (searchParams.get('latest') === '1') {

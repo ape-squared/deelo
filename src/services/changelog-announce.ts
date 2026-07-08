@@ -1,4 +1,4 @@
-import { EmbedBuilder, type Client, type TextChannel } from 'discord.js';
+import { EmbedBuilder, type APIEmbed, type Client, type Message, type TextChannel } from 'discord.js';
 import { getSupabase } from '../database/supabase';
 import { fetchAppJson, publicAppUrl, publicAppHost } from '../lib/app-urls';
 
@@ -21,6 +21,7 @@ interface ChangelogEntry {
 interface SyncState {
   posted: string[];
   initialized: boolean;
+  fingerprints?: Record<string, string>;
 }
 
 const CATEGORY_LABEL: Record<ChangelogCategory, string> = {
@@ -57,13 +58,27 @@ function changelogChannelId(): string {
   return process.env.CHANGELOG_CHANNEL_ID ?? '1523875521975287869';
 }
 
+/** Daily git bundles share a title — key by release day so content updates can edit the embed. */
+function releaseDayKey(entry: ChangelogEntry): string | null {
+  const day = entry.published_at?.slice(0, 10);
+  if (!day) return null;
+  if (entry.title.trim().toLowerCase().startsWith('updates for')) return `release:${day}`;
+  return null;
+}
+
 function entryKey(entry: ChangelogEntry): string {
+  const dayKey = releaseDayKey(entry);
+  if (dayKey) return dayKey;
   if (entry.version) return `v:${entry.version}`;
   return `id:${entry.id}`;
 }
 
 function titleKey(title: string): string {
   return `title:${title.trim().toLowerCase()}`;
+}
+
+function contentFingerprint(entry: ChangelogEntry): string {
+  return `${entry.version ?? ''}|${entry.category}|${entry.body.trim()}`;
 }
 
 function dedupeChangelogEntries(entries: ChangelogEntry[]): ChangelogEntry[] {
@@ -94,6 +109,23 @@ function embedTitleMatches(entry: ChangelogEntry, embedTitle: string | undefined
   return normalized === entry.title.trim().toLowerCase();
 }
 
+function embedBodyFromEntry(entry: ChangelogEntry): string {
+  return truncate(entry.body || `See the full changelog on ${publicAppHost()}.`, 1800);
+}
+
+function embedNeedsUpdate(embed: APIEmbed, entry: ChangelogEntry): boolean {
+  const category = entry.category in CATEGORY_LABEL ? entry.category : 'improvement';
+  const versionField = embed.fields?.find((field) => field.name === 'Version')?.value;
+  if (entry.version && versionField !== entry.version) return true;
+
+  const categoryField = embed.fields?.find((field) => field.name === 'Category')?.value;
+  if (categoryField && categoryField !== CATEGORY_LABEL[category]) return true;
+
+  const expectedDesc = embedBodyFromEntry(entry);
+  const actualDesc = (embed.description ?? '').trim();
+  return actualDesc !== expectedDesc.trim();
+}
+
 async function loadSyncState(): Promise<SyncState> {
   const { data, error } = await getSupabase()
     .from('site_settings')
@@ -107,9 +139,13 @@ async function loadSyncState(): Promise<SyncState> {
 
   const value = data?.value as SyncState | undefined;
   if (value && Array.isArray(value.posted)) {
-    return { posted: value.posted, initialized: !!value.initialized };
+    return {
+      posted: value.posted,
+      initialized: !!value.initialized,
+      fingerprints: value.fingerprints ?? {},
+    };
   }
-  return { posted: [], initialized: false };
+  return { posted: [], initialized: false, fingerprints: {} };
 }
 
 async function saveSyncState(state: SyncState): Promise<void> {
@@ -162,7 +198,7 @@ function buildChangelogEmbed(entry: ChangelogEntry): EmbedBuilder {
   return new EmbedBuilder()
     .setColor(CATEGORY_COLOR[category])
     .setTitle(`${CATEGORY_EMOJI[category]} ${entry.title}`)
-    .setDescription(truncate(entry.body || `See the full changelog on ${appHost}.`, 1800))
+    .setDescription(embedBodyFromEntry(entry))
     .addFields(
       { name: 'Category', value: CATEGORY_LABEL[category], inline: true },
       ...(entry.version ? [{ name: 'Version', value: entry.version, inline: true }] : []),
@@ -193,67 +229,21 @@ async function resolveChangelogChannel(client: Client): Promise<TextChannel | nu
   return channel;
 }
 
-async function getChannelPostedKeys(
-  channel: TextChannel,
-  botId: string,
-  entries: ChangelogEntry[],
-): Promise<Set<string>> {
-  const posted = new Set<string>();
+async function fetchChangelogMessages(channel: TextChannel, botId: string): Promise<Message[]> {
   const messages = await channel.messages.fetch({ limit: 50 }).catch(() => null);
-  if (!messages) return posted;
+  if (!messages) return [];
 
-  for (const message of messages.values()) {
-    if (message.author.id !== botId || !message.embeds.length) continue;
-
-    const embed = message.embeds[0];
-    const footer = embed.footer?.text ?? '';
-    if (!footer.includes('/changelog')) continue;
-
-    const versionField = embed.fields?.find((field) => field.name === 'Version')?.value;
-    const matchedTitles = new Set<string>();
-
-    for (const entry of entries) {
-      const key = entryKey(entry);
-      if (posted.has(key)) continue;
-
-      const versionMatch = !!entry.version && versionField === entry.version;
-      const titleMatch = embedTitleMatches(entry, embed.title ?? undefined);
-      if (versionMatch || titleMatch) {
-        posted.add(key);
-        posted.add(titleKey(entry.title));
-        if (titleMatch) matchedTitles.add(entry.title.trim().toLowerCase());
-      }
-    }
-
-    for (const entry of entries) {
-      if (matchedTitles.has(entry.title.trim().toLowerCase())) {
-        posted.add(entryKey(entry));
-        posted.add(titleKey(entry.title));
-      }
-    }
-  }
-
-  return posted;
+  return [...messages.values()].filter((message) => {
+    if (message.author.id !== botId || !message.embeds.length) return false;
+    return (message.embeds[0].footer?.text ?? '').includes('/changelog');
+  });
 }
 
-async function isEntryAlreadyPosted(
-  channel: TextChannel,
-  botId: string,
-  entry: ChangelogEntry,
-): Promise<boolean> {
-  const messages = await channel.messages.fetch({ limit: 15 }).catch(() => null);
-  if (!messages) return false;
-
-  for (const message of messages.values()) {
-    if (message.author.id !== botId || !message.embeds.length) continue;
-    const embed = message.embeds[0];
-    if (!(embed.footer?.text ?? '').includes('/changelog')) continue;
-
-    const versionField = embed.fields?.find((field) => field.name === 'Version')?.value;
-    if (entry.version && versionField === entry.version) return true;
-    if (embedTitleMatches(entry, embed.title ?? undefined)) return true;
-  }
-
+function messageMatchesEntry(message: Message, entry: ChangelogEntry): boolean {
+  const embed = message.embeds[0];
+  if (embedTitleMatches(entry, embed.title ?? undefined)) return true;
+  const versionField = embed.fields?.find((field) => field.name === 'Version')?.value;
+  if (entry.version && versionField === entry.version) return true;
   return false;
 }
 
@@ -279,25 +269,48 @@ export async function syncChangelogAnnouncements(client: Client): Promise<void> 
       return ta - tb;
     });
 
+    const channelMessages = await fetchChangelogMessages(channel, client.user.id);
     const state = await loadSyncState();
-    const inChannel = await getChannelPostedKeys(channel, client.user.id, sorted);
-    const posted = new Set([...inChannel, ...state.posted]);
+    const fingerprints = { ...(state.fingerprints ?? {}) };
+    const posted = new Set(state.posted);
 
     let postedCount = 0;
+    let updatedCount = 0;
+
     for (const entry of sorted) {
       const key = entryKey(entry);
-      const tKey = titleKey(entry.title);
-      if (posted.has(key) || posted.has(tKey)) continue;
-      if (await isEntryAlreadyPosted(channel, client.user.id, entry)) {
+      const fp = contentFingerprint(entry);
+      const existing = channelMessages.find((message) => messageMatchesEntry(message, entry));
+
+      if (existing) {
+        if (embedNeedsUpdate(existing.embeds[0].data, entry)) {
+          try {
+            await existing.edit({ embeds: [buildChangelogEmbed(entry)] });
+            updatedCount++;
+            console.log(`[changelog] Updated "${entry.title}" → ${entry.version ?? key}`);
+          } catch (err) {
+            const code = err && typeof err === 'object' && 'code' in err ? (err as { code: number }).code : null;
+            if (code === 50013) {
+              console.error('[changelog] Missing permissions to edit changelog embeds');
+            } else {
+              console.error(`[changelog] Failed to update "${entry.title}":`, err);
+            }
+          }
+        }
+        fingerprints[key] = fp;
         posted.add(key);
-        posted.add(tKey);
+        posted.add(titleKey(entry.title));
         continue;
       }
 
+      if (posted.has(key) && fingerprints[key] === fp) continue;
+
       try {
-        await channel.send({ embeds: [buildChangelogEmbed(entry)] });
+        const sent = await channel.send({ embeds: [buildChangelogEmbed(entry)] });
+        channelMessages.push(sent);
         posted.add(key);
-        posted.add(tKey);
+        posted.add(titleKey(entry.title));
+        fingerprints[key] = fp;
         postedCount++;
       } catch (err) {
         const code = err && typeof err === 'object' && 'code' in err ? (err as { code: number }).code : null;
@@ -309,10 +322,13 @@ export async function syncChangelogAnnouncements(client: Client): Promise<void> 
       }
     }
 
-    await saveSyncState({ posted: [...posted], initialized: true });
+    await saveSyncState({ posted: [...posted], initialized: true, fingerprints });
 
-    if (postedCount > 0) {
-      console.log(`[changelog] Posted ${postedCount} changelog entr${postedCount === 1 ? 'y' : 'ies'} to #changelogs`);
+    if (postedCount > 0 || updatedCount > 0) {
+      const parts: string[] = [];
+      if (postedCount) parts.push(`${postedCount} posted`);
+      if (updatedCount) parts.push(`${updatedCount} updated`);
+      console.log(`[changelog] Sync complete — ${parts.join(', ')}`);
     } else {
       console.log(`[changelog] Up to date — ${posted.size} entr${posted.size === 1 ? 'y' : 'ies'} tracked`);
     }
