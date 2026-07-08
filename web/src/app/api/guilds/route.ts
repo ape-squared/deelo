@@ -3,11 +3,14 @@ import { getDashboardSession, fetchUserGuilds, canManageServer } from '@/lib/ses
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getDiscordBotToken, resolveBotPresenceForGuilds } from '@/lib/discord-bot';
 import { resolveEffectivePlan } from '@/lib/plan-resolve';
+import { getOfficialGuildInviteUrl, isMemberOfOfficialGuild } from '@/lib/official-guild';
 
 export async function GET() {
   try {
     const session = await getDashboardSession();
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    const officialMember = await isMemberOfOfficialGuild(session.discordId);
 
     if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
       return NextResponse.json({ error: 'Server misconfigured: missing Supabase credentials' }, { status: 500 });
@@ -98,6 +101,8 @@ export async function GET() {
     return NextResponse.json({
       guilds,
       user: { id: session.discordId, username: session.username, avatar: session.avatar },
+      officialMember,
+      officialGuildInvite: getOfficialGuildInviteUrl(),
       meta: {
         totalDiscordGuilds: result.guilds.length,
         manageableGuilds: manageable.length,

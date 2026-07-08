@@ -9,6 +9,7 @@ import { inviteApiPath } from '@/lib/invite';
 
 const NAV = [
   { href: '/commands', label: 'Commands' },
+  { href: '/suggestions', label: 'Suggestions' },
   { href: '/changelog', label: 'Changelog' },
   { href: '/announcements', label: 'Announcements' },
   { href: '/pricing', label: 'Pricing' },

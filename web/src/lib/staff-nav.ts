@@ -11,6 +11,7 @@ import {
   Code2,
   Activity,
   Globe,
+  Lightbulb,
   UserCog,
   type LucideIcon,
 } from 'lucide-react';
@@ -65,6 +66,7 @@ export const STAFF_NAV_SECTIONS: StaffNavSection[] = [
       { href: '/staff/developer', label: 'Developer hub', icon: Code2, permission: 'dev.tools' },
       { href: '/staff/developer/status', label: 'Bot status', icon: Activity, permission: 'dev.tools' },
       { href: '/staff/developer/changelog', label: 'Changelog & CMS', icon: Globe, permission: 'cms.read' },
+      { href: '/staff/developer/suggestions', label: 'Feature requests', icon: Lightbulb, permission: 'cms.read' },
       { href: '/staff/developer/subscriptions', label: 'Grant subscriptions', icon: CreditCard, permission: 'subscriptions.write' },
     ],
   },

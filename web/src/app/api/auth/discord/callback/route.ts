@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { setDashboardSession, DISCORD_API } from '@/lib/session';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { invalidateOfficialGuildCache } from '@/lib/official-guild';
 import { getDiscordClientId, getDiscordClientSecret, resolveAppUrl } from '@/lib/runtime-env';
 
 export const dynamic = 'force-dynamic';
@@ -48,6 +49,8 @@ export async function GET(req: NextRequest) {
     username: user.username,
     avatar: user.avatar,
   });
+
+  invalidateOfficialGuildCache(user.id);
 
   const returnTo = req.nextUrl.searchParams.get('state');
   const safeReturn =

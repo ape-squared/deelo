@@ -3,6 +3,7 @@ import {
   BarChart3,
   Search,
   Globe,
+  Lightbulb,
   Server,
   Users,
   CreditCard,
@@ -59,6 +60,7 @@ export const ADMIN_NAV_SECTIONS: AdminNavSection[] = [
     label: 'Content',
     items: [
       { href: '/admin/website', label: 'Site & changelog', icon: Globe, show: (op) => operatorHasAdminPermission(op, 'website.read') },
+      { href: '/admin/suggestions', label: 'Feature requests', icon: Lightbulb, show: (op) => operatorHasAdminPermission(op, 'website.read') },
     ],
   },
   {

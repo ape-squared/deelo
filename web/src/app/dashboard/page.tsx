@@ -34,6 +34,8 @@ export default function DashboardPage() {
   const [guilds, setGuilds] = useState<Guild[]>([]);
   const [emptyHint, setEmptyHint] = useState('');
   const [search, setSearch] = useState('');
+  const [officialMember, setOfficialMember] = useState<boolean | null>(null);
+  const [officialGuildInvite, setOfficialGuildInvite] = useState('https://discord.gg/deelo');
 
   useEffect(() => {
     fetch('/api/guilds')
@@ -43,6 +45,8 @@ export default function DashboardPage() {
         if (!r.ok) { setLoading(false); return; }
         setUser(data.user);
         setGuilds(data.guilds ?? []);
+        setOfficialMember(data.officialMember ?? false);
+        if (data.officialGuildInvite) setOfficialGuildInvite(data.officialGuildInvite);
         if (data.error) setEmptyHint(data.error);
         else if (!data.guilds?.length) setEmptyHint('You need Administrator or Manage Server permission in a server to manage Deelo here.');
         setLoading(false);
@@ -93,16 +97,35 @@ export default function DashboardPage() {
       <PageHeader
         title="Select a server"
         description="Choose a server to manage its modules and settings."
-        badge={<span className="badge badge-accent">{withBot.length} active</span>}
+        badge={officialMember ? <span className="badge badge-accent">{withBot.length} active</span> : undefined}
         action={
-          <a href={inviteApiPath()} className="btn-primary text-sm py-2.5" target="_blank" rel="noreferrer">
-            <Plus className="h-4 w-4" />
-            Add to server
-          </a>
+          officialMember ? (
+            <a href={inviteApiPath()} className="btn-primary text-sm py-2.5" target="_blank" rel="noreferrer">
+              <Plus className="h-4 w-4" />
+              Add to server
+            </a>
+          ) : undefined
         }
       />
 
-      {guilds.length > 0 && (
+      {officialMember === false && (
+        <div className="card mb-8 border-amber-500/30 bg-amber-500/10 p-6">
+          <h2 className="text-lg font-semibold text-amber-100">Join the official Deelo Discord</h2>
+          <p className="mt-2 text-sm text-muted">
+            Dashboard access and community features require membership in our official server. After joining, refresh this page.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <a href={officialGuildInvite} className="btn-primary text-sm" target="_blank" rel="noreferrer">
+              Join Discord server
+            </a>
+            <button type="button" className="btn-secondary text-sm" onClick={() => window.location.reload()}>
+              Refresh
+            </button>
+          </div>
+        </div>
+      )}
+
+      {officialMember && guilds.length > 0 && (
         <SearchField
           className="mb-8 max-w-md"
           placeholder="Search servers..."
@@ -111,7 +134,7 @@ export default function DashboardPage() {
         />
       )}
 
-      {!guilds.length ? (
+      {officialMember && !guilds.length ? (
         <EmptyState
           icon={<Server className="h-7 w-7" />}
           title="No servers found"
@@ -123,7 +146,7 @@ export default function DashboardPage() {
             </div>
           }
         />
-      ) : (
+      ) : officialMember ? (
         <div className="space-y-10">
           {withBot.length > 0 && (
             <section>
@@ -146,7 +169,7 @@ export default function DashboardPage() {
             </section>
           )}
         </div>
-      )}
+      ) : null}
       </div>
       </div>
     </DashboardShell>

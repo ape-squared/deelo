@@ -1,13 +1,28 @@
 {
-  "generated_at": "2026-07-07T23:35:16.906Z",
+  "generated_at": "2026-07-08T00:14:17.328Z",
   "latest": {
     "id": "release-2026-07-07",
-    "version": "c40f0f6",
-    "published_at": "2026-07-07T19:26:09-04:00",
+    "version": "6ef77cb",
+    "published_at": "2026-07-07T20:03:55-04:00",
     "title": "Updates for July 7, 2026",
-    "category": "fix",
-    "body": "- Fix duplicate command replies using site_settings dedup\n- Update July 7 changelog with stream, pricing, and dedup fixes\n- Fix duplicate command replies across bot instances\n- Add ,stream command for Icecast and Shoutcast radio playback\n- Overhaul pricing page with bot stack comparison and switch incentives\n- Prevent duplicate changelog embeds on bot startup\n- Remove false-negative changelog permission preflight check\n- Fix changelog embed sync skipping posts on first bot run\n- Fix bot crash by excluding .d.ts files from command loader\n- Use public app URL for status embeds instead of localhost\n- Fix ticket panel Discord sync and redesign the admin control panel\n- Sync site changelog to official #changelogs and fix status embed",
+    "category": "feature",
+    "body": "- Overhaul ,stream with station switching and queue controls\n- Fix radio playback using fetch and demuxProbe\n- Align marketing site with pricing and fix radio reconnect loop\n- Fix duplicate command replies using site_settings dedup\n- Update July 7 changelog with stream, pricing, and dedup fixes\n- Fix duplicate command replies across bot instances\n- Add ,stream command for Icecast and Shoutcast radio playback\n- Overhaul pricing page with bot stack comparison and switch incentives\n- Prevent duplicate changelog embeds on bot startup\n- Remove false-negative changelog permission preflight check\n- Fix changelog embed sync skipping posts on first bot run\n- Fix bot crash by excluding .d.ts files from command loader",
     "items": [
+      {
+        "title": "Overhaul ,stream with station switching and queue controls",
+        "category": "feature",
+        "hash": "6ef77cb"
+      },
+      {
+        "title": "Fix radio playback using fetch and demuxProbe",
+        "category": "fix",
+        "hash": "f905646"
+      },
+      {
+        "title": "Align marketing site with pricing and fix radio reconnect loop",
+        "category": "improvement",
+        "hash": "c06ae87"
+      },
       {
         "title": "Fix duplicate command replies using site_settings dedup",
         "category": "fix",
@@ -52,21 +67,6 @@
         "title": "Fix bot crash by excluding .d.ts files from command loader",
         "category": "fix",
         "hash": "2ecc84b"
-      },
-      {
-        "title": "Use public app URL for status embeds instead of localhost",
-        "category": "improvement",
-        "hash": "4060e54"
-      },
-      {
-        "title": "Fix ticket panel Discord sync and redesign the admin control panel",
-        "category": "fix",
-        "hash": "8f02d95"
-      },
-      {
-        "title": "Sync site changelog to official #changelogs and fix status embed",
-        "category": "improvement",
-        "hash": "d5e8295"
       }
     ],
     "source": "git"
@@ -74,12 +74,27 @@
   "releases": [
     {
       "id": "release-2026-07-07",
-      "version": "c40f0f6",
-      "published_at": "2026-07-07T19:26:09-04:00",
+      "version": "6ef77cb",
+      "published_at": "2026-07-07T20:03:55-04:00",
       "title": "Updates for July 7, 2026",
-      "category": "fix",
-      "body": "- Fix duplicate command replies using site_settings dedup\n- Update July 7 changelog with stream, pricing, and dedup fixes\n- Fix duplicate command replies across bot instances\n- Add ,stream command for Icecast and Shoutcast radio playback\n- Overhaul pricing page with bot stack comparison and switch incentives\n- Prevent duplicate changelog embeds on bot startup\n- Remove false-negative changelog permission preflight check\n- Fix changelog embed sync skipping posts on first bot run\n- Fix bot crash by excluding .d.ts files from command loader\n- Use public app URL for status embeds instead of localhost\n- Fix ticket panel Discord sync and redesign the admin control panel\n- Sync site changelog to official #changelogs and fix status embed",
+      "category": "feature",
+      "body": "- Overhaul ,stream with station switching and queue controls\n- Fix radio playback using fetch and demuxProbe\n- Align marketing site with pricing and fix radio reconnect loop\n- Fix duplicate command replies using site_settings dedup\n- Update July 7 changelog with stream, pricing, and dedup fixes\n- Fix duplicate command replies across bot instances\n- Add ,stream command for Icecast and Shoutcast radio playback\n- Overhaul pricing page with bot stack comparison and switch incentives\n- Prevent duplicate changelog embeds on bot startup\n- Remove false-negative changelog permission preflight check\n- Fix changelog embed sync skipping posts on first bot run\n- Fix bot crash by excluding .d.ts files from command loader",
       "items": [
+        {
+          "title": "Overhaul ,stream with station switching and queue controls",
+          "category": "feature",
+          "hash": "6ef77cb"
+        },
+        {
+          "title": "Fix radio playback using fetch and demuxProbe",
+          "category": "fix",
+          "hash": "f905646"
+        },
+        {
+          "title": "Align marketing site with pricing and fix radio reconnect loop",
+          "category": "improvement",
+          "hash": "c06ae87"
+        },
         {
           "title": "Fix duplicate command replies using site_settings dedup",
           "category": "fix",
@@ -124,21 +139,6 @@
           "title": "Fix bot crash by excluding .d.ts files from command loader",
           "category": "fix",
           "hash": "2ecc84b"
-        },
-        {
-          "title": "Use public app URL for status embeds instead of localhost",
-          "category": "improvement",
-          "hash": "4060e54"
-        },
-        {
-          "title": "Fix ticket panel Discord sync and redesign the admin control panel",
-          "category": "fix",
-          "hash": "8f02d95"
-        },
-        {
-          "title": "Sync site changelog to official #changelogs and fix status embed",
-          "category": "improvement",
-          "hash": "d5e8295"
         }
       ],
       "source": "git"
