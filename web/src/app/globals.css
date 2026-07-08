@@ -877,6 +877,20 @@ body {
   backdrop-filter: blur(20px);
 }
 
+.site-mobile-nav-overlay {
+  @apply fixed inset-0 z-[105] md:hidden;
+}
+
+.site-mobile-nav-backdrop {
+  @apply absolute inset-0 bg-black/60 backdrop-blur-sm;
+}
+
+.site-mobile-nav-panel {
+  @apply absolute left-0 right-0 top-16 max-h-[calc(100vh-4rem)] overflow-y-auto border-b border-border/60;
+  background: rgba(5, 5, 8, 0.98);
+  backdrop-filter: blur(20px);
+}
+
 .site-banner {
   @apply border-b border-accent/20;
   background: linear-gradient(90deg, rgba(0, 71, 255, 0.12), rgba(0, 71, 255, 0.06));
