@@ -188,11 +188,11 @@ export function CommandPreview() {
         </span>
       </div>
       <div className="space-y-3 p-5">
-        <p><span className="command-line-user">riq</span> <span className="text-foreground/80">,ban @user spam</span></p>
+        <p><span className="command-line-user">Admin</span> <span className="text-foreground/80">,ban @user spam</span></p>
         <p className="command-line-bot pl-4">→ 🔨 Banned user · Case #42 logged</p>
-        <p><span className="command-line-user">riq</span> <span className="text-foreground/80">,stream https://radio.example/live</span></p>
+        <p><span className="command-line-user">Admin</span> <span className="text-foreground/80">,stream https://radio.example/live</span></p>
         <p className="command-line-bot pl-4">→ 📻 Now playing live radio in General VC</p>
-        <p><span className="command-line-user">riq</span> <span className="text-foreground/80">,rank</span></p>
+        <p><span className="command-line-user">Admin</span> <span className="text-foreground/80">,rank</span></p>
         <p className="command-line-bot pl-4">→ Level 24 · 12,450 XP · #3 on leaderboard</p>
       </div>
     </div>
