@@ -13,6 +13,7 @@ export function registerEvents(client: DeeloClient): void {
     );
     void import('../services/social-poll').then(({ startSocialPollLoop }) => startSocialPollLoop(client));
     void import('../services/counters').then(({ startCounterSyncLoop }) => startCounterSyncLoop(client));
+    void import('../services/bump-reminder').then(({ startBumpReminderLoop }) => startBumpReminderLoop(client));
   });
 
   client.on('messageCreate', async (message) => {
@@ -23,6 +24,11 @@ export function registerEvents(client: DeeloClient): void {
 
     const { getGuild, getPrefix, getAutoResponders, addXp, getAfk, isEventEnabled } = await import('../database');
     const prefix = await getPrefix(message.guild.id);
+
+    if (message.author.id === (await import('../services/bump-reminder')).DISBOARD_BOT_ID) {
+      const { handleDisboardBumpMessage } = await import('../services/bump-reminder');
+      await handleDisboardBumpMessage(message);
+    }
 
     // Skip background handlers for command messages
     if (message.content.startsWith(prefix)) return;
@@ -94,13 +100,17 @@ export function registerEvents(client: DeeloClient): void {
       await handleReactionRole(reaction, user, true);
 
       const emoji = reaction.emoji.name;
-      if (emoji !== '⭐' && emoji !== 'star') return;
-
       const { getGuild } = await import('../database');
       const guild = await getGuild(message.guild.id);
       const count = reaction.count ?? 1;
-      const { handleStarboardReaction } = await import('../services/starboard');
-      await handleStarboardReaction(message, guild, count);
+
+      if (emoji === '⭐' || emoji === 'star') {
+        const { handleStarboardReaction } = await import('../services/starboard');
+        await handleStarboardReaction(message, guild, count);
+      }
+
+      const { handleClownboardReaction } = await import('../services/clownboard');
+      await handleClownboardReaction(reaction, message);
     } catch (err) {
       console.error('reaction handler:', err);
     }

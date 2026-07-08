@@ -217,6 +217,36 @@ export async function getSoundcloudLatest(username: string): Promise<SocialPost 
   }
 }
 
+export async function getPinterestLatest(username: string): Promise<SocialPost | null> {
+  const user = username.replace(/^@/, '');
+  const feeds = [
+    `https://www.pinterest.com/${encodeURIComponent(user)}/feed.rss`,
+    `https://www.pinterest.com/${encodeURIComponent(user)}.rss`,
+  ];
+
+  for (const url of feeds) {
+    try {
+      const xml = await fetchText(url, {}, 10_000);
+      const item = xml.match(/<item>[\s\S]*?<\/item>/)?.[0];
+      if (!item) continue;
+      const link = item.match(/<link>([^<]+)<\/link>/)?.[1];
+      const title = item.match(/<title>([^<]+)<\/title>/)?.[1];
+      const guid = item.match(/<guid[^>]*>([^<]+)<\/guid>/)?.[1] ?? link;
+      if (!guid || !link) continue;
+      return {
+        id: guid,
+        title: decodeXml(title ?? `New pin from @${user}`),
+        url: link,
+        author: user,
+        kind: 'post',
+      };
+    } catch {
+      continue;
+    }
+  }
+  return null;
+}
+
 export async function checkSocialFeed(
   platform: string,
   username: string,
@@ -273,6 +303,11 @@ export async function checkSocialFeed(
     }
     case 'soundcloud': {
       const post = await getSoundcloudLatest(user);
+      if (!post || post.id === lastPostId) return { post: null, stateId: post?.id ?? lastPostId };
+      return { post, stateId: post.id };
+    }
+    case 'pinterest': {
+      const post = await getPinterestLatest(user);
       if (!post || post.id === lastPostId) return { post: null, stateId: post?.id ?? lastPostId };
       return { post, stateId: post.id };
     }

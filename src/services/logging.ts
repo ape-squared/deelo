@@ -82,6 +82,33 @@ export async function listLogChannels(guildId: string): Promise<Array<{ event: s
   return [...map.entries()].map(([event, channelId]) => ({ event, channelId }));
 }
 
+export async function getLogEventColor(guildId: string, event: LogEvent): Promise<number | null> {
+  const raw = await getConfigValue<string>(guildId, `logs.colors.${event}`);
+  if (!raw) return null;
+  const hex = raw.replace(/^#/, '').trim();
+  if (!/^[0-9a-fA-F]{6}$/.test(hex)) return null;
+  return parseInt(hex, 16);
+}
+
+export async function setLogEventColor(guildId: string, event: string, color: string | null): Promise<void> {
+  const key = event.toLowerCase();
+  if (!isLogEvent(key)) throw new Error(`Unknown log event: ${event}`);
+  if (color === null) {
+    await deleteConfigPath(guildId, `logs.colors.${key}`);
+    return;
+  }
+  const hex = color.replace(/^#/, '').trim();
+  if (!/^[0-9a-fA-F]{6}$/.test(hex)) throw new Error('Invalid color — use a 6-digit hex code like #5865F2');
+  await setExtraConfig(guildId, `logs.colors.${key}`, hex.toUpperCase());
+}
+
+export async function listLogEventColors(guildId: string): Promise<Array<{ event: string; color: string }>> {
+  const entries = await listConfigSection(guildId, 'logs.colors');
+  return entries
+    .filter(([, value]) => typeof value === 'string')
+    .map(([event, color]) => ({ event, color: `#${String(color).replace(/^#/, '')}` }));
+}
+
 export async function sendEventLog(
   guild: Guild,
   event: LogEvent,
@@ -95,7 +122,10 @@ export async function sendEventLog(
   if (!channel) return;
   // Avoid a second embed in the channel where the mod command was run.
   if (opts?.sourceChannelId && channel.id === opts.sourceChannelId) return;
-  await channel.send({ embeds: [deeloEmbed(title, description)] }).catch(() => {});
+  const embed = deeloEmbed(title, description);
+  const color = await getLogEventColor(guild.id, event);
+  if (color !== null) embed.setColor(color);
+  await channel.send({ embeds: [embed] }).catch(() => {});
 }
 
 export async function sendModLog(

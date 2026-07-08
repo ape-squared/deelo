@@ -25,7 +25,7 @@ export async function handleMessage(client: DeeloClient, message: import('discor
   const prefix = await getPrefix(message.guild.id);
   if (!message.content.startsWith(prefix)) return;
 
-  const content = message.content.slice(prefix.length).trim();
+  let content = message.content.slice(prefix.length).trim();
   if (!content) return;
 
   if (client.handledMessages.has(message.id)) return;
@@ -34,8 +34,19 @@ export async function handleMessage(client: DeeloClient, message: import('discor
   setTimeout(() => client.handledMessages.delete(message.id), 15_000);
 
   const { commandRegistry, handleExtendedCommand } = await import('../extended/router');
-  const words = content.split(/\s+/);
-  const firstWord = words[0].toLowerCase();
+  let words = content.split(/\s+/);
+  let firstWord = words[0].toLowerCase();
+
+  const { resolveGuildCommandAlias } = await import('../services/command-aliases');
+  const guildAlias = await resolveGuildCommandAlias(message.guild.id, firstWord);
+  if (guildAlias) {
+    const remainder = words.slice(1).join(' ');
+    const resolved = remainder ? `${guildAlias} ${remainder}` : guildAlias;
+    words = resolved.split(/\s+/);
+    firstWord = words[0].toLowerCase();
+    content = resolved;
+  }
+
   const nativeName = client.aliases.get(firstWord) ?? firstWord;
   const native = client.commands.get(nativeName);
   const extMatch = commandRegistry.match(content);

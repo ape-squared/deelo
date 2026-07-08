@@ -51,7 +51,7 @@ const integrations: Command[] = [
     premiumFeature: 'socialNotifications',
     run: async ({ message, args }) => {
       const sub = args[0]?.toLowerCase();
-      const platforms = ['instagram', 'twitter', 'tiktok', 'youtube', 'twitch', 'soundcloud', 'reddit', 'kick'];
+      const platforms = ['instagram', 'twitter', 'tiktok', 'youtube', 'twitch', 'soundcloud', 'reddit', 'kick', 'pinterest'];
 
       if (sub === 'add') {
         const platform = args[1]?.toLowerCase();

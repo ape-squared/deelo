@@ -153,6 +153,7 @@ function platformColor(platform: string): number {
     reddit: 0xff4500,
     kick: 0x53fc18,
     soundcloud: 0xff5500,
+    pinterest: 0xbd081c,
   };
   return colors[platform] ?? 0x0047ff;
 }

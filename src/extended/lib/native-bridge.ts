@@ -85,6 +85,8 @@ const CATALOG_TO_NATIVE: Record<string, { cmd: string; prefix?: string[] }> = {
   'log remove': { cmd: 'log', prefix: ['remove'] },
   'log ignore': { cmd: 'log', prefix: ['ignore'] },
   'log ignore list': { cmd: 'log', prefix: ['ignore', 'list'] },
+  'log color': { cmd: 'log', prefix: ['color'] },
+  'log color list': { cmd: 'log', prefix: ['color', 'list'] },
   event: { cmd: 'event' },
   responder: { cmd: 'responder' },
   autoresponder: { cmd: 'responder' },

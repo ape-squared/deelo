@@ -267,7 +267,10 @@ async function handleBumpReminder(name: string, message: Message, args: string[]
   const guildId = message.guild!.id;
   if (name === 'bumpreminder channel') {
     const ch = mentionChannel(message);
-    if (ch) await updateGuild(guildId, { bump_channel: ch.id });
+    if (ch) {
+      await updateGuild(guildId, { bump_channel: ch.id });
+      await setExtraConfig(guildId, 'bumpreminder.enabled_at', Date.now());
+    }
     await replySuccess(message, 'Bump reminder channel set.');
     return true;
   }

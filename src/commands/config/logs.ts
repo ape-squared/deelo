@@ -4,8 +4,10 @@ import { deeloEmbed, errorEmbed } from '../../utils/embeds';
 import {
   LOG_EVENTS,
   listLogChannels,
+  listLogEventColors,
   removeLogChannel,
   setLogChannel,
+  setLogEventColor,
 } from '../../services/logging';
 import { getConfigValue, setExtraConfig } from '../../extended/lib/guild-config';
 
@@ -88,6 +90,50 @@ const logsCommands: Command[] = [
         const target = message.mentions.users.first()?.id ?? message.mentions.channels.first()?.id ?? args[1];
         if (!target) return void message.reply({ embeds: [errorEmbed('Usage: `,log ignore @user` or `,log ignore #channel`')] });
         await setExtraConfig(guildId, `logs.ignore.${target}`, true);
+        return;
+      }
+
+      if (sub === 'color') {
+        const action = args[1]?.toLowerCase();
+        if (action === 'list' || !action) {
+          const colors = await listLogEventColors(guildId);
+          const lines = colors.map((c) => `**${c.event}:** ${c.color}`);
+          return void message.reply({
+            embeds: [
+              deeloEmbed(
+                'Log embed colors',
+                [
+                  lines.length ? lines.join('\n') : '*No custom colors — using default Deelo blue.*',
+                  '',
+                  '**Set:** `,log color <event> #RRGGBB`',
+                  '**Reset:** `,log color reset <event>`',
+                ].join('\n'),
+              ),
+            ],
+          });
+        }
+        if (action === 'reset' || action === 'clear') {
+          const event = args[2]?.toLowerCase();
+          if (!event || !(LOG_EVENTS as readonly string[]).includes(event)) {
+            return void message.reply({ embeds: [errorEmbed('Usage: `,log color reset <event>`')] });
+          }
+          await setLogEventColor(guildId, event, null);
+          await message.reply({ embeds: [deeloEmbed('Log color reset', `**${event}** logs will use the default color.`)] });
+          return;
+        }
+        const event = action;
+        const colorArg = args[2]?.replace(/^#/, '');
+        if (!(LOG_EVENTS as readonly string[]).includes(event) || !colorArg) {
+          return void message.reply({
+            embeds: [errorEmbed('Usage: `,log color <event> #RRGGBB`\nEvents: ' + LOG_EVENTS.join(', '))],
+          });
+        }
+        try {
+          await setLogEventColor(guildId, event, colorArg);
+          await message.reply({ embeds: [deeloEmbed('Log color set', `**${event}** logs will use **#${colorArg.toUpperCase()}**.`)] });
+        } catch (err) {
+          await message.reply({ embeds: [errorEmbed(err instanceof Error ? err.message : 'Invalid color.')] });
+        }
         return;
       }
 
