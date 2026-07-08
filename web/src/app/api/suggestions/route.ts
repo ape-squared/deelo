@@ -12,24 +12,30 @@ import { getDashboardSession } from '@/lib/session';
 export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
-  const sort = req.nextUrl.searchParams.get('sort') === 'new' ? 'new' : 'top';
-  const statusParam = req.nextUrl.searchParams.get('status') ?? 'all';
-  const status = (
-    ['open', 'under_review', 'planned', 'in_progress', 'completed', 'declined', 'all'].includes(statusParam)
-      ? statusParam
-      : 'all'
-  ) as FeatureStatus | 'all';
+  try {
+    const sort = req.nextUrl.searchParams.get('sort') === 'new' ? 'new' : 'top';
+    const statusParam = req.nextUrl.searchParams.get('status') ?? 'all';
+    const status = (
+      ['open', 'under_review', 'planned', 'in_progress', 'completed', 'declined', 'all'].includes(statusParam)
+        ? statusParam
+        : 'all'
+    ) as FeatureStatus | 'all';
 
-  const requests = await listFeatureRequests({ sort, status, limit: 100 });
+    const requests = await listFeatureRequests({ sort, status, limit: 100 });
 
-  const session = await getDashboardSession();
-  let userVotes: number[] = [];
-  if (session && requests.length) {
-    const votes = await getUserVotes(session.discordId, requests.map((r) => r.id));
-    userVotes = [...votes];
+    const session = await getDashboardSession();
+    let userVotes: number[] = [];
+    if (session && requests.length) {
+      const votes = await getUserVotes(session.discordId, requests.map((r) => r.id));
+      userVotes = [...votes];
+    }
+
+    return NextResponse.json({ requests, userVotes });
+  } catch (err) {
+    console.error('[suggestions] GET failed:', err);
+    const msg = err instanceof Error ? err.message : 'Failed to load suggestions';
+    return NextResponse.json({ error: msg, requests: [], userVotes: [] }, { status: 500 });
   }
-
-  return NextResponse.json({ requests, userVotes });
 }
 
 export async function POST(req: NextRequest) {

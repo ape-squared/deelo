@@ -1054,3 +1054,24 @@ body {
 .suggestion-vote {
   min-width: 3.25rem;
 }
+
+.app-modal-overlay {
+  @apply fixed inset-0 z-[100] flex items-end justify-center p-4 sm:items-center;
+}
+
+.app-modal-backdrop {
+  @apply absolute inset-0 bg-black/70 backdrop-blur-sm;
+}
+
+.app-modal-panel {
+  @apply relative z-10 w-full max-w-lg overflow-hidden rounded-2xl border border-border bg-card shadow-2xl;
+  box-shadow: 0 32px 80px -20px rgba(0, 71, 255, 0.45);
+}
+
+.app-modal-header {
+  @apply flex items-center justify-between gap-3 border-b border-border px-5 py-4;
+}
+
+.app-modal-body {
+  @apply max-h-[min(85vh,40rem)] overflow-y-auto px-5 py-5;
+}

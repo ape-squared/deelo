@@ -1,13 +1,18 @@
 {
-  "generated_at": "2026-07-08T00:38:52.262Z",
+  "generated_at": "2026-07-08T00:47:31.593Z",
   "latest": {
     "id": "release-2026-07-07",
-    "version": "847789f",
-    "published_at": "2026-07-07T20:19:28-04:00",
+    "version": "7126b57",
+    "published_at": "2026-07-07T20:39:33-04:00",
     "title": "Updates for July 7, 2026",
-    "category": "fix",
-    "body": "- Fix Discord dashboard login after guilds.join OAuth change\n- Add community feature requests with Discord OAuth and server gating\n- Overhaul ,stream with station switching and queue controls\n- Fix radio playback using fetch and demuxProbe\n- Align marketing site with pricing and fix radio reconnect loop\n- Fix duplicate command replies using site_settings dedup\n- Update July 7 changelog with stream, pricing, and dedup fixes\n- Fix duplicate command replies across bot instances\n- Add ,stream command for Icecast and Shoutcast radio playback\n- Overhaul pricing page with bot stack comparison and switch incentives\n- Prevent duplicate changelog embeds on bot startup\n- Remove false-negative changelog permission preflight check",
+    "category": "improvement",
+    "body": "- Improve Discord OAuth diagnostics and error mapping\n- Fix Discord dashboard login after guilds.join OAuth change\n- Add community feature requests with Discord OAuth and server gating\n- Overhaul ,stream with station switching and queue controls\n- Fix radio playback using fetch and demuxProbe\n- Align marketing site with pricing and fix radio reconnect loop\n- Fix duplicate command replies using site_settings dedup\n- Update July 7 changelog with stream, pricing, and dedup fixes\n- Fix duplicate command replies across bot instances\n- Add ,stream command for Icecast and Shoutcast radio playback\n- Overhaul pricing page with bot stack comparison and switch incentives\n- Prevent duplicate changelog embeds on bot startup",
     "items": [
+      {
+        "title": "Improve Discord OAuth diagnostics and error mapping",
+        "category": "improvement",
+        "hash": "7126b57"
+      },
       {
         "title": "Fix Discord dashboard login after guilds.join OAuth change",
         "category": "fix",
@@ -62,11 +67,6 @@
         "title": "Prevent duplicate changelog embeds on bot startup",
         "category": "improvement",
         "hash": "8ea6b4a"
-      },
-      {
-        "title": "Remove false-negative changelog permission preflight check",
-        "category": "improvement",
-        "hash": "eaec39e"
       }
     ],
     "source": "git"
@@ -74,12 +74,17 @@
   "releases": [
     {
       "id": "release-2026-07-07",
-      "version": "847789f",
-      "published_at": "2026-07-07T20:19:28-04:00",
+      "version": "7126b57",
+      "published_at": "2026-07-07T20:39:33-04:00",
       "title": "Updates for July 7, 2026",
-      "category": "fix",
-      "body": "- Fix Discord dashboard login after guilds.join OAuth change\n- Add community feature requests with Discord OAuth and server gating\n- Overhaul ,stream with station switching and queue controls\n- Fix radio playback using fetch and demuxProbe\n- Align marketing site with pricing and fix radio reconnect loop\n- Fix duplicate command replies using site_settings dedup\n- Update July 7 changelog with stream, pricing, and dedup fixes\n- Fix duplicate command replies across bot instances\n- Add ,stream command for Icecast and Shoutcast radio playback\n- Overhaul pricing page with bot stack comparison and switch incentives\n- Prevent duplicate changelog embeds on bot startup\n- Remove false-negative changelog permission preflight check",
+      "category": "improvement",
+      "body": "- Improve Discord OAuth diagnostics and error mapping\n- Fix Discord dashboard login after guilds.join OAuth change\n- Add community feature requests with Discord OAuth and server gating\n- Overhaul ,stream with station switching and queue controls\n- Fix radio playback using fetch and demuxProbe\n- Align marketing site with pricing and fix radio reconnect loop\n- Fix duplicate command replies using site_settings dedup\n- Update July 7 changelog with stream, pricing, and dedup fixes\n- Fix duplicate command replies across bot instances\n- Add ,stream command for Icecast and Shoutcast radio playback\n- Overhaul pricing page with bot stack comparison and switch incentives\n- Prevent duplicate changelog embeds on bot startup",
       "items": [
+        {
+          "title": "Improve Discord OAuth diagnostics and error mapping",
+          "category": "improvement",
+          "hash": "7126b57"
+        },
         {
           "title": "Fix Discord dashboard login after guilds.join OAuth change",
           "category": "fix",
@@ -134,11 +139,6 @@
           "title": "Prevent duplicate changelog embeds on bot startup",
           "category": "improvement",
           "hash": "8ea6b4a"
-        },
-        {
-          "title": "Remove false-negative changelog permission preflight check",
-          "category": "improvement",
-          "hash": "eaec39e"
         }
       ],
       "source": "git"
