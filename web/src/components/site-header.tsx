@@ -46,6 +46,15 @@ export function SiteHeader() {
     };
   }, [open]);
 
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 768px)');
+    const onChange = () => {
+      if (mq.matches) setOpen(false);
+    };
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
+
   return (
     <header className="site-header-v3">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 lg:px-6">
@@ -53,7 +62,7 @@ export function SiteHeader() {
           <DeeloLogoLink />
         </div>
 
-        <nav className="hidden min-w-0 items-center gap-0.5 lg:flex" aria-label="Main">
+        <nav className="hidden min-w-0 items-center gap-0.5 md:flex" aria-label="Main">
           {NAV.map(({ href, label }) => (
             <NavLink key={href} href={href} label={label} />
           ))}
@@ -73,7 +82,7 @@ export function SiteHeader() {
           </a>
           <button
             type="button"
-            className="btn-ghost inline-flex p-2.5 lg:hidden"
+            className="btn-ghost inline-flex p-2.5 md:hidden"
             aria-expanded={open}
             aria-controls="site-mobile-nav"
             aria-label={open ? 'Close menu' : 'Open menu'}
@@ -85,7 +94,7 @@ export function SiteHeader() {
       </div>
 
       {open && (
-        <div className="site-mobile-nav lg:hidden" id="site-mobile-nav">
+        <div className="site-mobile-nav md:hidden" id="site-mobile-nav">
           <nav className="mx-auto flex max-w-6xl flex-col gap-1 px-4 py-4" aria-label="Mobile">
             {NAV.map(({ href, label }) => (
               <NavLink key={href} href={href} label={label} onNavigate={() => setOpen(false)} />
