@@ -1,13 +1,28 @@
 {
-  "generated_at": "2026-07-09T21:41:31.352Z",
+  "generated_at": "2026-07-09T22:05:51.675Z",
   "latest": {
     "id": "release-2026-07-09",
-    "version": "b53dcc7",
-    "published_at": "2026-07-09T05:52:34-04:00",
-    "title": "Make changelog sync day-aware for daily release bundles",
-    "category": "improvement",
-    "body": "- Make changelog sync day-aware for daily release bundles",
+    "version": "4a67ee7",
+    "published_at": "2026-07-09T17:58:37-04:00",
+    "title": "Updates for July 9, 2026",
+    "category": "feature",
+    "body": "- Add Puter as free OpenAI gateway for ChatGPT and TTS\n- Make ChatGPT and TTS production-ready for Discord\n- Add Mintlify-style /docs site for Deelo setup guides\n- Make changelog sync day-aware for daily release bundles",
     "items": [
+      {
+        "title": "Add Puter as free OpenAI gateway for ChatGPT and TTS",
+        "category": "feature",
+        "hash": "4a67ee7"
+      },
+      {
+        "title": "Make ChatGPT and TTS production-ready for Discord",
+        "category": "improvement",
+        "hash": "9a80e52"
+      },
+      {
+        "title": "Add Mintlify-style /docs site for Deelo setup guides",
+        "category": "feature",
+        "hash": "f8c8900"
+      },
       {
         "title": "Make changelog sync day-aware for daily release bundles",
         "category": "improvement",
@@ -19,12 +34,27 @@
   "releases": [
     {
       "id": "release-2026-07-09",
-      "version": "b53dcc7",
-      "published_at": "2026-07-09T05:52:34-04:00",
-      "title": "Make changelog sync day-aware for daily release bundles",
-      "category": "improvement",
-      "body": "- Make changelog sync day-aware for daily release bundles",
+      "version": "4a67ee7",
+      "published_at": "2026-07-09T17:58:37-04:00",
+      "title": "Updates for July 9, 2026",
+      "category": "feature",
+      "body": "- Add Puter as free OpenAI gateway for ChatGPT and TTS\n- Make ChatGPT and TTS production-ready for Discord\n- Add Mintlify-style /docs site for Deelo setup guides\n- Make changelog sync day-aware for daily release bundles",
       "items": [
+        {
+          "title": "Add Puter as free OpenAI gateway for ChatGPT and TTS",
+          "category": "feature",
+          "hash": "4a67ee7"
+        },
+        {
+          "title": "Make ChatGPT and TTS production-ready for Discord",
+          "category": "improvement",
+          "hash": "9a80e52"
+        },
+        {
+          "title": "Add Mintlify-style /docs site for Deelo setup guides",
+          "category": "feature",
+          "hash": "f8c8900"
+        },
         {
           "title": "Make changelog sync day-aware for daily release bundles",
           "category": "improvement",

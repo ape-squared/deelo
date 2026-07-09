@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { getInviteUrl } from '@/lib/invite';
+import { inviteApiPath } from '@/lib/invite';
 import { getDiscordSettings, getHeroSettings, getLatestChangelog } from '@/lib/site-data';
 import { FadeUp } from '@/components/ui/animate';
 import { DiscordWidget } from '@/components/discord-widget';
@@ -87,7 +87,7 @@ export default async function HomePage() {
               </FadeUp>
               <FadeUp delay={400}>
                 <div className="hero-actions">
-                  <a href={getInviteUrl()} className="btn-primary w-full px-8 text-base sm:w-auto" target="_blank" rel="noreferrer">
+                  <a href={inviteApiPath()} className="btn-primary w-full px-8 text-base sm:w-auto" target="_blank" rel="noreferrer">
                     Switch to Deelo — free
                     <ArrowRight className="h-4 w-4" />
                   </a>

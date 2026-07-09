@@ -1,12 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { buildInviteUrl } from '@/lib/invite';
-import { getDiscordClientId } from '@/lib/runtime-env';
+import { tryGetInviteUrl } from '@/lib/invite';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
   const guildId = req.nextUrl.searchParams.get('guild_id') ?? undefined;
-  const url = buildInviteUrl(getDiscordClientId(), guildId);
+  const url = tryGetInviteUrl(guildId);
+  if (!url) {
+    return NextResponse.json(
+      { error: 'DISCORD_CLIENT_ID or NEXT_PUBLIC_DISCORD_CLIENT_ID is not configured' },
+      { status: 503 },
+    );
+  }
   const res = NextResponse.redirect(url);
   // Preserve UTM params in a cookie for post-invite attribution (optional analytics)
   const utm = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content']

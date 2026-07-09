@@ -23,7 +23,7 @@ import {
   SWITCH_BENEFITS,
   TYPICAL_STACK_COST,
 } from '@/lib/plans';
-import { getInviteUrl } from '@/lib/invite';
+import { inviteApiPath } from '@/lib/invite';
 import { dashboardRedeemPath } from '@/lib/dashboard-paths';
 import type { FeatureMatrixValue } from '@/lib/plans';
 
@@ -82,7 +82,7 @@ export function PricingHero() {
           multiple dashboards. Deelo Premium gives you everything for $5/mo with one prefix and one dashboard.
         </p>
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <a href={getInviteUrl()} className="btn-primary px-8 text-base" target="_blank" rel="noreferrer">
+          <a href={inviteApiPath()} className="btn-primary px-8 text-base" target="_blank" rel="noreferrer">
             Switch to Deelo — free
             <ArrowRight className="h-4 w-4" />
           </a>
@@ -169,7 +169,7 @@ export function PricingPlanCards() {
 
                 {key === 'free' ? (
                   <a
-                    href={getInviteUrl()}
+                    href={inviteApiPath()}
                     className="btn-secondary mt-8 w-full text-center"
                     target="_blank"
                     rel="noreferrer"
@@ -401,7 +401,7 @@ export function PricingFinalCta() {
             Premium saves ~$22/mo vs a typical {TYPICAL_STACK_COST.bots.length}-bot setup
           </p>
           <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-center">
-            <a href={getInviteUrl()} className="btn-primary w-full px-10 text-base sm:w-auto" target="_blank" rel="noreferrer">
+            <a href={inviteApiPath()} className="btn-primary w-full px-10 text-base sm:w-auto" target="_blank" rel="noreferrer">
               Add Deelo free
               <ArrowRight className="h-4 w-4" />
             </a>

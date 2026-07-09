@@ -4,7 +4,7 @@ import {
   Settings, UserPlus, TrendingUp, Terminal, Hash, Mic, Star,
 } from 'lucide-react';
 import { FEATURE_SECTIONS, TYPICAL_STACK_COST } from '@/lib/plans';
-import { getInviteUrl } from '@/lib/invite';
+import { inviteApiPath } from '@/lib/invite';
 
 const MODULE_ICONS = [Shield, Zap, Music, Ticket, Bot, Layers];
 
@@ -214,7 +214,7 @@ export function HomeFinalCta({ discordInvite }: { discordInvite: string }) {
             Premium saves ~$22/mo vs a typical {TYPICAL_STACK_COST.bots.length}-bot setup
           </p>
           <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-center">
-            <a href={getInviteUrl()} className="btn-primary w-full px-10 text-base sm:w-auto" target="_blank" rel="noreferrer">
+            <a href={inviteApiPath()} className="btn-primary w-full px-10 text-base sm:w-auto" target="_blank" rel="noreferrer">
               Add Deelo free
               <ArrowRight className="h-4 w-4" />
             </a>

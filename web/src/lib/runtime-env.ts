@@ -64,6 +64,11 @@ export function getDiscordClientId(): string {
   return id;
 }
 
+/** Non-throwing variant for build-time / optional UI paths */
+export function tryGetDiscordClientId(): string | undefined {
+  return (env('DISCORD_CLIENT_ID') || env('NEXT_PUBLIC_DISCORD_CLIENT_ID'))?.trim() || undefined;
+}
+
 export function getDiscordClientSecret(): string {
   const secret = env('DISCORD_CLIENT_SECRET')?.trim();
   if (!secret) {

@@ -1,4 +1,4 @@
-import { getDiscordClientId } from '@/lib/runtime-env';
+import { getDiscordClientId, tryGetDiscordClientId } from '@/lib/runtime-env';
 
 export const DISCORD_BOT_PERMISSIONS = '8866461766385655';
 
@@ -16,6 +16,13 @@ export function buildInviteUrl(clientId: string, guildId?: string): string {
 
 export function getInviteUrl(guildId?: string): string {
   return buildInviteUrl(getDiscordClientId(), guildId);
+}
+
+/** Safe for static generation — returns null when client id is missing at build time */
+export function tryGetInviteUrl(guildId?: string): string | null {
+  const id = tryGetDiscordClientId();
+  if (!id) return null;
+  return buildInviteUrl(id, guildId);
 }
 
 type UtmParams = Record<string, string | undefined>;
