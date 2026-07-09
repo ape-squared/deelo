@@ -52,7 +52,7 @@ export default async function HomePage() {
         <section className="site-hero">
           <div className="grid-pattern pointer-events-none absolute inset-0" />
           <div className="brand-hero-glow right-0 top-0 h-[500px] w-[500px] translate-x-1/4 -translate-y-1/4" />
-          <div className="brand-hero-glow left-0 bottom-0 h-80 w-80 -translate-x-1/3 translate-y-1/3 opacity-60" />
+          <div className="brand-hero-glow left-0 bottom-0 h-80 w-80 -translate-x-1/3 translate-y-1/3 opacity-60" style={{ animationDelay: '-5s' }} />
 
           <div className="site-hero-grid">
             <div className="site-hero-copy">

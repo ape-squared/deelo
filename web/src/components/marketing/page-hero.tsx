@@ -1,4 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
+import { FadeUp } from '@/components/ui/animate';
 
 type HeroProps = {
   label?: string;
@@ -18,16 +19,26 @@ export function MarketingSubHero({ label, title, description, icon: Icon, childr
 
       <div className="relative z-10 mx-auto max-w-4xl px-4 text-center lg:px-6">
         {Icon && (
-          <div className="page-hero-icon mx-auto mb-6">
-            <Icon className="h-8 w-8" />
-          </div>
+          <FadeUp>
+            <div className="page-hero-icon mx-auto mb-6">
+              <Icon className="h-8 w-8" />
+            </div>
+          </FadeUp>
         )}
-        {label && <span className="section-label">{label}</span>}
-        <h1 className="mt-4 text-4xl font-bold leading-[1.1] tracking-tight sm:text-5xl">{title}</h1>
+        {label && (
+          <FadeUp delay={60}>
+            <span className="section-label">{label}</span>
+          </FadeUp>
+        )}
+        <FadeUp delay={120}>
+          <h1 className="mt-4 text-4xl font-bold leading-[1.1] tracking-tight sm:text-5xl">{title}</h1>
+        </FadeUp>
         {description && (
-          <p className="section-sub mx-auto mt-4 max-w-2xl text-base sm:text-lg">{description}</p>
+          <FadeUp delay={180}>
+            <p className="section-sub mx-auto mt-4 max-w-2xl text-base sm:text-lg">{description}</p>
+          </FadeUp>
         )}
-        {children}
+        {children ? <FadeUp delay={240}>{children}</FadeUp> : null}
       </div>
     </section>
   );

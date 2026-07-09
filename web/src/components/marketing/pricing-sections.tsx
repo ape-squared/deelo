@@ -26,6 +26,7 @@ import {
 import { inviteApiPath } from '@/lib/invite';
 import { dashboardRedeemPath } from '@/lib/dashboard-paths';
 import type { FeatureMatrixValue } from '@/lib/plans';
+import { FadeUp, Reveal } from '@/components/ui/animate';
 
 const PLAN_ICONS = { free: Zap, premium: Sparkles, premium_plus: Crown } as const;
 
@@ -72,24 +73,32 @@ export function PricingHero() {
       <div className="brand-hero-glow right-0 top-0 h-[420px] w-[420px] translate-x-1/4 -translate-y-1/4" />
 
       <div className="relative z-10 mx-auto max-w-4xl px-4 text-center lg:px-6">
-        <span className="section-label">Pricing</span>
-        <h1 className="mt-4 text-4xl font-bold leading-[1.1] tracking-tight sm:text-5xl lg:text-6xl">
-          Replace your bot stack
-          <span className="gradient-text mt-2 block">for a fraction of the cost</span>
-        </h1>
-        <p className="mx-auto mt-5 max-w-2xl text-base text-muted leading-relaxed sm:text-lg">
-          Most servers run MEE6, Dyno, a ticket bot, and a music bot — paying {TYPICAL_STACK_COST.label} across
-          multiple dashboards. Deelo Premium gives you everything for $5/mo with one prefix and one dashboard.
-        </p>
-        <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <a href={inviteApiPath()} className="btn-primary px-8 text-base" target="_blank" rel="noreferrer">
-            Switch to Deelo — free
-            <ArrowRight className="h-4 w-4" />
-          </a>
-          <Link href={dashboardRedeemPath()} className="btn-secondary text-base">
-            Redeem a code
-          </Link>
-        </div>
+        <FadeUp>
+          <span className="section-label">Pricing</span>
+        </FadeUp>
+        <FadeUp delay={80}>
+          <h1 className="mt-4 text-4xl font-bold leading-[1.1] tracking-tight sm:text-5xl lg:text-6xl">
+            Replace your bot stack
+            <span className="gradient-text mt-2 block">for a fraction of the cost</span>
+          </h1>
+        </FadeUp>
+        <FadeUp delay={160}>
+          <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-muted sm:text-lg">
+            Most servers run MEE6, Dyno, a ticket bot, and a music bot — paying {TYPICAL_STACK_COST.label} across
+            multiple dashboards. Deelo Premium gives you everything for $5/mo with one prefix and one dashboard.
+          </p>
+        </FadeUp>
+        <FadeUp delay={240}>
+          <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <a href={inviteApiPath()} className="btn-primary px-8 text-base" target="_blank" rel="noreferrer">
+              Switch to Deelo — free
+              <ArrowRight className="h-4 w-4" />
+            </a>
+            <Link href={dashboardRedeemPath()} className="btn-secondary text-base">
+              Redeem a code
+            </Link>
+          </div>
+        </FadeUp>
       </div>
     </section>
   );
@@ -97,7 +106,7 @@ export function PricingHero() {
 
 export function PricingStatsBar() {
   return (
-    <div className="pricing-stats-bar">
+    <Reveal as="div" className="pricing-stats-bar">
       <div className="mx-auto grid max-w-5xl grid-cols-2 gap-6 px-4 sm:grid-cols-4 lg:px-6">
         {PRICING_STATS.map((stat) => (
           <div key={stat.label} className="text-center">
@@ -108,7 +117,7 @@ export function PricingStatsBar() {
           </div>
         ))}
       </div>
-    </div>
+    </Reveal>
   );
 }
 
@@ -116,13 +125,13 @@ export function PricingPlanCards() {
   return (
     <section className="site-section">
       <div className="mx-auto max-w-6xl lg:px-6">
-        <div className="mb-14 text-center">
+        <Reveal className="mb-14 text-center">
           <span className="section-label">Plans</span>
           <h2 className="section-heading">Start free. Upgrade when you outgrow it.</h2>
           <p className="section-sub mx-auto">
             Transparent pricing, no hidden fees. Premium plans are activated via redeem codes in the dashboard — self-serve checkout coming soon.
           </p>
-        </div>
+        </Reveal>
 
         <div className="pricing-grid">
           {(Object.entries(PLANS) as [keyof typeof PLANS, typeof PLANS.free][]).map(([key, plan], i) => {
@@ -130,10 +139,10 @@ export function PricingPlanCards() {
             const featured = key === 'premium';
 
             return (
-              <div
+              <Reveal
                 key={key}
-                className={`card relative flex flex-col p-8 animate-fade-up ${featured ? 'pricing-card-featured gradient-border' : ''}`}
-                style={{ animationDelay: `${i * 100}ms` }}
+                delay={i * 100}
+                className={`card relative flex flex-col p-8 ${featured ? 'pricing-card-featured gradient-border' : ''}`}
               >
                 {featured && (
                   <span className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 badge badge-accent">
@@ -184,7 +193,7 @@ export function PricingPlanCards() {
                     Redeem code in dashboard
                   </Link>
                 )}
-              </div>
+              </Reveal>
             );
           })}
         </div>
@@ -197,16 +206,16 @@ export function BotStackComparison() {
   return (
     <section className="site-section site-section-alt">
       <div className="mx-auto max-w-6xl lg:px-6">
-        <div className="mb-12 text-center">
+        <Reveal className="mb-12 text-center">
           <span className="section-label">Compare</span>
           <h2 className="section-heading">Deelo vs. the bots you&apos;re already paying for</h2>
           <p className="section-sub mx-auto">
             A typical server stacks {TYPICAL_STACK_COST.bots.join(', ')} — each with its own prefix, dashboard, and
             monthly fee. Deelo replaces the stack.
           </p>
-        </div>
+        </Reveal>
 
-        <div className="card pricing-compare-scroll overflow-x-auto">
+        <Reveal delay={100} className="card pricing-compare-scroll overflow-x-auto">
           <table className="pricing-compare-table w-full min-w-[720px] text-sm">
             <thead>
               <tr className="border-b border-border bg-white/[0.02]">
@@ -254,7 +263,7 @@ export function BotStackComparison() {
               </tr>
             </tbody>
           </table>
-        </div>
+        </Reveal>
 
         <p className="mt-4 text-center text-xs text-muted">
           Competitor pricing is approximate and varies by plan. Deelo Premium is one subscription for the full stack.
@@ -310,25 +319,25 @@ export function SwitchBenefitsSection() {
   return (
     <section className="site-section site-section-alt">
       <div className="mx-auto max-w-6xl lg:px-6">
-        <div className="mb-14 text-center">
+        <Reveal className="mb-14 text-center">
           <span className="section-label">Why switch</span>
           <h2 className="section-heading">Stop paying for five bots</h2>
           <p className="section-sub mx-auto">
             Server owners switch to Deelo to simplify management, cut costs, and give members a better experience.
           </p>
-        </div>
+        </Reveal>
 
         <div className="grid gap-5 sm:grid-cols-2">
           {SWITCH_BENEFITS.map((benefit, i) => {
             const Icon = SWITCH_ICONS[i % SWITCH_ICONS.length];
             return (
-              <div key={benefit.title} className="feature-module animate-fade-up" style={{ animationDelay: `${i * 80}ms` }}>
+              <Reveal key={benefit.title} delay={i * 80} className="feature-module">
                 <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-accent/15 text-accent">
                   <Icon className="h-5 w-5" />
                 </div>
-                <h3 className="text-lg font-semibold mb-2">{benefit.title}</h3>
-                <p className="text-sm text-muted leading-relaxed">{benefit.description}</p>
-              </div>
+                <h3 className="mb-2 text-lg font-semibold">{benefit.title}</h3>
+                <p className="text-sm leading-relaxed text-muted">{benefit.description}</p>
+              </Reveal>
             );
           })}
         </div>
@@ -341,19 +350,19 @@ export function MigrationSection() {
   return (
     <section className="site-section">
       <div className="mx-auto max-w-4xl lg:px-6">
-        <div className="mb-12 text-center">
+        <Reveal className="mb-12 text-center">
           <span className="section-label">Migration</span>
           <h2 className="section-heading">Switch in an afternoon</h2>
           <p className="section-sub mx-auto">No risky cutover. Run Deelo alongside your current bots until you&apos;re ready.</p>
-        </div>
+        </Reveal>
 
         <div className="grid gap-6 md:grid-cols-3">
           {MIGRATION_STEPS.map((step, i) => (
-            <div key={step.step} className="step-card animate-fade-up" style={{ animationDelay: `${i * 100}ms` }}>
+            <Reveal key={step.step} delay={i * 100} className="step-card">
               <div className="step-number">{step.step}</div>
-              <h3 className="text-lg font-semibold mb-2">{step.title}</h3>
-              <p className="text-sm text-muted leading-relaxed">{step.description}</p>
-            </div>
+              <h3 className="mb-2 text-lg font-semibold">{step.title}</h3>
+              <p className="text-sm leading-relaxed text-muted">{step.description}</p>
+            </Reveal>
           ))}
         </div>
       </div>
@@ -365,20 +374,22 @@ export function PricingFaqSection() {
   return (
     <section className="site-section site-section-alt">
       <div className="mx-auto max-w-3xl lg:px-6">
-        <div className="mb-12 text-center">
+        <Reveal className="mb-12 text-center">
           <span className="section-label">FAQ</span>
           <h2 className="section-heading">Pricing questions</h2>
           <p className="section-sub mx-auto">Common questions from servers switching off a multi-bot setup.</p>
-        </div>
+        </Reveal>
         <div className="space-y-3">
-          {PRICING_FAQ.map((item) => (
-            <details key={item.q} className="faq-item group">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-semibold [&::-webkit-details-marker]:hidden">
-                <span>{item.q}</span>
-                <ChevronDown className="h-5 w-5 shrink-0 text-muted transition-transform group-open:rotate-180" />
-              </summary>
-              <p className="mt-3 text-sm text-muted leading-relaxed">{item.a}</p>
-            </details>
+          {PRICING_FAQ.map((item, i) => (
+            <Reveal key={item.q} delay={i * 50} y={16}>
+              <details className="faq-item group">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-semibold [&::-webkit-details-marker]:hidden">
+                  <span>{item.q}</span>
+                  <ChevronDown className="h-5 w-5 shrink-0 text-muted transition-transform duration-300 group-open:rotate-180" />
+                </summary>
+                <p className="mt-3 text-sm leading-relaxed text-muted">{item.a}</p>
+              </details>
+            </Reveal>
           ))}
         </div>
       </div>
@@ -390,7 +401,7 @@ export function PricingFinalCta() {
   return (
     <section className="site-section px-4">
       <div className="relative mx-auto max-w-3xl">
-        <div className="cta-panel animate-fade-up">
+        <Reveal className="cta-panel">
           <h2 className="mb-4 text-balance text-2xl font-bold sm:text-3xl">
             Ready to ditch the bot stack?
           </h2>
@@ -409,7 +420,7 @@ export function PricingFinalCta() {
               Browse 1,144 commands
             </Link>
           </div>
-        </div>
+        </Reveal>
       </div>
     </section>
   );
