@@ -25,7 +25,13 @@ export function isModuleEnabled(
 
   switch (id) {
     case 'welcome':
-      return !!(guild.welcome_channel || guild.goodbye_channel || guild.welcome_message || guild.goodbye_message);
+      return !!(
+        guild.welcome_channel
+        || guild.welcome_message
+        || guild.goodbye_channel
+        || guild.goodbye_message
+        || config.guildMessages?.some((m) => m.enabled)
+      );
     case 'moderation':
       return guild.automod_enabled || guild.antinuke_enabled || guild.antiraid_enabled || guild.snipe_enabled;
     case 'filters':
@@ -39,7 +45,7 @@ export function isModuleEnabled(
     case 'levels':
       return guild.levels_enabled;
     case 'starboard':
-      return !!guild.starboard_channel;
+      return !!guild.starboard_channel || !!getExtraConfigPath((guild.extra_config ?? {}) as Record<string, unknown>, 'clownboard.channel');
     case 'voicemaster':
       return !!guild.voicemaster_join_channel;
     case 'tickets':

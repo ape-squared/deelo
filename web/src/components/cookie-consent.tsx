@@ -22,6 +22,7 @@ export function CookieConsent() {
     } catch {
       /* ignore */
     }
+    window.dispatchEvent(new Event('deelo-cookie-accepted'));
     setVisible(false);
   }
 

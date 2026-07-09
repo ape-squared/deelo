@@ -9,7 +9,7 @@ import { WELCOME_VARIABLES, getExtraConfigPath } from '@/lib/guild-settings';
 import { BOT_APPEARANCE_FIELDS } from '@/lib/bot-appearance';
 import type { GuildFullConfig } from '@/lib/guild-types';
 import type { ChannelKind } from '@/lib/discord-channels';
-import { EXTRA_CONFIG_FIELDS, KNOWN_EVENTS } from '@/lib/guild-types';
+import { EXTRA_CONFIG_FIELDS, KNOWN_EVENTS, SOCIAL_FEED_PLATFORMS } from '@/lib/guild-types';
 import { MODULE_GROUPS, isValidModuleId, moduleById, type ModuleId } from '@/lib/dashboard-modules';
 import { buildModuleTogglePatch, isModuleEnabled } from '@/lib/module-toggles';
 import { AddRow, CrudList, MiniInput, MiniSelect } from '@/components/dashboard/guild-crud';
@@ -252,8 +252,16 @@ export function GuildSettingsEditor({
               <input className="input max-w-[120px] font-mono" value={guild.prefix} onChange={(e) => update('prefix', e.target.value)} maxLength={5} disabled={!isPremium && guild.prefix === ','} />
             </Field>
             <Field label="Bump reminder channel"><ChannelField value={guild.bump_channel} onChange={(v) => update('bump_channel', v)} /></Field>
-            <Field label="Bump interval (ms)" hint="Default 7200000 (2 hours)">
-              <input type="number" className="input max-w-[160px] font-mono" value={guild.bump_interval ?? 7200000} onChange={(e) => update('bump_interval', parseInt(e.target.value, 10) || 7200000)} />
+            <Field label="Bump interval (hours)" hint="Default 2 hours — DISBOARD bump reminders">
+              <input
+                type="number"
+                min={0.5}
+                max={48}
+                step={0.5}
+                className="input max-w-[120px]"
+                value={((guild.bump_interval ?? 7200000) / 3600000)}
+                onChange={(e) => update('bump_interval', Math.round((parseFloat(e.target.value) || 2) * 3600000))}
+              />
             </Field>
             <Toggle label="Fake permissions mode" desc="Allow fake permission overrides (admin only)" checked={guild.fake_permissions_enabled ?? false} onChange={(v) => update('fake_permissions_enabled', v)} />
             <PlanCard guild={guild} subscription={initial.subscription} onRedeem={() => setTab('general')} />
@@ -306,12 +314,26 @@ export function GuildSettingsEditor({
         )}
 
         {tab === 'welcome' && (
-          <Section title="Welcome & Goodbye" desc={`Variables: ${WELCOME_VARIABLES}`}>
-            <Field label="Welcome channel"><ChannelField value={guild.welcome_channel} onChange={(v) => update('welcome_channel', v)} /></Field>
-            <Field label="Welcome message"><textarea className="input min-h-[100px] font-mono text-sm" value={guild.welcome_message ?? ''} onChange={(e) => update('welcome_message', e.target.value || null)} /></Field>
-            <Field label="Goodbye channel"><ChannelField value={guild.goodbye_channel} onChange={(v) => update('goodbye_channel', v)} /></Field>
-            <Field label="Goodbye message"><textarea className="input min-h-[100px] font-mono text-sm" value={guild.goodbye_message ?? ''} onChange={(e) => update('goodbye_message', e.target.value || null)} /></Field>
-          </Section>
+          <>
+            <Section title="Welcome & Goodbye" desc={`Primary messages. Variables: ${WELCOME_VARIABLES}`}>
+              <Field label="Welcome channel"><ChannelField value={guild.welcome_channel} onChange={(v) => update('welcome_channel', v)} /></Field>
+              <Field label="Welcome message"><textarea className="input min-h-[100px] font-mono text-sm" value={guild.welcome_message ?? ''} onChange={(e) => update('welcome_message', e.target.value || null)} /></Field>
+              <Field label="Goodbye channel"><ChannelField value={guild.goodbye_channel} onChange={(v) => update('goodbye_channel', v)} /></Field>
+              <Field label="Goodbye message"><textarea className="input min-h-[100px] font-mono text-sm" value={guild.goodbye_message ?? ''} onChange={(e) => update('goodbye_message', e.target.value || null)} /></Field>
+            </Section>
+            <GuildMessagesList
+              guildId={guildId}
+              kind="welcome"
+              items={(initial.guildMessages ?? []).filter((m) => m.kind === 'welcome')}
+              onReload={onReload}
+            />
+            <GuildMessagesList
+              guildId={guildId}
+              kind="goodbye"
+              items={(initial.guildMessages ?? []).filter((m) => m.kind === 'goodbye')}
+              onReload={onReload}
+            />
+          </>
         )}
 
         {tab === 'moderation' && (
@@ -366,11 +388,38 @@ export function GuildSettingsEditor({
         )}
 
         {tab === 'starboard' && (
-          <Section title="Starboard" desc="Premium — reacts with configurable emoji">
-            <Field label="Starboard channel" hint="Premium"><ChannelField value={guild.starboard_channel} onChange={(v) => update('starboard_channel', v)} /></Field>
-            <Field label="Stars required"><input type="number" min={1} max={25} className="input max-w-[120px]" value={guild.starboard_threshold} onChange={(e) => update('starboard_threshold', parseInt(e.target.value, 10) || 3)} /></Field>
-            <Field label="Starboard emoji"><input className="input max-w-[120px]" value={extraValue('starboard.emoji') || '⭐'} onChange={(e) => setExtra('starboard.emoji', e.target.value)} /></Field>
-          </Section>
+          <>
+            <Section title="Starboard" desc="Highlight popular messages — Premium">
+              <Field label="Starboard channel" hint="Premium"><ChannelField value={guild.starboard_channel} onChange={(v) => update('starboard_channel', v)} /></Field>
+              <Field label="Stars required"><input type="number" min={1} max={25} className="input max-w-[120px]" value={guild.starboard_threshold} onChange={(e) => update('starboard_threshold', parseInt(e.target.value, 10) || 3)} /></Field>
+              <Field label="Starboard emoji"><input className="input max-w-[120px]" value={extraValue('starboard.emoji') || '⭐'} onChange={(e) => setExtra('starboard.emoji', e.target.value)} /></Field>
+            </Section>
+            <Section title="Clownboard" desc="Same idea as starboard with a custom emoji (e.g. 🤡)">
+              <Field label="Clownboard channel">
+                <ChannelField
+                  value={extraValue('clownboard.channel') || null}
+                  onChange={(v) => setExtra('clownboard.channel', v ?? '')}
+                />
+              </Field>
+              <Field label="Reactions required">
+                <input
+                  type="number"
+                  min={1}
+                  max={25}
+                  className="input max-w-[120px]"
+                  value={extraValue('clownboard.threshold') || '3'}
+                  onChange={(e) => setExtra('clownboard.threshold', e.target.value)}
+                />
+              </Field>
+              <Field label="Clownboard emoji">
+                <input
+                  className="input max-w-[120px]"
+                  value={extraValue('clownboard.emoji') || '🤡'}
+                  onChange={(e) => setExtra('clownboard.emoji', e.target.value)}
+                />
+              </Field>
+            </Section>
+          </>
         )}
 
         {tab === 'voicemaster' && (
@@ -642,10 +691,57 @@ function SocialFeedsList({ guildId, items, onReload }: { guildId: string; items:
     <CrudList title="Social feeds" desc="Notifications for social platforms" items={items} columns={['Platform', 'Username', 'Channel']} renderRow={(r) => [r.platform, r.username, r.channel_id]}
       onDelete={async (r) => { await fetch(`/api/guilds/${guildId}/resources?resource=social-feeds&id=${r.id}`, { method: 'DELETE' }); await onReload(); }}
       addForm={<AddRow label="Add feed" onAdd={async () => { await fetch(`/api/guilds/${guildId}/resources`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ resource: 'social-feeds', platform, username, channel_id }) }); setUsername(''); setChannelId(''); await onReload(); }}>
-        <MiniSelect label="Platform" value={platform} onChange={setPlatform} options={['youtube', 'twitch', 'twitter', 'instagram', 'tiktok'].map((p) => ({ value: p, label: p }))} />
+        <MiniSelect label="Platform" value={platform} onChange={setPlatform} options={SOCIAL_FEED_PLATFORMS.map((p) => ({ value: p, label: p }))} />
         <MiniInput label="Username" value={username} onChange={setUsername} />
         <MiniChannelSelect label="Channel" value={channel_id} onChange={setChannelId} />
       </AddRow>}
+    />
+  );
+}
+
+function GuildMessagesList({
+  guildId,
+  kind,
+  items,
+  onReload,
+}: {
+  guildId: string;
+  kind: 'welcome' | 'goodbye';
+  items: GuildFullConfig['guildMessages'];
+  onReload: () => Promise<void>;
+}) {
+  const [channel_id, setChannelId] = useState('');
+  const [message, setMessage] = useState('');
+  const title = kind === 'welcome' ? 'Extra welcome messages' : 'Extra goodbye messages';
+  return (
+    <CrudList
+      title={title}
+      desc="When any extra messages exist, they are used instead of the primary message above."
+      items={items}
+      columns={['ID', 'Channel', 'Message']}
+      renderRow={(r) => [String(r.id), r.channel_id, r.message.slice(0, 60)]}
+      onDelete={async (r) => {
+        await fetch(`/api/guilds/${guildId}/messages?id=${r.id}`, { method: 'DELETE' });
+        await onReload();
+      }}
+      addForm={
+        <AddRow
+          label={`Add ${kind}`}
+          onAdd={async () => {
+            await fetch(`/api/guilds/${guildId}/messages`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ kind, channel_id, message }),
+            });
+            setChannelId('');
+            setMessage('');
+            await onReload();
+          }}
+        >
+          <MiniChannelSelect label="Channel" value={channel_id} onChange={setChannelId} />
+          <MiniInput label="Message" value={message} onChange={setMessage} placeholder="Hey {user}!" />
+        </AddRow>
+      }
     />
   );
 }

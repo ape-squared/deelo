@@ -1,11 +1,31 @@
 'use client';
 
 import Script from 'next/script';
+import { useEffect, useState } from 'react';
 import { analyticsId } from '@/lib/site-config';
+
+const STORAGE_KEY = 'deelo-cookie-consent';
 
 export function Analytics() {
   const id = analyticsId();
-  if (!id) return null;
+  const [allowed, setAllowed] = useState(false);
+
+  useEffect(() => {
+    if (!id) return;
+    try {
+      if (localStorage.getItem(STORAGE_KEY) === 'accepted') setAllowed(true);
+    } catch {
+      /* ignore */
+    }
+
+    function onConsent() {
+      setAllowed(true);
+    }
+    window.addEventListener('deelo-cookie-accepted', onConsent);
+    return () => window.removeEventListener('deelo-cookie-accepted', onConsent);
+  }, [id]);
+
+  if (!id || !allowed) return null;
 
   if (id.startsWith('G-') || id.startsWith('UA-')) {
     return (

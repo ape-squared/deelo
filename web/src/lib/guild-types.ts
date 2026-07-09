@@ -109,6 +109,16 @@ export interface EventToggleRow {
   enabled: boolean;
 }
 
+export interface GuildMessageRow {
+  id: number;
+  guild_id: string;
+  kind: 'welcome' | 'goodbye';
+  channel_id: string;
+  message: string;
+  enabled: boolean;
+  created_at: string;
+}
+
 export interface GuildFullConfig {
   guild: import('@/lib/guild-settings').DashboardGuildSettings;
   subscription: { plan: string; status: string; expires_at: string | null } | null;
@@ -127,17 +137,31 @@ export interface GuildFullConfig {
   buttonRoles: ButtonRoleRow[];
   tickets: Array<{ id: number; channel_id: string; user_id: string; panel_name: string | null; status: string; claimed_by: string | null; created_at: string; closed_at?: string | null }>;
   embeds: SavedEmbedRow[];
+  guildMessages: GuildMessageRow[];
 }
 
 /** Common extra_config paths editable from dashboard */
 export const EXTRA_CONFIG_FIELDS = [
   { key: 'starboard.emoji', label: 'Starboard emoji', type: 'text', placeholder: '⭐' },
+  { key: 'clownboard.emoji', label: 'Clownboard emoji', type: 'text', placeholder: '🤡' },
   { key: 'levels.message', label: 'Level-up message', type: 'textarea', placeholder: 'GG {user}, you reached level {level}!' },
   { key: 'suggest.channel', label: 'Suggestions channel', type: 'channel' },
   { key: 'logs.join', label: 'Join log channel', type: 'channel' },
   { key: 'logs.leave', label: 'Leave log channel', type: 'channel' },
   { key: 'logs.message', label: 'Message log channel', type: 'channel' },
   { key: 'bumpreminder.message', label: 'Bump reminder message', type: 'textarea' },
+] as const;
+
+export const SOCIAL_FEED_PLATFORMS = [
+  'youtube',
+  'twitch',
+  'twitter',
+  'instagram',
+  'tiktok',
+  'reddit',
+  'kick',
+  'soundcloud',
+  'pinterest',
 ] as const;
 
 export const KNOWN_EVENTS = [

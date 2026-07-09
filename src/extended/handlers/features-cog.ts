@@ -4,6 +4,7 @@ import { getGuild, updateGuild, getMemberXp, toggleEvent } from '../../database'
 import { getSupabase } from '../../database/supabase';
 import { replyError, replyInfo, replySuccess, needManageGuild, mentionChannel, mentionRole, parseDuration, formatDuration } from '../lib/helpers';
 import { setExtraConfig, getConfigValue, listConfigSection } from '../lib/guild-config';
+import { replyComingSoon } from '../../lib/coming-soon';
 
 const FEATURE_COGS = new Set([
   'starboard', 'clownboard', 'levels', 'autorole', 'giveaways', 'tickets', 'voicemaster',
@@ -178,7 +179,7 @@ async function handleAutorole(name: string, message: Message, args: string[]) {
 
 async function handleGiveawaysExtra(name: string, message: Message, args: string[]) {
   if (name.startsWith('giveaways edit')) {
-    await replySuccess(message, 'Giveaway updated.');
+    await replyComingSoon(message, 'Giveaway edit', 'Use `,giveaway end <id>` then start a new giveaway to change prize or duration.');
     return true;
   }
   if (name === 'giveaways list') {
@@ -547,7 +548,7 @@ async function handleCrypto(name: string, message: Message, args: string[]) {
     return true;
   }
   if (name === 'subscribe' || name === 'transaction') {
-    await replySuccess(message, `${name} registered for **${args[0] ?? 'wallet'}**.`);
+    await replyComingSoon(message, name, `**,${name}** wallet tracking is not available yet. Use \`,crypto <coin>\` for prices.`);
     return true;
   }
   return false;

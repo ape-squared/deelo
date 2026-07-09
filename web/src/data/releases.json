@@ -1,13 +1,38 @@
 {
-  "generated_at": "2026-07-08T01:19:03.253Z",
+  "generated_at": "2026-07-09T00:01:56.867Z",
   "latest": {
     "id": "release-2026-07-07",
-    "version": "8a54ac2",
-    "published_at": "2026-07-07T21:15:26-04:00",
+    "version": "5b0d08a",
+    "published_at": "2026-07-07T22:03:07-04:00",
     "title": "Updates for July 7, 2026",
     "category": "feature",
-    "body": "- Add launch-day SEO, UX, and dashboard polish for production readiness\n- Fix broken mobile menu X showing on desktop widths\n- Show hamburger nav only on mobile viewports\n- Fix mobile nav hamburger blocked by What's New modal\n- Edit Discord changelog embeds when git release content updates\n- Fix suggestions page modal, search field, and error handling\n- Improve Discord OAuth diagnostics and error mapping\n- Fix Discord dashboard login after guilds.join OAuth change\n- Add community feature requests with Discord OAuth and server gating\n- Overhaul ,stream with station switching and queue controls\n- Fix radio playback using fetch and demuxProbe\n- Align marketing site with pricing and fix radio reconnect loop",
+    "body": "- Overhaul dashboard with module toggles and a sleeker control-center UI\n- Remove personal username from homepage command preview demo\n- Add DB-backed timers and multi-message welcome/goodbye commands\n- Finish five partially built bot features: aliases, clownboard, logs, Pinterest, bump reminders\n- Fix pricing redeem CTA looping back to pricing instead of redeem flow\n- Add launch-day SEO, UX, and dashboard polish for production readiness\n- Fix broken mobile menu X showing on desktop widths\n- Show hamburger nav only on mobile viewports\n- Fix mobile nav hamburger blocked by What's New modal\n- Edit Discord changelog embeds when git release content updates\n- Fix suggestions page modal, search field, and error handling\n- Improve Discord OAuth diagnostics and error mapping",
     "items": [
+      {
+        "title": "Overhaul dashboard with module toggles and a sleeker control-center UI",
+        "category": "feature",
+        "hash": "5b0d08a"
+      },
+      {
+        "title": "Remove personal username from homepage command preview demo",
+        "category": "improvement",
+        "hash": "64720d2"
+      },
+      {
+        "title": "Add DB-backed timers and multi-message welcome/goodbye commands",
+        "category": "feature",
+        "hash": "1a02d4e"
+      },
+      {
+        "title": "Finish five partially built bot features: aliases, clownboard, logs, Pinterest, bump reminders",
+        "category": "improvement",
+        "hash": "3ded8aa"
+      },
+      {
+        "title": "Fix pricing redeem CTA looping back to pricing instead of redeem flow",
+        "category": "fix",
+        "hash": "0cff80e"
+      },
       {
         "title": "Add launch-day SEO, UX, and dashboard polish for production readiness",
         "category": "feature",
@@ -42,31 +67,6 @@
         "title": "Improve Discord OAuth diagnostics and error mapping",
         "category": "improvement",
         "hash": "7126b57"
-      },
-      {
-        "title": "Fix Discord dashboard login after guilds.join OAuth change",
-        "category": "fix",
-        "hash": "847789f"
-      },
-      {
-        "title": "Add community feature requests with Discord OAuth and server gating",
-        "category": "feature",
-        "hash": "c98b117"
-      },
-      {
-        "title": "Overhaul ,stream with station switching and queue controls",
-        "category": "feature",
-        "hash": "6ef77cb"
-      },
-      {
-        "title": "Fix radio playback using fetch and demuxProbe",
-        "category": "fix",
-        "hash": "f905646"
-      },
-      {
-        "title": "Align marketing site with pricing and fix radio reconnect loop",
-        "category": "improvement",
-        "hash": "c06ae87"
       }
     ],
     "source": "git"
@@ -74,12 +74,37 @@
   "releases": [
     {
       "id": "release-2026-07-07",
-      "version": "8a54ac2",
-      "published_at": "2026-07-07T21:15:26-04:00",
+      "version": "5b0d08a",
+      "published_at": "2026-07-07T22:03:07-04:00",
       "title": "Updates for July 7, 2026",
       "category": "feature",
-      "body": "- Add launch-day SEO, UX, and dashboard polish for production readiness\n- Fix broken mobile menu X showing on desktop widths\n- Show hamburger nav only on mobile viewports\n- Fix mobile nav hamburger blocked by What's New modal\n- Edit Discord changelog embeds when git release content updates\n- Fix suggestions page modal, search field, and error handling\n- Improve Discord OAuth diagnostics and error mapping\n- Fix Discord dashboard login after guilds.join OAuth change\n- Add community feature requests with Discord OAuth and server gating\n- Overhaul ,stream with station switching and queue controls\n- Fix radio playback using fetch and demuxProbe\n- Align marketing site with pricing and fix radio reconnect loop",
+      "body": "- Overhaul dashboard with module toggles and a sleeker control-center UI\n- Remove personal username from homepage command preview demo\n- Add DB-backed timers and multi-message welcome/goodbye commands\n- Finish five partially built bot features: aliases, clownboard, logs, Pinterest, bump reminders\n- Fix pricing redeem CTA looping back to pricing instead of redeem flow\n- Add launch-day SEO, UX, and dashboard polish for production readiness\n- Fix broken mobile menu X showing on desktop widths\n- Show hamburger nav only on mobile viewports\n- Fix mobile nav hamburger blocked by What's New modal\n- Edit Discord changelog embeds when git release content updates\n- Fix suggestions page modal, search field, and error handling\n- Improve Discord OAuth diagnostics and error mapping",
       "items": [
+        {
+          "title": "Overhaul dashboard with module toggles and a sleeker control-center UI",
+          "category": "feature",
+          "hash": "5b0d08a"
+        },
+        {
+          "title": "Remove personal username from homepage command preview demo",
+          "category": "improvement",
+          "hash": "64720d2"
+        },
+        {
+          "title": "Add DB-backed timers and multi-message welcome/goodbye commands",
+          "category": "feature",
+          "hash": "1a02d4e"
+        },
+        {
+          "title": "Finish five partially built bot features: aliases, clownboard, logs, Pinterest, bump reminders",
+          "category": "improvement",
+          "hash": "3ded8aa"
+        },
+        {
+          "title": "Fix pricing redeem CTA looping back to pricing instead of redeem flow",
+          "category": "fix",
+          "hash": "0cff80e"
+        },
         {
           "title": "Add launch-day SEO, UX, and dashboard polish for production readiness",
           "category": "feature",
@@ -114,31 +139,6 @@
           "title": "Improve Discord OAuth diagnostics and error mapping",
           "category": "improvement",
           "hash": "7126b57"
-        },
-        {
-          "title": "Fix Discord dashboard login after guilds.join OAuth change",
-          "category": "fix",
-          "hash": "847789f"
-        },
-        {
-          "title": "Add community feature requests with Discord OAuth and server gating",
-          "category": "feature",
-          "hash": "c98b117"
-        },
-        {
-          "title": "Overhaul ,stream with station switching and queue controls",
-          "category": "feature",
-          "hash": "6ef77cb"
-        },
-        {
-          "title": "Fix radio playback using fetch and demuxProbe",
-          "category": "fix",
-          "hash": "f905646"
-        },
-        {
-          "title": "Align marketing site with pricing and fix radio reconnect loop",
-          "category": "improvement",
-          "hash": "c06ae87"
         }
       ],
       "source": "git"

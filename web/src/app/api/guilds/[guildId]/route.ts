@@ -31,6 +31,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ gui
     buttonRolesRes,
     ticketsRes,
     embedsRes,
+    guildMessagesRes,
   ] = await Promise.all([
     db.from('event_toggles').select('event, enabled').eq('guild_id', guildId),
     db.from('filters').select('*').eq('guild_id', guildId).order('id'),
@@ -47,6 +48,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ gui
     db.from('button_roles').select('*').eq('guild_id', guildId).order('id'),
     db.from('tickets').select('id, channel_id, user_id, panel_name, status, claimed_by, created_at, closed_at').eq('guild_id', guildId).order('created_at', { ascending: false }).limit(50),
     db.from('saved_embeds').select('id, guild_id, name, embed_json, created_by').eq('guild_id', guildId).order('name'),
+    db.from('guild_messages').select('*').eq('guild_id', guildId).order('id'),
   ]);
 
   return NextResponse.json({
@@ -67,6 +69,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ gui
     buttonRoles: buttonRolesRes.data ?? [],
     tickets: ticketsRes.data ?? [],
     embeds: embedsRes.data ?? [],
+    guildMessages: guildMessagesRes.data ?? [],
     access: auth.access,
   });
 }

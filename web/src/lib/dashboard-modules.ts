@@ -118,8 +118,17 @@ export function getModuleStatus(
     }
     case 'welcome':
       return {
-        enabled: !!(guild.welcome_channel || guild.welcome_message || guild.goodbye_channel),
-        detail: guild.welcome_channel ? 'Channel configured' : 'Not configured',
+        enabled: !!(
+          guild.welcome_channel
+          || guild.welcome_message
+          || guild.goodbye_channel
+          || config.guildMessages?.some((m) => m.enabled)
+        ),
+        detail: (() => {
+          const extras = config.guildMessages?.filter((m) => m.enabled).length ?? 0;
+          if (extras) return `${extras} extra message${extras === 1 ? '' : 's'}`;
+          return guild.welcome_channel ? 'Channel configured' : 'Not configured';
+        })(),
       };
     case 'moderation':
       return {
@@ -157,8 +166,11 @@ export function getModuleStatus(
       };
     case 'starboard':
       return {
-        enabled: !!guild.starboard_channel,
-        detail: guild.starboard_channel ? `${guild.starboard_threshold} stars` : 'Not configured',
+        enabled: !!guild.starboard_channel || !!getExtraConfigPath((guild.extra_config ?? {}) as Record<string, unknown>, 'clownboard.channel'),
+        detail: [
+          guild.starboard_channel && `${guild.starboard_threshold} stars`,
+          getExtraConfigPath((guild.extra_config ?? {}) as Record<string, unknown>, 'clownboard.channel') && 'Clownboard',
+        ].filter(Boolean).join(' · ') || 'Not configured',
       };
     case 'voicemaster':
       return {

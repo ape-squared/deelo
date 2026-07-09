@@ -153,7 +153,11 @@ function DashboardContent() {
             </a>
           </div>
 
-          <WelcomeChecklist hasBot={withBot.length > 0} show={welcomeIntent} />
+          <WelcomeChecklist
+            hasBot={withBot.length > 0}
+            show={welcomeIntent}
+            firstGuildId={withBot[0]?.id ?? null}
+          />
 
           {redeemIntent && withBot.length > 1 && (
             <div className="card mb-8 border-accent/25 bg-accent/5 p-5 text-sm">
