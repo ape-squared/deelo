@@ -116,7 +116,7 @@ const integrations: Command[] = [
       const {
         chatCompletion,
         clearChatHistory,
-        hasOpenAiKey,
+        hasAiConfigured,
         OpenAiError,
       } = await import('../../services/integrations/openai');
 
@@ -130,7 +130,7 @@ const integrations: Command[] = [
                 '**,chatgpt reset** — clear your memory in this channel',
                 '**,ask** / **,gpt** / **,ai** — aliases',
                 '',
-                'Premium feature. Replies stay short and Discord-friendly.',
+                'Premium feature. Powered by Puter (free OpenAI gateway) or `OPENAI_API_KEY`.',
               ].join('\n'),
             ),
           ],
@@ -146,15 +146,19 @@ const integrations: Command[] = [
 
       const question = args.join(' ').trim();
       if (!question) return void message.reply({ embeds: [errorEmbed('Usage: `,chatgpt <question>`')] });
-      if (!hasOpenAiKey()) {
+      if (!hasAiConfigured()) {
         return void message.reply({
-          embeds: [errorEmbed('ChatGPT is not configured on this bot host. Ask an admin to set `OPENAI_API_KEY`.')],
+          embeds: [
+            errorEmbed(
+              'AI is not configured. Set `PUTER_AUTH_TOKEN` (recommended — free via Puter) or `OPENAI_API_KEY`.\nhttps://developer.puter.com/tutorials/puter-auth-token/',
+            ),
+          ],
         });
       }
 
       sendTyping(message);
       try {
-        const { answer, turns } = await chatCompletion({
+        const { answer, turns, provider } = await chatCompletion({
           guildId: message.guild!.id,
           channelId: message.channel.id,
           userId: message.author.id,
@@ -163,7 +167,7 @@ const integrations: Command[] = [
         await message.reply({
           embeds: [
             deeloEmbed('ChatGPT', answer).setFooter({
-              text: `Deelo · ${turns} turn${turns === 1 ? '' : 's'} remembered · ,chatgpt reset`,
+              text: `Deelo · ${provider} · ${turns} turn${turns === 1 ? '' : 's'} · ,chatgpt reset`,
             }),
           ],
         });
@@ -186,18 +190,20 @@ const integrations: Command[] = [
       run: async ({ interaction }) => {
         const prompt = interaction.options.getString('prompt', true);
         const reset = interaction.options.getBoolean('reset') ?? false;
-        const { chatCompletion, hasOpenAiKey, OpenAiError } = await import('../../services/integrations/openai');
+        const { chatCompletion, hasAiConfigured, OpenAiError } = await import('../../services/integrations/openai');
 
-        if (!hasOpenAiKey()) {
+        if (!hasAiConfigured()) {
           return void interaction.reply({
-            embeds: [errorEmbed('ChatGPT is not configured. Set OPENAI_API_KEY on the bot host.')],
+            embeds: [
+              errorEmbed('AI is not configured. Set PUTER_AUTH_TOKEN or OPENAI_API_KEY on the bot host.'),
+            ],
             ephemeral: true,
           });
         }
 
         await interaction.deferReply();
         try {
-          const { answer, turns } = await chatCompletion({
+          const { answer, turns, provider } = await chatCompletion({
             guildId: interaction.guild!.id,
             channelId: interaction.channelId,
             userId: interaction.user.id,
@@ -207,7 +213,7 @@ const integrations: Command[] = [
           await interaction.editReply({
             embeds: [
               deeloEmbed('ChatGPT', answer).setFooter({
-                text: `Deelo · ${turns} turn${turns === 1 ? '' : 's'} remembered`,
+                text: `Deelo · ${provider} · ${turns} turn${turns === 1 ? '' : 's'} remembered`,
               }),
             ],
           });
@@ -229,7 +235,7 @@ const integrations: Command[] = [
     ack: 'never',
     run: async ({ message, args }) => {
       const {
-        hasOpenAiKey,
+        hasAiConfigured,
         OpenAiError,
         MAX_TTS_CHARS,
         TTS_VOICES,
@@ -249,7 +255,7 @@ const integrations: Command[] = [
                 '**,tts channel <text>** — speak in your voice channel',
                 '**,tts voices** — list voices',
                 '',
-                `Max **${MAX_TTS_CHARS}** characters. Premium feature.`,
+                `Max **${MAX_TTS_CHARS}** characters. Premium · Puter or OpenAI.`,
               ].join('\n'),
             ),
           ],
@@ -262,9 +268,13 @@ const integrations: Command[] = [
         });
       }
 
-      if (!hasOpenAiKey()) {
+      if (!hasAiConfigured()) {
         return void message.reply({
-          embeds: [errorEmbed('TTS is not configured on this bot host. Ask an admin to set `OPENAI_API_KEY`.')],
+          embeds: [
+            errorEmbed(
+              'TTS is not configured. Set `PUTER_AUTH_TOKEN` (recommended) or `OPENAI_API_KEY`.',
+            ),
+          ],
         });
       }
 
@@ -291,7 +301,7 @@ const integrations: Command[] = [
 
       sendTyping(message);
       try {
-        const { buffer, voice: usedVoice, filename } = await synthesizeSpeech({ text, voice: voice ?? undefined });
+        const { buffer, voice: usedVoice, filename, provider } = await synthesizeSpeech({ text, voice: voice ?? undefined });
         const { AttachmentBuilder } = await import('discord.js');
         const file = new AttachmentBuilder(buffer, { name: filename });
 
@@ -302,7 +312,7 @@ const integrations: Command[] = [
             return void message.reply({
               embeds: [
                 successEmbed(
-                  `Speaking in ${memberChannel} with **${usedVoice}**.\n> ${text.length > 120 ? `${text.slice(0, 117)}…` : text}`,
+                  `Speaking in ${memberChannel} with **${usedVoice}** (${provider}).\n> ${text.length > 120 ? `${text.slice(0, 117)}…` : text}`,
                 ),
               ],
               files: [file],
@@ -312,7 +322,7 @@ const integrations: Command[] = [
             embeds: [
               deeloEmbed(
                 'TTS',
-                `Music is playing, so I attached the MP3 instead of joining voice.\n**Voice:** ${usedVoice}`,
+                `Music is playing, so I attached the MP3 instead of joining voice.\n**Voice:** ${usedVoice} · **Provider:** ${provider}`,
               ),
             ],
             files: [file],
@@ -323,7 +333,7 @@ const integrations: Command[] = [
           embeds: [
             deeloEmbed(
               'TTS',
-              `**Voice:** \`${usedVoice}\`\n> ${text.length > 180 ? `${text.slice(0, 177)}…` : text}`,
+              `**Voice:** \`${usedVoice}\` · **Provider:** \`${provider}\`\n> ${text.length > 180 ? `${text.slice(0, 177)}…` : text}`,
             ),
           ],
           files: [file],
@@ -355,15 +365,15 @@ const integrations: Command[] = [
         const voiceRaw = interaction.options.getString('voice') ?? undefined;
         const speakInChannel = interaction.options.getBoolean('channel') ?? false;
         const {
-          hasOpenAiKey,
+          hasAiConfigured,
           OpenAiError,
           parseTtsVoice,
           synthesizeSpeech,
         } = await import('../../services/integrations/openai');
 
-        if (!hasOpenAiKey()) {
+        if (!hasAiConfigured()) {
           return void interaction.reply({
-            embeds: [errorEmbed('TTS is not configured. Set OPENAI_API_KEY on the bot host.')],
+            embeds: [errorEmbed('TTS is not configured. Set PUTER_AUTH_TOKEN or OPENAI_API_KEY.')],
             ephemeral: true,
           });
         }
@@ -388,7 +398,7 @@ const integrations: Command[] = [
 
         await interaction.deferReply();
         try {
-          const { buffer, voice: usedVoice, filename } = await synthesizeSpeech({ text, voice: voice ?? undefined });
+          const { buffer, voice: usedVoice, filename, provider } = await synthesizeSpeech({ text, voice: voice ?? undefined });
           const { AttachmentBuilder } = await import('discord.js');
           const file = new AttachmentBuilder(buffer, { name: filename });
 
@@ -397,18 +407,18 @@ const integrations: Command[] = [
             const result = await playTtsClip(interaction.guild!, memberChannel, buffer);
             if (result === 'played') {
               return void interaction.editReply({
-                embeds: [successEmbed(`Speaking in ${memberChannel} with **${usedVoice}**.`)],
+                embeds: [successEmbed(`Speaking in ${memberChannel} with **${usedVoice}** (${provider}).`)],
                 files: [file],
               });
             }
             return void interaction.editReply({
-              embeds: [deeloEmbed('TTS', `Music is playing — attached MP3 instead.\n**Voice:** ${usedVoice}`)],
+              embeds: [deeloEmbed('TTS', `Music is playing — attached MP3 instead.\n**Voice:** ${usedVoice} · **Provider:** ${provider}`)],
               files: [file],
             });
           }
 
           await interaction.editReply({
-            embeds: [deeloEmbed('TTS', `**Voice:** \`${usedVoice}\``)],
+            embeds: [deeloEmbed('TTS', `**Voice:** \`${usedVoice}\` · **Provider:** \`${provider}\``)],
             files: [file],
           });
         } catch (err) {

@@ -676,7 +676,7 @@ export const DOCS_PAGES: DocsPage[] = [
       {
         type: 'callout',
         variant: 'warn',
-        text: 'ChatGPT is a Premium feature and requires `OPENAI_API_KEY` on the bot host.',
+        text: 'ChatGPT is Premium. Prefer `PUTER_AUTH_TOKEN` (free OpenAI gateway via Puter) or fall back to `OPENAI_API_KEY`.',
       },
       {
         type: 'code',
@@ -690,6 +690,7 @@ export const DOCS_PAGES: DocsPage[] = [
           'Remembers the last ~6 turns per user in each channel (30 minutes)',
           '`,chatgpt reset` clears your memory in the current channel',
           'Slash: `/chatgpt prompt:` with optional reset',
+          'Provider: Puter first (https://developer.puter.com/tutorials/free-unlimited-openai-api/), then OpenAI',
         ],
       },
     ],
@@ -703,7 +704,7 @@ export const DOCS_PAGES: DocsPage[] = [
       {
         type: 'callout',
         variant: 'warn',
-        text: 'TTS is a Premium feature and uses the same `OPENAI_API_KEY` as ChatGPT.',
+        text: 'TTS is Premium and uses the same Puter / OpenAI credentials as ChatGPT.',
       },
       {
         type: 'code',
@@ -717,6 +718,7 @@ export const DOCS_PAGES: DocsPage[] = [
           '`,tts channel <text>` speaks in your current voice channel (skips if music is playing and attaches the file instead)',
           'Pick a voice: alloy, ash, coral, echo, fable, onyx, nova, sage, shimmer, and more',
           'Max 400 characters per clip',
+          'Powered by Puter OpenAI TTS (`gpt-4o-mini-tts` / `tts-1`) when configured',
         ],
       },
     ],

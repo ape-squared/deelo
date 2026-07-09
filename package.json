@@ -27,6 +27,7 @@
   "dependencies": {
     "@discordjs/opus": "^0.10.0",
     "@discordjs/voice": "^0.19.2",
+    "@heyputer/puter.js": "^2.5.4",
     "@snazzah/davey": "^0.1.12",
     "@supabase/supabase-js": "^2.49.1",
     "discord.js": "^14.18.0",
@@ -36,8 +37,8 @@
     "opusscript": "^0.0.8",
     "play-dl": "^1.9.7",
     "sharp": "^0.33.5",
-    "yt-dlp-wrap": "^2.3.12",
-    "ws": "^8.18.3"
+    "ws": "^8.18.3",
+    "yt-dlp-wrap": "^2.3.12"
   },
   "devDependencies": {
     "@types/node": "^22.13.10",
