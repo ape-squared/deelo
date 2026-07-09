@@ -78,15 +78,17 @@ export const DOCS_NAV: DocsNavGroup[] = [
       { title: 'Utility', href: '/docs/features/utility' },
     ],
   },
-  {
-    title: 'Integrations',
-    items: [
-      { title: 'Last.fm', href: '/docs/integrations/lastfm' },
-      { title: 'Social Feeds', href: '/docs/integrations/social' },
-      { title: 'Fortnite', href: '/docs/integrations/fortnite' },
-      { title: 'Second Life', href: '/docs/integrations/secondlife' },
-    ],
-  },
+    {
+      title: 'Integrations',
+      items: [
+        { title: 'Last.fm', href: '/docs/integrations/lastfm' },
+        { title: 'Social Feeds', href: '/docs/integrations/social' },
+        { title: 'Fortnite', href: '/docs/integrations/fortnite' },
+        { title: 'Second Life', href: '/docs/integrations/secondlife' },
+        { title: 'ChatGPT', href: '/docs/integrations/chatgpt' },
+        { title: 'Text-to-Speech', href: '/docs/integrations/tts' },
+      ],
+    },
   {
     title: 'Resources',
     items: [
@@ -662,6 +664,60 @@ export const DOCS_PAGES: DocsPage[] = [
       {
         type: 'p',
         text: 'Shows grid online status, residents in-world, total signups, L$ exchange rate, and LindeX market buy/sell volumes. Data comes from official Linden Lab live data feeds — no API key required.',
+      },
+    ],
+  ),
+  page(
+    'integrations/chatgpt',
+    'ChatGPT',
+    'Ask questions with conversation memory in Discord.',
+    'Integrations',
+    [
+      {
+        type: 'callout',
+        variant: 'warn',
+        text: 'ChatGPT is a Premium feature and requires `OPENAI_API_KEY` on the bot host.',
+      },
+      {
+        type: 'code',
+        language: 'bash',
+        code: ',chatgpt How do I set up antinuke?\n,ask Explain timeouts vs mutes\n,chatgpt reset',
+      },
+      {
+        type: 'ul',
+        items: [
+          'Aliases: `,gpt`, `,ai`, `,ask`, `,askgpt`',
+          'Remembers the last ~6 turns per user in each channel (30 minutes)',
+          '`,chatgpt reset` clears your memory in the current channel',
+          'Slash: `/chatgpt prompt:` with optional reset',
+        ],
+      },
+    ],
+  ),
+  page(
+    'integrations/tts',
+    'Text-to-Speech',
+    'Generate MP3 speech and optionally play it in a voice channel.',
+    'Integrations',
+    [
+      {
+        type: 'callout',
+        variant: 'warn',
+        text: 'TTS is a Premium feature and uses the same `OPENAI_API_KEY` as ChatGPT.',
+      },
+      {
+        type: 'code',
+        language: 'bash',
+        code: ',tts Hello everyone\n,tts onyx Welcome to the server\n,tts channel nova Raid starting in 5 minutes\n,tts voices',
+      },
+      {
+        type: 'ul',
+        items: [
+          '`,tts <text>` attaches an MP3',
+          '`,tts channel <text>` speaks in your current voice channel (skips if music is playing and attaches the file instead)',
+          'Pick a voice: alloy, ash, coral, echo, fable, onyx, nova, sage, shimmer, and more',
+          'Max 400 characters per clip',
+        ],
       },
     ],
   ),

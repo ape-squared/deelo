@@ -12,7 +12,7 @@ export async function handleMiscCog(cmd: CommandDef, message: Message, args: str
   const name = cmd.name;
 
   if (name.startsWith('embed')) return handleEmbed(name, message, args);
-  if (name === 'chatgpt' || name === 'gpt' || name === 'ai') return false;
+  if (name === 'chatgpt' || name === 'gpt' || name === 'ai' || name === 'ask' || name === 'askgpt') return false;
   if (name === 'uwu') {
     const text = args.join(' ');
     if (!text) { await replyError(message, 'Usage: `,uwu <text>`'); return true; }

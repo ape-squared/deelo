@@ -262,9 +262,7 @@ export async function handleFunCog(cmd: CommandDef, message: Message, args: stri
     return false;
   }
   if (name === 'tts' || name === 'tts channel') {
-    if (!(await requirePremium(message, 'tts'))) return true;
-    await replyInfo(message, 'TTS', 'Premium text-to-speech is not wired to voice yet. Join VC and use dashboard settings when available.');
-    return true;
+    return false; // native ,tts command
   }
   if (name === 'makegif') {
     if (!(await requirePremium(message, 'makegif'))) return true;

@@ -3,6 +3,13 @@ import { deeloEmbed, errorEmbed, successEmbed } from '../../utils/embeds';
 import { config } from '../../config';
 import { getSupabase } from '../../database/supabase';
 
+function sendTyping(message: { channel: { isTextBased?: () => boolean; sendTyping?: () => Promise<unknown> } }) {
+  const ch = message.channel;
+  if (ch && typeof ch.sendTyping === 'function') {
+    void ch.sendTyping().catch(() => {});
+  }
+}
+
 const integrations: Command[] = [
   {
     name: 'lastfm',
@@ -97,29 +104,318 @@ const integrations: Command[] = [
   },
   {
     name: 'chatgpt',
-    aliases: ['gpt', 'ai'],
-    description: 'Ask ChatGPT a question',
+    aliases: ['gpt', 'ai', 'ask', 'askgpt'],
+    description: 'Ask ChatGPT with per-channel conversation memory',
     category: 'integrations',
-    usage: 'chatgpt <question>',
+    usage: 'chatgpt <question|reset|help>',
     premiumFeature: 'chatgpt',
+    cooldown: 4,
+    ack: 'never',
     run: async ({ message, args }) => {
-      const question = args.join(' ');
-      if (!question) return void message.reply({ embeds: [errorEmbed('Ask a question!')] });
-      if (!config.openaiApiKey) {
-        return void message.reply({ embeds: [deeloEmbed('ChatGPT', `**Q:** ${question}\n\n*Add OPENAI_API_KEY to .env for live responses.*`)] });
-      }
-      try {
-        const res = await fetch('https://api.openai.com/v1/chat/completions', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${config.openaiApiKey}` },
-          body: JSON.stringify({ model: 'gpt-4o-mini', messages: [{ role: 'user', content: question }], max_tokens: 500 }),
+      const sub = args[0]?.toLowerCase();
+      const {
+        chatCompletion,
+        clearChatHistory,
+        hasOpenAiKey,
+        OpenAiError,
+      } = await import('../../services/integrations/openai');
+
+      if (!sub || sub === 'help') {
+        return void message.reply({
+          embeds: [
+            deeloEmbed(
+              'ChatGPT',
+              [
+                '**,chatgpt <question>** — ask with conversation memory (per channel)',
+                '**,chatgpt reset** — clear your memory in this channel',
+                '**,ask** / **,gpt** / **,ai** — aliases',
+                '',
+                'Premium feature. Replies stay short and Discord-friendly.',
+              ].join('\n'),
+            ),
+          ],
         });
-        const data = await res.json() as { choices?: Array<{ message?: { content?: string } }> };
-        const answer = data.choices?.[0]?.message?.content ?? 'No response.';
-        await message.reply({ embeds: [deeloEmbed('ChatGPT', answer)] });
-      } catch {
-        await message.reply({ embeds: [errorEmbed('Failed to get ChatGPT response.')] });
       }
+
+      if (sub === 'reset' || sub === 'clear') {
+        const cleared = clearChatHistory(message.guild!.id, message.channel.id, message.author.id);
+        return void message.reply({
+          embeds: [successEmbed(cleared ? 'Chat memory cleared for this channel.' : 'No chat memory to clear.')],
+        });
+      }
+
+      const question = args.join(' ').trim();
+      if (!question) return void message.reply({ embeds: [errorEmbed('Usage: `,chatgpt <question>`')] });
+      if (!hasOpenAiKey()) {
+        return void message.reply({
+          embeds: [errorEmbed('ChatGPT is not configured on this bot host. Ask an admin to set `OPENAI_API_KEY`.')],
+        });
+      }
+
+      sendTyping(message);
+      try {
+        const { answer, turns } = await chatCompletion({
+          guildId: message.guild!.id,
+          channelId: message.channel.id,
+          userId: message.author.id,
+          prompt: question,
+        });
+        await message.reply({
+          embeds: [
+            deeloEmbed('ChatGPT', answer).setFooter({
+              text: `Deelo · ${turns} turn${turns === 1 ? '' : 's'} remembered · ,chatgpt reset`,
+            }),
+          ],
+        });
+      } catch (err) {
+        const msg = err instanceof OpenAiError ? err.message : 'Failed to get ChatGPT response.';
+        await message.reply({ embeds: [errorEmbed(msg)] });
+      }
+    },
+    slash: {
+      description: 'Ask ChatGPT a question',
+      options: [
+        { name: 'prompt', description: 'Your question', type: 3, required: true },
+        {
+          name: 'reset',
+          description: 'Clear conversation memory before asking',
+          type: 5,
+          required: false,
+        },
+      ],
+      run: async ({ interaction }) => {
+        const prompt = interaction.options.getString('prompt', true);
+        const reset = interaction.options.getBoolean('reset') ?? false;
+        const { chatCompletion, hasOpenAiKey, OpenAiError } = await import('../../services/integrations/openai');
+
+        if (!hasOpenAiKey()) {
+          return void interaction.reply({
+            embeds: [errorEmbed('ChatGPT is not configured. Set OPENAI_API_KEY on the bot host.')],
+            ephemeral: true,
+          });
+        }
+
+        await interaction.deferReply();
+        try {
+          const { answer, turns } = await chatCompletion({
+            guildId: interaction.guild!.id,
+            channelId: interaction.channelId,
+            userId: interaction.user.id,
+            prompt,
+            reset,
+          });
+          await interaction.editReply({
+            embeds: [
+              deeloEmbed('ChatGPT', answer).setFooter({
+                text: `Deelo · ${turns} turn${turns === 1 ? '' : 's'} remembered`,
+              }),
+            ],
+          });
+        } catch (err) {
+          const msg = err instanceof OpenAiError ? err.message : 'Failed to get ChatGPT response.';
+          await interaction.editReply({ embeds: [errorEmbed(msg)] });
+        }
+      },
+    },
+  },
+  {
+    name: 'tts',
+    aliases: ['speak', 'say'],
+    description: 'Convert text to speech (MP3 and optional voice channel)',
+    category: 'integrations',
+    usage: 'tts [voice] <text> | tts voices | tts channel <text>',
+    premiumFeature: 'tts',
+    cooldown: 6,
+    ack: 'never',
+    run: async ({ message, args }) => {
+      const {
+        hasOpenAiKey,
+        OpenAiError,
+        MAX_TTS_CHARS,
+        TTS_VOICES,
+        parseTtsVoice,
+        synthesizeSpeech,
+      } = await import('../../services/integrations/openai');
+
+      const sub = args[0]?.toLowerCase();
+      if (!sub || sub === 'help') {
+        return void message.reply({
+          embeds: [
+            deeloEmbed(
+              'Text-to-Speech',
+              [
+                '**,tts <text>** — attach an MP3',
+                '**,tts <voice> <text>** — pick a voice (e.g. `nova`, `onyx`)',
+                '**,tts channel <text>** — speak in your voice channel',
+                '**,tts voices** — list voices',
+                '',
+                `Max **${MAX_TTS_CHARS}** characters. Premium feature.`,
+              ].join('\n'),
+            ),
+          ],
+        });
+      }
+
+      if (sub === 'voices' || sub === 'voice') {
+        return void message.reply({
+          embeds: [deeloEmbed('TTS Voices', TTS_VOICES.map((v) => `\`${v}\``).join(' · '))],
+        });
+      }
+
+      if (!hasOpenAiKey()) {
+        return void message.reply({
+          embeds: [errorEmbed('TTS is not configured on this bot host. Ask an admin to set `OPENAI_API_KEY`.')],
+        });
+      }
+
+      let speakInChannel = false;
+      let rest = args;
+      if (sub === 'channel' || sub === 'vc' || sub === 'voicechannel') {
+        speakInChannel = true;
+        rest = args.slice(1);
+      }
+
+      let voice = parseTtsVoice(rest[0]);
+      if (voice) rest = rest.slice(1);
+      const text = rest.join(' ').trim();
+      if (!text) {
+        return void message.reply({
+          embeds: [errorEmbed(speakInChannel ? 'Usage: `,tts channel [voice] <text>`' : 'Usage: `,tts [voice] <text>`')],
+        });
+      }
+
+      const memberChannel = message.member?.voice.channel;
+      if (speakInChannel && !memberChannel) {
+        return void message.reply({ embeds: [errorEmbed('Join a voice channel first, then use `,tts channel <text>`.')] });
+      }
+
+      sendTyping(message);
+      try {
+        const { buffer, voice: usedVoice, filename } = await synthesizeSpeech({ text, voice: voice ?? undefined });
+        const { AttachmentBuilder } = await import('discord.js');
+        const file = new AttachmentBuilder(buffer, { name: filename });
+
+        if (speakInChannel && memberChannel) {
+          const { playTtsClip } = await import('../../services/integrations/tts-voice');
+          const result = await playTtsClip(message.guild!, memberChannel, buffer);
+          if (result === 'played') {
+            return void message.reply({
+              embeds: [
+                successEmbed(
+                  `Speaking in ${memberChannel} with **${usedVoice}**.\n> ${text.length > 120 ? `${text.slice(0, 117)}…` : text}`,
+                ),
+              ],
+              files: [file],
+            });
+          }
+          return void message.reply({
+            embeds: [
+              deeloEmbed(
+                'TTS',
+                `Music is playing, so I attached the MP3 instead of joining voice.\n**Voice:** ${usedVoice}`,
+              ),
+            ],
+            files: [file],
+          });
+        }
+
+        await message.reply({
+          embeds: [
+            deeloEmbed(
+              'TTS',
+              `**Voice:** \`${usedVoice}\`\n> ${text.length > 180 ? `${text.slice(0, 177)}…` : text}`,
+            ),
+          ],
+          files: [file],
+        });
+      } catch (err) {
+        const msg = err instanceof OpenAiError ? err.message : 'Failed to generate speech.';
+        await message.reply({ embeds: [errorEmbed(msg)] });
+      }
+    },
+    slash: {
+      description: 'Convert text to speech',
+      options: [
+        { name: 'text', description: 'Text to speak', type: 3, required: true },
+        {
+          name: 'voice',
+          description: 'Voice name (nova, onyx, alloy, …)',
+          type: 3,
+          required: false,
+        },
+        {
+          name: 'channel',
+          description: 'Speak in your current voice channel',
+          type: 5,
+          required: false,
+        },
+      ],
+      run: async ({ interaction }) => {
+        const text = interaction.options.getString('text', true);
+        const voiceRaw = interaction.options.getString('voice') ?? undefined;
+        const speakInChannel = interaction.options.getBoolean('channel') ?? false;
+        const {
+          hasOpenAiKey,
+          OpenAiError,
+          parseTtsVoice,
+          synthesizeSpeech,
+        } = await import('../../services/integrations/openai');
+
+        if (!hasOpenAiKey()) {
+          return void interaction.reply({
+            embeds: [errorEmbed('TTS is not configured. Set OPENAI_API_KEY on the bot host.')],
+            ephemeral: true,
+          });
+        }
+
+        const voice = parseTtsVoice(voiceRaw);
+        if (voiceRaw && !voice) {
+          return void interaction.reply({
+            embeds: [errorEmbed(`Unknown voice \`${voiceRaw}\`. Use \`/tts\` with voices like nova, onyx, alloy.`)],
+            ephemeral: true,
+          });
+        }
+
+        const member = interaction.guild?.members.cache.get(interaction.user.id)
+          ?? (await interaction.guild?.members.fetch(interaction.user.id).catch(() => null));
+        const memberChannel = member?.voice.channel;
+        if (speakInChannel && !memberChannel) {
+          return void interaction.reply({
+            embeds: [errorEmbed('Join a voice channel first.')],
+            ephemeral: true,
+          });
+        }
+
+        await interaction.deferReply();
+        try {
+          const { buffer, voice: usedVoice, filename } = await synthesizeSpeech({ text, voice: voice ?? undefined });
+          const { AttachmentBuilder } = await import('discord.js');
+          const file = new AttachmentBuilder(buffer, { name: filename });
+
+          if (speakInChannel && memberChannel) {
+            const { playTtsClip } = await import('../../services/integrations/tts-voice');
+            const result = await playTtsClip(interaction.guild!, memberChannel, buffer);
+            if (result === 'played') {
+              return void interaction.editReply({
+                embeds: [successEmbed(`Speaking in ${memberChannel} with **${usedVoice}**.`)],
+                files: [file],
+              });
+            }
+            return void interaction.editReply({
+              embeds: [deeloEmbed('TTS', `Music is playing — attached MP3 instead.\n**Voice:** ${usedVoice}`)],
+              files: [file],
+            });
+          }
+
+          await interaction.editReply({
+            embeds: [deeloEmbed('TTS', `**Voice:** \`${usedVoice}\``)],
+            files: [file],
+          });
+        } catch (err) {
+          const msg = err instanceof OpenAiError ? err.message : 'Failed to generate speech.';
+          await interaction.editReply({ embeds: [errorEmbed(msg)] });
+        }
+      },
     },
   },
 ];
