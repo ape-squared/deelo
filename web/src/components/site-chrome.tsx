@@ -45,6 +45,7 @@ export async function SiteFooter() {
             <div>
               <p className="site-footer-label">Product</p>
               <div className="site-footer-links">
+                <Link href="/docs">Docs</Link>
                 <Link href="/commands">Commands</Link>
                 <Link href="/suggestions">Suggestions</Link>
                 <Link href="/pricing">Pricing</Link>

@@ -3,7 +3,7 @@ import { MarketingLayout, MarketingMain } from '@/components/marketing/site-layo
 import { MarketingSubHero } from '@/components/marketing/page-hero';
 import { getDiscordSettings } from '@/lib/site-data';
 import { siteHost, brandDomain, isBrandDomainLive } from '@/lib/site-config';
-import { Headphones, MessageCircle, ScrollText, Sparkles } from 'lucide-react';
+import { BookOpen, Headphones, MessageCircle, ScrollText, Sparkles } from 'lucide-react';
 
 export const metadata = {
   title: 'Support',
@@ -24,6 +24,13 @@ export default async function SupportPage() {
       />
       <MarketingMain narrow className="!py-12 lg:!py-16">
         <div className="grid gap-4 sm:grid-cols-2">
+          <Link href="/docs" className="card flex gap-4 p-6 transition hover:border-accent/30">
+            <BookOpen className="h-8 w-8 shrink-0 text-accent" />
+            <div>
+              <h2 className="font-semibold">Documentation</h2>
+              <p className="mt-1 text-sm text-muted">Setup guides for security, tickets, music, levels, and integrations.</p>
+            </div>
+          </Link>
           <a
             href={discord.invite_url}
             className="card flex gap-4 p-6 transition hover:border-accent/30"

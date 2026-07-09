@@ -9,6 +9,7 @@ import { DeeloLogoLink } from '@/components/brand/logo';
 import { inviteApiPath } from '@/lib/invite';
 
 const NAV = [
+  { href: '/docs', label: 'Docs' },
   { href: '/commands', label: 'Commands' },
   { href: '/suggestions', label: 'Suggestions' },
   { href: '/changelog', label: 'Changelog' },

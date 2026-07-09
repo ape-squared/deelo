@@ -36,6 +36,7 @@
   --color-warning: var(--warning);
   --color-danger: var(--danger);
   --color-sidebar: var(--sidebar);
+  --color-surface: var(--surface);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -1189,4 +1190,371 @@ body {
 
 .app-modal-body {
   @apply max-h-[min(85vh,40rem)] overflow-y-auto px-5 py-5;
+}
+
+/* ── Docs (Mintlify-style) ───────────────────────────────────────── */
+.docs-shell {
+  @apply min-h-screen bg-background text-foreground;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -30%, rgba(0, 71, 255, 0.18), transparent 55%);
+}
+
+.docs-topbar {
+  @apply sticky top-0 z-40 border-b border-border/80 bg-background/85 backdrop-blur-xl;
+}
+
+.docs-topbar-inner {
+  @apply mx-auto flex h-14 max-w-[90rem] items-center justify-between gap-3 px-4 lg:px-6;
+}
+
+.docs-topbar-brand {
+  @apply flex min-w-0 items-center gap-2;
+}
+
+.docs-brand-link {
+  @apply flex min-w-0 items-center gap-2.5;
+}
+
+.docs-brand-badge {
+  @apply rounded-md border border-border bg-surface px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted;
+}
+
+.docs-topbar-actions {
+  @apply flex items-center gap-2;
+}
+
+.docs-top-link {
+  @apply rounded-lg px-2.5 py-1.5 text-sm text-muted transition hover:bg-white/5 hover:text-foreground;
+}
+
+.docs-invite-btn {
+  @apply !px-3 !py-2 text-xs sm:text-sm;
+}
+
+.docs-mobile-menu-btn {
+  @apply inline-flex rounded-lg p-2 text-muted transition hover:bg-white/5 hover:text-foreground lg:hidden;
+}
+
+.docs-search-trigger {
+  @apply inline-flex items-center gap-2 rounded-xl border border-border bg-surface px-3 py-1.5 text-sm text-muted transition hover:border-border-strong hover:text-foreground;
+}
+
+.docs-search-trigger kbd {
+  @apply ml-2 hidden rounded border border-border bg-background px-1.5 py-0.5 font-mono text-[10px] text-muted sm:inline;
+}
+
+.docs-search-overlay {
+  @apply fixed inset-0 z-[120] flex items-start justify-center px-4 pt-[12vh];
+}
+
+.docs-search-backdrop {
+  @apply absolute inset-0 bg-black/70 backdrop-blur-sm;
+}
+
+.docs-search-panel {
+  @apply relative z-10 w-full max-w-xl overflow-hidden rounded-2xl border border-border bg-card shadow-2xl;
+  box-shadow: 0 32px 80px -20px rgba(0, 71, 255, 0.4);
+}
+
+.docs-search-input-row {
+  @apply flex items-center gap-2 border-b border-border px-4 py-3;
+}
+
+.docs-search-input {
+  @apply w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted;
+}
+
+.docs-search-results {
+  @apply max-h-[min(50vh,24rem)] overflow-y-auto p-2;
+}
+
+.docs-search-empty {
+  @apply px-3 py-6 text-center text-sm text-muted;
+}
+
+.docs-search-result {
+  @apply flex flex-col gap-0.5 rounded-xl px-3 py-2.5 transition hover:bg-white/5;
+}
+
+.docs-search-result-section {
+  @apply text-[10px] font-semibold uppercase tracking-wider text-accent;
+}
+
+.docs-search-result-title {
+  @apply text-sm font-medium text-foreground;
+}
+
+.docs-search-result-desc {
+  @apply text-xs text-muted line-clamp-1;
+}
+
+.docs-body {
+  @apply mx-auto grid max-w-[90rem] grid-cols-1 lg:grid-cols-[16rem_minmax(0,1fr)];
+}
+
+.docs-sidebar {
+  @apply sticky top-14 hidden h-[calc(100vh-3.5rem)] flex-col overflow-y-auto border-r border-border/70 px-3 py-6 lg:flex;
+}
+
+.docs-sidebar-nav {
+  @apply flex flex-1 flex-col gap-6;
+}
+
+.docs-nav-group-title {
+  @apply mb-2 px-2 text-[11px] font-semibold uppercase tracking-wider text-muted;
+}
+
+.docs-nav-group-links {
+  @apply flex flex-col gap-0.5;
+}
+
+.docs-nav-link {
+  @apply rounded-lg px-2.5 py-1.5 text-sm text-muted transition hover:bg-white/5 hover:text-foreground;
+}
+
+.docs-nav-link-active {
+  @apply bg-accent-soft text-foreground;
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+
+.docs-sidebar-footer {
+  @apply mt-8 flex flex-col gap-1 border-t border-border/70 px-2 pt-4 text-sm text-muted;
+}
+
+.docs-sidebar-footer a {
+  @apply rounded-lg px-1 py-1 transition hover:text-foreground;
+}
+
+.docs-content-wrap {
+  @apply min-w-0 px-4 py-8 sm:px-6 lg:px-10 lg:py-10;
+}
+
+.docs-article-layout {
+  @apply mx-auto grid max-w-6xl grid-cols-1 gap-10 xl:grid-cols-[minmax(0,1fr)_12rem];
+}
+
+.docs-article {
+  @apply min-w-0 max-w-3xl;
+}
+
+.docs-breadcrumb {
+  @apply mb-4 flex flex-wrap items-center gap-1.5 text-xs text-muted;
+}
+
+.docs-breadcrumb a {
+  @apply transition hover:text-foreground;
+}
+
+.docs-breadcrumb-current {
+  @apply text-foreground/80;
+}
+
+.docs-eyebrow {
+  @apply mb-2 text-xs font-semibold uppercase tracking-widest text-muted;
+}
+
+.docs-title {
+  @apply text-3xl font-semibold tracking-tight text-foreground sm:text-4xl;
+}
+
+.docs-description {
+  @apply mt-3 text-base leading-relaxed text-muted sm:text-lg;
+}
+
+.docs-prose {
+  @apply mt-8;
+}
+
+.docs-prose-p {
+  @apply my-4 text-[15px] leading-7 text-muted;
+}
+
+.docs-prose-h2 {
+  @apply mb-3 mt-10 scroll-mt-24 text-xl font-semibold text-foreground;
+}
+
+.docs-prose-h3 {
+  @apply mb-2 mt-8 scroll-mt-24 text-lg font-semibold text-foreground;
+}
+
+.docs-anchor {
+  @apply no-underline hover:text-accent-bright;
+}
+
+.docs-prose-ul,
+.docs-prose-ol {
+  @apply my-4 space-y-2 pl-5 text-[15px] leading-7 text-muted;
+}
+
+.docs-prose-ul {
+  @apply list-disc;
+}
+
+.docs-prose-ol {
+  @apply list-decimal;
+}
+
+.docs-inline-code {
+  @apply rounded-md border border-border bg-surface px-1.5 py-0.5 font-mono text-[13px] text-foreground;
+}
+
+.docs-callout {
+  @apply my-5 flex gap-3 rounded-xl border px-4 py-3 text-sm leading-6 text-muted;
+}
+
+.docs-callout svg {
+  @apply mt-0.5 shrink-0;
+}
+
+.docs-callout-info {
+  @apply border-accent/25 bg-accent-soft text-foreground/90;
+}
+
+.docs-callout-info svg {
+  @apply text-accent-bright;
+}
+
+.docs-callout-warn {
+  @apply border-warning/30 bg-warning/10 text-foreground/90;
+}
+
+.docs-callout-warn svg {
+  @apply text-warning;
+}
+
+.docs-callout-tip {
+  @apply border-success/30 bg-success/10 text-foreground/90;
+}
+
+.docs-callout-tip svg {
+  @apply text-success;
+}
+
+.docs-code {
+  @apply my-5 overflow-x-auto rounded-xl border border-border bg-[#0a0a10] p-4 font-mono text-[13px] leading-6 text-foreground/90;
+}
+
+.docs-steps {
+  @apply my-6 space-y-4;
+}
+
+.docs-step {
+  @apply flex gap-3;
+}
+
+.docs-step-num {
+  @apply flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-accent/40 bg-accent-soft text-xs font-semibold text-accent-bright;
+}
+
+.docs-step-title {
+  @apply text-sm font-semibold text-foreground;
+}
+
+.docs-step-body {
+  @apply mt-0.5 text-sm leading-6 text-muted;
+}
+
+.docs-cards {
+  @apply my-5 grid gap-3 sm:grid-cols-2;
+}
+
+.docs-card {
+  @apply flex flex-col gap-1.5 rounded-xl border border-border bg-card/70 p-4 transition hover:border-accent/35 hover:bg-card-hover;
+}
+
+.docs-card-title {
+  @apply text-sm font-semibold text-foreground;
+}
+
+.docs-card-desc,
+.docs-card-cta {
+  @apply text-xs text-muted;
+}
+
+.docs-card-cta {
+  @apply mt-1 inline-flex items-center gap-1 text-accent-bright;
+}
+
+.docs-table-wrap {
+  @apply my-5 overflow-x-auto rounded-xl border border-border;
+}
+
+.docs-table {
+  @apply w-full min-w-[28rem] border-collapse text-left text-sm;
+}
+
+.docs-table th {
+  @apply border-b border-border bg-surface px-3 py-2.5 font-semibold text-foreground;
+}
+
+.docs-table td {
+  @apply border-b border-border/70 px-3 py-2.5 text-muted;
+}
+
+.docs-table tr:last-child td {
+  @apply border-b-0;
+}
+
+.docs-toc {
+  @apply sticky top-24 hidden self-start xl:block;
+}
+
+.docs-toc-title {
+  @apply mb-3 text-[11px] font-semibold uppercase tracking-wider text-muted;
+}
+
+.docs-toc ul {
+  @apply space-y-2 border-l border-border pl-3 text-sm text-muted;
+}
+
+.docs-toc a {
+  @apply transition hover:text-foreground;
+}
+
+.docs-pager {
+  @apply mt-12 grid gap-3 border-t border-border pt-8 sm:grid-cols-2;
+}
+
+.docs-pager-link {
+  @apply flex items-center gap-3 rounded-xl border border-border bg-card/50 px-4 py-3 transition hover:border-accent/30 hover:bg-card-hover;
+}
+
+.docs-pager-next {
+  @apply sm:justify-end sm:text-right;
+}
+
+.docs-pager-label {
+  @apply block text-[11px] uppercase tracking-wider text-muted;
+}
+
+.docs-pager-title {
+  @apply block text-sm font-medium text-foreground;
+}
+
+.docs-home-sections {
+  @apply mt-8 space-y-10;
+}
+
+.docs-home-section-title {
+  @apply mb-3 text-sm font-semibold uppercase tracking-wider text-muted;
+}
+
+.docs-mobile-overlay {
+  @apply fixed inset-0 z-[110] lg:hidden;
+}
+
+.docs-mobile-backdrop {
+  @apply absolute inset-0 bg-black/70 backdrop-blur-sm;
+}
+
+.docs-mobile-panel {
+  @apply absolute inset-y-0 left-0 flex w-[min(20rem,88vw)] flex-col overflow-y-auto border-r border-border bg-background;
+}
+
+.docs-mobile-panel-header {
+  @apply flex items-center justify-between border-b border-border px-4 py-3;
+}
+
+.docs-mobile-panel .docs-sidebar-nav {
+  @apply px-3 py-4;
 }

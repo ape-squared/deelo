@@ -1,77 +1,59 @@
 {
-  "generated_at": "2026-07-09T00:01:56.867Z",
+  "generated_at": "2026-07-09T21:41:31.352Z",
   "latest": {
-    "id": "release-2026-07-07",
-    "version": "5b0d08a",
-    "published_at": "2026-07-07T22:03:07-04:00",
-    "title": "Updates for July 7, 2026",
-    "category": "feature",
-    "body": "- Overhaul dashboard with module toggles and a sleeker control-center UI\n- Remove personal username from homepage command preview demo\n- Add DB-backed timers and multi-message welcome/goodbye commands\n- Finish five partially built bot features: aliases, clownboard, logs, Pinterest, bump reminders\n- Fix pricing redeem CTA looping back to pricing instead of redeem flow\n- Add launch-day SEO, UX, and dashboard polish for production readiness\n- Fix broken mobile menu X showing on desktop widths\n- Show hamburger nav only on mobile viewports\n- Fix mobile nav hamburger blocked by What's New modal\n- Edit Discord changelog embeds when git release content updates\n- Fix suggestions page modal, search field, and error handling\n- Improve Discord OAuth diagnostics and error mapping",
+    "id": "release-2026-07-09",
+    "version": "b53dcc7",
+    "published_at": "2026-07-09T05:52:34-04:00",
+    "title": "Make changelog sync day-aware for daily release bundles",
+    "category": "improvement",
+    "body": "- Make changelog sync day-aware for daily release bundles",
     "items": [
       {
-        "title": "Overhaul dashboard with module toggles and a sleeker control-center UI",
-        "category": "feature",
-        "hash": "5b0d08a"
-      },
-      {
-        "title": "Remove personal username from homepage command preview demo",
+        "title": "Make changelog sync day-aware for daily release bundles",
         "category": "improvement",
-        "hash": "64720d2"
-      },
-      {
-        "title": "Add DB-backed timers and multi-message welcome/goodbye commands",
-        "category": "feature",
-        "hash": "1a02d4e"
-      },
-      {
-        "title": "Finish five partially built bot features: aliases, clownboard, logs, Pinterest, bump reminders",
-        "category": "improvement",
-        "hash": "3ded8aa"
-      },
-      {
-        "title": "Fix pricing redeem CTA looping back to pricing instead of redeem flow",
-        "category": "fix",
-        "hash": "0cff80e"
-      },
-      {
-        "title": "Add launch-day SEO, UX, and dashboard polish for production readiness",
-        "category": "feature",
-        "hash": "8a54ac2"
-      },
-      {
-        "title": "Fix broken mobile menu X showing on desktop widths",
-        "category": "fix",
-        "hash": "068c9f5"
-      },
-      {
-        "title": "Show hamburger nav only on mobile viewports",
-        "category": "improvement",
-        "hash": "48063da"
-      },
-      {
-        "title": "Fix mobile nav hamburger blocked by What's New modal",
-        "category": "fix",
-        "hash": "70ea9ba"
-      },
-      {
-        "title": "Edit Discord changelog embeds when git release content updates",
-        "category": "improvement",
-        "hash": "c8f1a10"
-      },
-      {
-        "title": "Fix suggestions page modal, search field, and error handling",
-        "category": "fix",
-        "hash": "195bdc4"
-      },
-      {
-        "title": "Improve Discord OAuth diagnostics and error mapping",
-        "category": "improvement",
-        "hash": "7126b57"
+        "hash": "b53dcc7"
       }
     ],
     "source": "git"
   },
   "releases": [
+    {
+      "id": "release-2026-07-09",
+      "version": "b53dcc7",
+      "published_at": "2026-07-09T05:52:34-04:00",
+      "title": "Make changelog sync day-aware for daily release bundles",
+      "category": "improvement",
+      "body": "- Make changelog sync day-aware for daily release bundles",
+      "items": [
+        {
+          "title": "Make changelog sync day-aware for daily release bundles",
+          "category": "improvement",
+          "hash": "b53dcc7"
+        }
+      ],
+      "source": "git"
+    },
+    {
+      "id": "release-2026-07-08",
+      "version": "127b18b",
+      "published_at": "2026-07-08T23:35:40-04:00",
+      "title": "Updates for July 8, 2026",
+      "category": "feature",
+      "body": "- Add ,secondlife and ,linden commands for live grid and LindeX stats\n- Ship site and bot polish: welcome CRUD, clownboard UI, giveaway end/reroll, and consent-gated analytics",
+      "items": [
+        {
+          "title": "Add ,secondlife and ,linden commands for live grid and LindeX stats",
+          "category": "feature",
+          "hash": "127b18b"
+        },
+        {
+          "title": "Ship site and bot polish: welcome CRUD, clownboard UI, giveaway end/reroll, and consent-gated analytics",
+          "category": "improvement",
+          "hash": "a446db8"
+        }
+      ],
+      "source": "git"
+    },
     {
       "id": "release-2026-07-07",
       "version": "5b0d08a",

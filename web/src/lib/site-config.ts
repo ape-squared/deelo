@@ -25,6 +25,7 @@ export function analyticsId(): string | undefined {
 
 export const PUBLIC_ROUTES = [
   '/',
+  '/docs',
   '/commands',
   '/pricing',
   '/changelog',
