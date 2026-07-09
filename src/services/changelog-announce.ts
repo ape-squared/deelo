@@ -66,6 +66,12 @@ function releaseDayKey(entry: ChangelogEntry): string | null {
   return null;
 }
 
+function releaseDayFromEmbed(embed: APIEmbed): string | null {
+  const dayField = embed.fields?.find((field) => field.name === 'Release Day')?.value?.trim();
+  if (dayField) return dayField;
+  return null;
+}
+
 function entryKey(entry: ChangelogEntry): string {
   const dayKey = releaseDayKey(entry);
   if (dayKey) return dayKey;
@@ -194,6 +200,7 @@ function buildChangelogEmbed(entry: ChangelogEntry): EmbedBuilder {
   const category = entry.category in CATEGORY_LABEL ? entry.category : 'improvement';
   const appUrl = publicAppUrl();
   const appHost = publicAppHost();
+  const dayKey = releaseDayKey(entry);
 
   return new EmbedBuilder()
     .setColor(CATEGORY_COLOR[category])
@@ -202,6 +209,7 @@ function buildChangelogEmbed(entry: ChangelogEntry): EmbedBuilder {
     .addFields(
       { name: 'Category', value: CATEGORY_LABEL[category], inline: true },
       ...(entry.version ? [{ name: 'Version', value: entry.version, inline: true }] : []),
+      ...(dayKey ? [{ name: 'Release Day', value: dayKey, inline: false }] : []),
     )
     .setURL(`${appUrl}/changelog`)
     .setFooter({ text: `${appHost}/changelog` })
@@ -241,6 +249,12 @@ async function fetchChangelogMessages(channel: TextChannel, botId: string): Prom
 
 function messageMatchesEntry(message: Message, entry: ChangelogEntry): boolean {
   const embed = message.embeds[0];
+  const dayKey = releaseDayKey(entry);
+  if (dayKey) {
+    const embedDay = releaseDayFromEmbed(embed.data);
+    if (embedDay) return embedDay === dayKey;
+    return embedTitleMatches(entry, embed.title ?? undefined);
+  }
   if (embedTitleMatches(entry, embed.title ?? undefined)) return true;
   const versionField = embed.fields?.find((field) => field.name === 'Version')?.value;
   if (entry.version && versionField === entry.version) return true;
