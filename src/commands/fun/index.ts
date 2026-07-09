@@ -243,6 +243,60 @@ const fun: Command[] = [
       }
     },
   },
+  {
+    name: 'secondlife',
+    aliases: ['linden', 'sl'],
+    description: 'Second Life grid stats and LindeX exchange data',
+    category: 'fun',
+    usage: 'secondlife [lindex|stats]',
+    run: async ({ message, args }) => {
+      const sub = args[0]?.toLowerCase();
+      const { buildLindeXEmbed, buildSecondLifeEmbed, getLindeXStats, getSecondLifeStats } = await import(
+        '../../services/integrations/secondlife'
+      );
+
+      if (sub === 'lindex' || sub === 'exchange') {
+        try {
+          const stats = await getLindeXStats();
+          await message.reply({ embeds: [deeloEmbed('LindeX Exchange', buildLindeXEmbed(stats))] });
+        } catch {
+          await message.reply({ embeds: [errorEmbed('Failed to fetch LindeX data. Try again in a moment.')] });
+        }
+        return;
+      }
+
+      if (sub === 'help') {
+        await message.reply({
+          embeds: [
+            deeloEmbed(
+              'Second Life',
+              '**,secondlife** — grid status, residents online, signups, and L$ exchange rate\n**,secondlife lindex** — LindeX market buy/sell rates and volumes',
+            ),
+          ],
+        });
+        return;
+      }
+
+      try {
+        const stats = await getSecondLifeStats();
+        await message.reply({ embeds: [deeloEmbed('Second Life', buildSecondLifeEmbed(stats))] });
+      } catch {
+        await message.reply({ embeds: [errorEmbed('Failed to fetch Second Life data. Try again in a moment.')] });
+      }
+    },
+    slash: {
+      description: 'Second Life grid stats (residents online, signups, exchange rate)',
+      run: async ({ interaction }) => {
+        const { buildSecondLifeEmbed, getSecondLifeStats } = await import('../../services/integrations/secondlife');
+        try {
+          const stats = await getSecondLifeStats();
+          await interaction.reply({ embeds: [deeloEmbed('Second Life', buildSecondLifeEmbed(stats))] });
+        } catch {
+          await interaction.reply({ embeds: [errorEmbed('Failed to fetch Second Life data.')], ephemeral: true });
+        }
+      },
+    },
+  },
 ];
 
 export default fun;
