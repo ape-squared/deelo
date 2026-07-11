@@ -1,13 +1,23 @@
 {
-  "generated_at": "2026-07-11T16:36:30.203Z",
+  "generated_at": "2026-07-11T16:42:30.266Z",
   "latest": {
     "id": "release-2026-07-11",
-    "version": "6ac90c1",
-    "published_at": "2026-07-11T00:11:40-04:00",
+    "version": "e7c855d",
+    "published_at": "2026-07-11T12:37:57-04:00",
     "title": "Updates for July 11, 2026",
     "category": "improvement",
-    "body": "- Replace yt-dlp YouTube playback with SoundCloud streaming\n- Fix music playback by using standalone yt-dlp binaries",
+    "body": "- Allow .git in Docker build context for release generation\n- Fix Discord #changelogs not updating on Dokploy deploys\n- Replace yt-dlp YouTube playback with SoundCloud streaming\n- Fix music playback by using standalone yt-dlp binaries",
     "items": [
+      {
+        "title": "Allow .git in Docker build context for release generation",
+        "category": "improvement",
+        "hash": "e7c855d"
+      },
+      {
+        "title": "Fix Discord #changelogs not updating on Dokploy deploys",
+        "category": "fix",
+        "hash": "7503501"
+      },
       {
         "title": "Replace yt-dlp YouTube playback with SoundCloud streaming",
         "category": "improvement",
@@ -24,12 +34,22 @@
   "releases": [
     {
       "id": "release-2026-07-11",
-      "version": "6ac90c1",
-      "published_at": "2026-07-11T00:11:40-04:00",
+      "version": "e7c855d",
+      "published_at": "2026-07-11T12:37:57-04:00",
       "title": "Updates for July 11, 2026",
       "category": "improvement",
-      "body": "- Replace yt-dlp YouTube playback with SoundCloud streaming\n- Fix music playback by using standalone yt-dlp binaries",
+      "body": "- Allow .git in Docker build context for release generation\n- Fix Discord #changelogs not updating on Dokploy deploys\n- Replace yt-dlp YouTube playback with SoundCloud streaming\n- Fix music playback by using standalone yt-dlp binaries",
       "items": [
+        {
+          "title": "Allow .git in Docker build context for release generation",
+          "category": "improvement",
+          "hash": "e7c855d"
+        },
+        {
+          "title": "Fix Discord #changelogs not updating on Dokploy deploys",
+          "category": "fix",
+          "hash": "7503501"
+        },
         {
           "title": "Replace yt-dlp YouTube playback with SoundCloud streaming",
           "category": "improvement",

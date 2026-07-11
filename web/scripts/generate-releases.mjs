@@ -4,7 +4,7 @@
  * Run automatically before `next build` so /changelog and What's New stay in sync.
  */
 import { execSync } from 'node:child_process';
-import { writeFileSync, mkdirSync, existsSync } from 'node:fs';
+import { writeFileSync, mkdirSync, existsSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -37,6 +37,31 @@ function findRepoRoot(startDir) {
     dir = parent;
   }
   return join(startDir, '..');
+}
+
+function loadExistingReleases() {
+  if (!existsSync(outFile)) return null;
+  try {
+    return JSON.parse(readFileSync(outFile, 'utf8'));
+  } catch {
+    return null;
+  }
+}
+
+function mergeReleases(existing, fromGit) {
+  const byId = new Map();
+  for (const release of existing.releases ?? []) byId.set(release.id, release);
+  for (const release of fromGit) byId.set(release.id, release);
+
+  const merged = [...byId.values()]
+    .sort((a, b) => (a.published_at < b.published_at ? 1 : -1))
+    .slice(0, 14);
+
+  return {
+    generated_at: new Date().toISOString(),
+    latest: merged[0] ?? null,
+    releases: merged,
+  };
 }
 
 function parseCommits(repoRoot) {
@@ -105,17 +130,22 @@ function formatDay(isoDay) {
 }
 
 mkdirSync(dirname(outFile), { recursive: true });
-writeFileSync(
-  outFile,
-  JSON.stringify(
-    {
-      generated_at: new Date().toISOString(),
-      latest: releases[0] ?? null,
-      releases,
-    },
-    null,
-    2,
-  ) + '\n',
-);
 
-console.log(`[releases] Wrote ${releases.length} release(s) → ${outFile}`);
+const existing = loadExistingReleases();
+const output =
+  existing && releases.length < (existing.releases?.length ?? 0)
+    ? (() => {
+        console.log(
+          `[releases] Shallow git (${releases.length} day(s)) — merging with ${existing.releases.length} existing release(s)`,
+        );
+        return mergeReleases(existing, releases);
+      })()
+    : {
+        generated_at: new Date().toISOString(),
+        latest: releases[0] ?? null,
+        releases,
+      };
+
+writeFileSync(outFile, `${JSON.stringify(output, null, 2)}\n`);
+
+console.log(`[releases] Wrote ${output.releases.length} release(s) → ${outFile}`);

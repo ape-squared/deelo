@@ -6,6 +6,36 @@ function isMissingTableError(message: string): boolean {
   return message.includes('site_') || message.includes('does not exist') || message.includes('schema cache');
 }
 
+function errorMessage(err: unknown): string {
+  if (!err) return '';
+  if (typeof err === 'string') return err;
+  if (typeof err === 'object') {
+    if ('message' in err && typeof (err as { message: unknown }).message === 'string') {
+      return (err as { message: string }).message;
+    }
+    if ('details' in err && typeof (err as { details: unknown }).details === 'string') {
+      return (err as { details: string }).details;
+    }
+    try {
+      return JSON.stringify(err);
+    } catch {
+      return String(err);
+    }
+  }
+  return String(err);
+}
+
+/** Build-time Docker images often cannot reach Supabase — fall back instead of failing prerender. */
+function isOfflineDbError(err: unknown): boolean {
+  const msg = errorMessage(err);
+  return (
+    isMissingTableError(msg) ||
+    /fetch failed/i.test(msg) ||
+    /connect timeout/i.test(msg) ||
+    /ECONNREFUSED|ENOTFOUND|ETIMEDOUT|UND_ERR_CONNECT_TIMEOUT/i.test(msg)
+  );
+}
+
 function handleDbError(error: { message: string } | null): void {
   if (!error) return;
   if (isMissingTableError(error.message)) {
@@ -20,8 +50,7 @@ async function safeQuery<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
   try {
     return await fn();
   } catch (e) {
-    const msg = e && typeof e === 'object' && 'message' in e ? String((e as Error).message) : '';
-    if (isMissingTableError(msg) || (e as { missingTable?: boolean })?.missingTable) return fallback;
+    if (isOfflineDbError(e) || (e as { missingTable?: boolean })?.missingTable) return fallback;
     throw e;
   }
 }

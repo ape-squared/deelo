@@ -3,6 +3,8 @@ import { MarketingLayout } from '@/components/marketing/site-layout';
 import { DeeloIcon } from '@/components/brand/logo';
 import { ArrowRight, Home } from 'lucide-react';
 
+export const dynamic = 'force-dynamic';
+
 export default function NotFound() {
   return (
     <MarketingLayout>
