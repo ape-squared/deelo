@@ -817,6 +817,74 @@ body {
   backdrop-filter: blur(12px);
 }
 
+.status-banner {
+  @apply rounded-2xl border p-6 backdrop-blur-xl sm:p-8;
+}
+.status-banner-operational {
+  @apply border-emerald-500/25 bg-emerald-500/[0.06];
+  box-shadow: 0 0 60px -20px rgba(52, 211, 153, 0.25);
+}
+.status-banner-degraded {
+  @apply border-amber-500/25 bg-amber-500/[0.06];
+  box-shadow: 0 0 60px -20px rgba(251, 191, 36, 0.2);
+}
+.status-banner-down {
+  @apply border-red-500/25 bg-red-500/[0.06];
+  box-shadow: 0 0 60px -20px rgba(248, 113, 113, 0.2);
+}
+
+.status-pulse-ring {
+  @apply relative flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.04];
+}
+.status-pulse-dot {
+  @apply h-3 w-3 rounded-full;
+  box-shadow: 0 0 12px currentColor;
+}
+
+.status-stat-grid {
+  @apply grid gap-4 sm:grid-cols-3;
+}
+.status-stat-card {
+  @apply flex items-center gap-4 rounded-2xl border border-border bg-card p-5 backdrop-blur-xl transition-all duration-300 hover:border-accent/20;
+}
+.status-stat-icon {
+  @apply flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-accent/20 bg-accent/10 text-accent;
+}
+
+.status-service-row {
+  @apply flex items-center justify-between gap-4 px-5 py-4 transition hover:bg-white/[0.02] sm:px-6;
+}
+.status-service-icon {
+  @apply flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border bg-white/[0.03] text-accent;
+}
+.status-service-badge {
+  @apply inline-flex shrink-0 items-center gap-1.5 rounded-full border border-current/20 bg-current/5 px-2.5 py-1 text-xs font-medium capitalize;
+}
+
+.support-link-icon {
+  @apply flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-accent/20 bg-accent/10 text-accent transition group-hover:border-accent/35 group-hover:bg-accent/15;
+}
+
+.content-page-toolbar {
+  @apply flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between;
+}
+
+.page-related-links {
+  @apply border-t border-border/60 pt-10;
+}
+.page-related-link {
+  @apply inline-flex items-center gap-1.5 rounded-full border border-border bg-card/50 px-4 py-2 text-sm text-muted transition hover:border-accent/30 hover:bg-card hover:text-foreground;
+}
+
+.skeleton-shimmer {
+  @apply bg-white/[0.06];
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+@keyframes shimmer {
+  0%, 100% { opacity: 0.45; }
+  50% { opacity: 0.9; }
+}
+
 /* Legal pages */
 .legal-prose {
   @apply text-sm leading-relaxed text-foreground/90;

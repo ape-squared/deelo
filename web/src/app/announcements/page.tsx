@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { MarketingLayout, MarketingMain } from '@/components/marketing/site-layout';
 import { MarketingSubHero } from '@/components/marketing/page-hero';
+import { PageRelatedLinks } from '@/components/marketing/page-related-links';
 import { getPublishedAnnouncements } from '@/lib/site-data';
 import { formatContentDate } from '@/lib/site-content';
 import { Megaphone, Pin, ArrowRight } from 'lucide-react';
@@ -19,7 +20,7 @@ export default async function AnnouncementsPage() {
         title="Announcements"
         description="News, maintenance notices, and product updates from the Deelo team."
       />
-      <MarketingMain narrow className="!py-12 lg:!py-20">
+      <MarketingMain narrow className="!pt-0">
         <div className="space-y-4">
           {announcements.map((a, i) => (
             <Link
@@ -53,6 +54,14 @@ export default async function AnnouncementsPage() {
             </div>
           )}
         </div>
+        <PageRelatedLinks
+          className="mt-12"
+          links={[
+            { href: '/changelog', label: 'Changelog' },
+            { href: '/support', label: 'Support' },
+            { href: '/status', label: 'Status' },
+          ]}
+        />
       </MarketingMain>
     </MarketingLayout>
   );

@@ -21,7 +21,7 @@ export default async function AnnouncementDetailPage({ params }: { params: Promi
 
   return (
     <MarketingLayout>
-      <MarketingMain narrow className="!py-12 lg:!py-20">
+      <MarketingMain narrow className="!pt-0">
         <article className="animate-fade-up">
           <Link href="/announcements" className="mb-8 inline-flex items-center gap-2 text-sm text-muted transition hover:text-foreground">
             <ArrowLeft className="h-4 w-4" />

@@ -43,16 +43,21 @@ export function MarketingMain({
   children,
   className = '',
   narrow = false,
+  medium = false,
   id = 'main-content',
 }: {
   children: React.ReactNode;
   className?: string;
+  /** max-w-3xl — changelog, announcements, legal */
   narrow?: boolean;
+  /** max-w-4xl — status, commands, suggestions */
+  medium?: boolean;
   id?: string;
 }) {
+  const width = narrow ? 'max-w-3xl' : medium ? 'max-w-4xl' : 'max-w-6xl';
   return (
     <main id={id} className={`site-main flex-1 ${className}`}>
-      <div className={`mx-auto px-4 py-16 lg:px-6 lg:py-24 ${narrow ? 'max-w-3xl' : 'max-w-6xl'}`}>
+      <div className={`mx-auto px-4 py-12 lg:px-6 lg:py-20 ${width}`}>
         {children}
       </div>
     </main>

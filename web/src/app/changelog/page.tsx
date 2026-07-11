@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { ContentBody } from '@/components/content-body';
 import { MarketingLayout, MarketingMain } from '@/components/marketing/site-layout';
 import { MarketingSubHero } from '@/components/marketing/page-hero';
+import { PageRelatedLinks } from '@/components/marketing/page-related-links';
 import { getPublishedChangelog } from '@/lib/site-data';
 import { CHANGELOG_CATEGORY_COLORS, CHANGELOG_CATEGORY_LABELS, formatContentDate } from '@/lib/site-content';
 import { isAutoChangelogEntry } from '@/lib/releases';
@@ -21,7 +22,7 @@ export default async function ChangelogPage() {
         title="Changelog"
         description="Everything new, improved, and fixed in Deelo."
       />
-      <MarketingMain narrow className="!py-12 lg:!py-20">
+      <MarketingMain narrow className="!pt-0">
         <div className="relative space-y-0">
           <div className="timeline-line" aria-hidden />
           {entries.map((entry, i) => (
@@ -55,6 +56,14 @@ export default async function ChangelogPage() {
             </div>
           )}
         </div>
+        <PageRelatedLinks
+          className="mt-12"
+          links={[
+            { href: '/announcements', label: 'Announcements' },
+            { href: '/status', label: 'Status' },
+            { href: '/docs', label: 'Documentation' },
+          ]}
+        />
       </MarketingMain>
     </MarketingLayout>
   );

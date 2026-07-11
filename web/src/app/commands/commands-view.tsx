@@ -79,63 +79,60 @@ export function CommandsView() {
   }
 
   return (
-    <section className="site-section !pt-0">
-      <div className="mx-auto max-w-4xl px-4 lg:px-6">
-        <div className="mb-8 flex flex-wrap gap-2">
-          {(Object.keys(statusCounts) as CommandImplementationStatus[]).map((key) => (
-            <span key={key} className="badge badge-muted text-xs">
-              {COG_STATUS_LABEL[key]}: {statusCounts[key]}
-            </span>
-          ))}
-        </div>
-
-        <SearchField
-          className="mb-8"
-          placeholder="Search commands..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          aria-label="Search commands"
-        />
-
-        <div className="space-y-3">
-          {filtered.map((cog) => {
-            const isOpen = expanded === cog.cog_name;
-            const status = getCogImplementationStatus(cog.cog_name);
-            return (
-              <div key={cog.cog_name} className="card overflow-hidden">
-                <button
-                  type="button"
-                  className="flex w-full items-center justify-between gap-4 p-4 text-left sm:p-5"
-                  onClick={() => setExpanded(isOpen ? null : cog.cog_name)}
-                  aria-expanded={isOpen}
-                >
-                  <div>
-                    <p className="font-semibold">{cog.alt_name ?? cog.cog_name}</p>
-                    <p className="text-xs text-muted">
-                      {cog.commands.length} commands · {COG_STATUS_LABEL[status]}
-                    </p>
-                  </div>
-                  {isOpen ? <ChevronUp className="h-5 w-5 text-muted" /> : <ChevronDown className="h-5 w-5 text-muted" />}
-                </button>
-                {isOpen && (
-                  <ul className="border-t border-border px-4 py-3 sm:px-5">
-                    {cog.commands.map((cmd) => (
-                      <li key={cmd.name} className="border-b border-border/40 py-2.5 last:border-0">
-                        <p className="font-mono text-sm text-accent">{cmd.name}</p>
-                        {cmd.description && (
-                          <p className="mt-0.5 text-xs text-muted">
-                            {(cmd.description ?? '').replace(/\bbleed\b/gi, 'Deelo')}
-                          </p>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            );
-          })}
-        </div>
+    <div className="space-y-8">
+      <div className="flex flex-wrap gap-2">
+        {(Object.keys(statusCounts) as CommandImplementationStatus[]).map((key) => (
+          <span key={key} className="badge badge-muted text-xs">
+            {COG_STATUS_LABEL[key]}: {statusCounts[key]}
+          </span>
+        ))}
       </div>
-    </section>
+
+      <SearchField
+        placeholder="Search commands..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        aria-label="Search commands"
+      />
+
+      <div className="space-y-3">
+        {filtered.map((cog) => {
+          const isOpen = expanded === cog.cog_name;
+          const status = getCogImplementationStatus(cog.cog_name);
+          return (
+            <div key={cog.cog_name} className="card overflow-hidden">
+              <button
+                type="button"
+                className="flex w-full items-center justify-between gap-4 p-4 text-left sm:p-5"
+                onClick={() => setExpanded(isOpen ? null : cog.cog_name)}
+                aria-expanded={isOpen}
+              >
+                <div>
+                  <p className="font-semibold">{cog.alt_name ?? cog.cog_name}</p>
+                  <p className="text-xs text-muted">
+                    {cog.commands.length} commands · {COG_STATUS_LABEL[status]}
+                  </p>
+                </div>
+                {isOpen ? <ChevronUp className="h-5 w-5 text-muted" /> : <ChevronDown className="h-5 w-5 text-muted" />}
+              </button>
+              {isOpen && (
+                <ul className="border-t border-border px-4 py-3 sm:px-5">
+                  {cog.commands.map((cmd) => (
+                    <li key={cmd.name} className="border-b border-border/40 py-2.5 last:border-0">
+                      <p className="font-mono text-sm text-accent">{cmd.name}</p>
+                      {cmd.description && (
+                        <p className="mt-0.5 text-xs text-muted">
+                          {(cmd.description ?? '').replace(/\bbleed\b/gi, 'Deelo')}
+                        </p>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }

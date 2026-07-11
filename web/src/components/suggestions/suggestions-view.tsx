@@ -15,6 +15,7 @@ import {
 import { discordAvatarUrl } from '@/lib/discord-avatar';
 import { SearchField } from '@/components/search-field';
 import { Modal } from '@/components/ui/modal';
+import { PageRelatedLinks } from '@/components/marketing/page-related-links';
 
 type AuthState = {
   authenticated: boolean;
@@ -133,15 +134,15 @@ export function SuggestionsBoard() {
   });
 
   return (
-    <div className="mx-auto max-w-4xl px-4 pb-16 lg:px-6">
-      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="space-y-8">
+      <div className="content-page-toolbar">
         <div className="flex gap-2">
           {(['top', 'new'] as const).map((s) => (
             <button
               key={s}
               type="button"
               onClick={() => setSort(s)}
-              className={`rounded-lg px-4 py-2 text-sm font-medium transition ${sort === s ? 'bg-accent text-white' : 'border border-border text-muted hover:text-foreground'}`}
+              className={`rounded-lg px-4 py-2 text-sm font-medium transition ${sort === s ? 'bg-accent text-white shadow-lg shadow-accent/20' : 'border border-border text-muted hover:border-accent/25 hover:text-foreground'}`}
             >
               {s === 'top' ? 'Top' : 'New'}
             </button>
@@ -153,7 +154,7 @@ export function SuggestionsBoard() {
         </button>
       </div>
 
-      <div className="mb-6 flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2">
         {STATUS_FILTERS.map((f) => (
           <button
             key={f.id}
@@ -244,6 +245,15 @@ export function SuggestionsBoard() {
           ))}
         </div>
       )}
+
+      <PageRelatedLinks
+        className="mt-12"
+        links={[
+          { href: '/changelog', label: 'Changelog' },
+          { href: '/support', label: 'Support' },
+          { href: '/docs', label: 'Documentation' },
+        ]}
+      />
     </div>
   );
 }
