@@ -49,16 +49,43 @@ function autoToChangelogEntry(release: AutoRelease, index: number): SiteChangelo
   };
 }
 
+function isDailyBundle(title: string): boolean {
+  return title.trim().toLowerCase().startsWith('updates for');
+}
+
 export async function getMergedChangelog(dbEntries: SiteChangelogEntry[]): Promise<SiteChangelogEntry[]> {
   const auto = getAutoReleases().map(autoToChangelogEntry);
   const dbVersions = new Set(dbEntries.map((e) => e.version).filter(Boolean));
   const dbTitles = new Set(dbEntries.map((e) => e.title.toLowerCase()));
 
-  const filteredAuto = auto.filter(
-    (e) => !dbVersions.has(e.version) && !dbTitles.has(e.title.toLowerCase()),
+  const dbDailyByTitle = new Map<string, SiteChangelogEntry>();
+  for (const entry of dbEntries) {
+    if (isDailyBundle(entry.title)) {
+      dbDailyByTitle.set(entry.title.toLowerCase(), entry);
+    }
+  }
+
+  const filteredAuto = auto.filter((entry) => {
+    if (isDailyBundle(entry.title)) {
+      const dbMatch = dbDailyByTitle.get(entry.title.toLowerCase());
+      if (!dbMatch) return true;
+      const autoTime = new Date(entry.published_at ?? entry.created_at).getTime();
+      const dbTime = new Date(dbMatch.published_at ?? dbMatch.created_at).getTime();
+      return autoTime >= dbTime;
+    }
+    return !dbVersions.has(entry.version) && !dbTitles.has(entry.title.toLowerCase());
+  });
+
+  const autoDailyTitles = new Set(
+    filteredAuto.filter((e) => isDailyBundle(e.title)).map((e) => e.title.toLowerCase()),
   );
 
-  return [...dbEntries, ...filteredAuto].sort((a, b) => {
+  const filteredDb = dbEntries.filter((entry) => {
+    if (!isDailyBundle(entry.title)) return true;
+    return !autoDailyTitles.has(entry.title.toLowerCase());
+  });
+
+  return [...filteredDb, ...filteredAuto].sort((a, b) => {
     const ta = new Date(a.published_at ?? a.created_at).getTime();
     const tb = new Date(b.published_at ?? b.created_at).getTime();
     return tb - ta;

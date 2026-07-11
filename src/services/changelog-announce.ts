@@ -58,11 +58,11 @@ function changelogChannelId(): string {
   return process.env.CHANGELOG_CHANNEL_ID ?? '1523875521975287869';
 }
 
-/** Daily git bundles share a title — key by release day so content updates can edit the embed. */
 function releaseDayKey(entry: ChangelogEntry): string | null {
   const day = entry.published_at?.slice(0, 10);
   if (!day) return null;
   if (entry.title.trim().toLowerCase().startsWith('updates for')) return `release:${day}`;
+  if (entry.created_by === 'git') return `release:${day}`;
   return null;
 }
 

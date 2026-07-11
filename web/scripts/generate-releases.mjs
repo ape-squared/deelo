@@ -39,6 +39,14 @@ function findRepoRoot(startDir) {
   return join(startDir, '..');
 }
 
+function formatDay(isoDay) {
+  return new Date(`${isoDay}T12:00:00`).toLocaleDateString('en-US', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  });
+}
+
 function loadExistingReleases() {
   if (!existsSync(outFile)) return null;
   try {
@@ -48,10 +56,62 @@ function loadExistingReleases() {
   }
 }
 
+function mergeReleaseItems(existingItems, incomingItems) {
+  const ordered = [];
+  const seen = new Set();
+
+  for (const item of incomingItems ?? []) {
+    const key = item.hash ?? item.title;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    ordered.push(item);
+  }
+
+  for (const item of existingItems ?? []) {
+    const key = item.hash ?? item.title;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    ordered.push(item);
+  }
+
+  return ordered.slice(0, 12);
+}
+
+function buildReleaseFromDay(day, items, meta = {}) {
+  const slice = items.slice(0, 12);
+  const lead = slice[0];
+
+  return {
+    id: `release-${day}`,
+    version: meta.version ?? lead?.hash ?? '',
+    published_at: meta.published_at ?? meta.publishedAt ?? lead?.published_at ?? new Date(`${day}T12:00:00`).toISOString(),
+    title: slice.length > 1 ? `Updates for ${formatDay(day)}` : (lead?.title ?? meta.title ?? 'Update'),
+    category: meta.category ?? lead?.category ?? 'improvement',
+    body: slice.map((i) => `- ${i.title}`).join('\n'),
+    items: slice.map(({ title, category, hash }) => ({ title, category, hash })),
+    source: 'git',
+  };
+}
+
+/** Union commit items for the same day — shallow CI clones only see the latest commit. */
+function mergeReleaseDay(day, existing, incoming) {
+  const mergedItems = mergeReleaseItems(existing?.items, incoming.items);
+  return buildReleaseFromDay(day, mergedItems, {
+    version: incoming.version ?? existing?.version,
+    published_at: incoming.published_at ?? existing?.published_at,
+    category: incoming.category ?? existing?.category,
+  });
+}
+
 function mergeReleases(existing, fromGit) {
   const byId = new Map();
   for (const release of existing.releases ?? []) byId.set(release.id, release);
-  for (const release of fromGit) byId.set(release.id, release);
+
+  for (const release of fromGit) {
+    const day = release.id.replace(/^release-/, '');
+    const prev = byId.get(release.id);
+    byId.set(release.id, prev ? mergeReleaseDay(day, prev, release) : release);
+  }
 
   const merged = [...byId.values()]
     .sort((a, b) => (a.published_at < b.published_at ? 1 : -1))
@@ -90,6 +150,7 @@ if (!commits.length) {
   }
   console.warn('[releases] No git history and no existing releases.json');
 }
+
 const byDay = new Map();
 
 for (const commit of commits) {
@@ -109,42 +170,34 @@ const releases = [...byDay.entries()]
       hash: c.short,
     }));
 
-    return {
-      id: `release-${day}`,
+    return buildReleaseFromDay(day, items, {
       version: lead.short,
       published_at: lead.date,
-      title: items.length > 1 ? `Updates for ${formatDay(day)}` : lead.subject.replace(/\.$/, ''),
       category: inferCategory(lead.subject),
-      body: items.map((i) => `- ${i.title}`).join('\n'),
-      items,
-      source: 'git',
-    };
+    });
   });
-
-function formatDay(isoDay) {
-  return new Date(`${isoDay}T12:00:00`).toLocaleDateString('en-US', {
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric',
-  });
-}
 
 mkdirSync(dirname(outFile), { recursive: true });
 
 const existing = loadExistingReleases();
-const output =
-  existing && releases.length < (existing.releases?.length ?? 0)
-    ? (() => {
+const output = existing
+  ? (() => {
+      const merged = mergeReleases(existing, releases);
+      const shallow = releases.length < (existing.releases?.length ?? 0);
+      if (shallow) {
         console.log(
-          `[releases] Shallow git (${releases.length} day(s)) — merging with ${existing.releases.length} existing release(s)`,
+          `[releases] Shallow git (${releases.length} day(s) visible) — preserved ${merged.releases.length} release bundle(s)`,
         );
-        return mergeReleases(existing, releases);
-      })()
-    : {
-        generated_at: new Date().toISOString(),
-        latest: releases[0] ?? null,
-        releases,
-      };
+      } else {
+        console.log(`[releases] Merged ${releases.length} day(s) from git into ${merged.releases.length} bundle(s)`);
+      }
+      return merged;
+    })()
+  : {
+      generated_at: new Date().toISOString(),
+      latest: releases[0] ?? null,
+      releases,
+    };
 
 writeFileSync(outFile, `${JSON.stringify(output, null, 2)}\n`);
 
