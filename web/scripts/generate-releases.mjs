@@ -60,7 +60,7 @@ const commits = parseCommits(repoRoot);
 
 if (!commits.length) {
   if (existsSync(outFile)) {
-    console.log('[releases] No git history available — keeping existing releases.json');
+    console.log('[releases] No git history in build context — keeping existing releases.json');
     process.exit(0);
   }
   console.warn('[releases] No git history and no existing releases.json');
