@@ -5,7 +5,7 @@ import { Terminal } from 'lucide-react';
 
 export const metadata = {
   title: 'Commands',
-  description: 'Browse 1,144+ Deelo bot commands across moderation, music, levels, tickets, and more. Default prefix: comma (,).',
+  description: 'Browse 1,056+ Deelo bot commands across moderation, music, levels, tickets, and more. Default prefix: comma (,).',
 };
 
 export default function CommandsPage() {
@@ -17,7 +17,7 @@ export default function CommandsPage() {
           label="Command reference"
           title={
             <>
-              <span className="gradient-text">1,144+</span> commands
+              <span className="gradient-text">1,056+</span> commands
             </>
           }
           description="Browse all categories. Default prefix is comma (,)."

@@ -1,6 +1,5 @@
 import type { Command } from '../../types/command';
 import { deeloEmbed, errorEmbed, successEmbed } from '../../utils/embeds';
-import { config } from '../../config';
 import { getSupabase } from '../../database/supabase';
 
 function sendTyping(message: { channel: { isTextBased?: () => boolean; sendTyping?: () => Promise<unknown> } }) {
@@ -11,44 +10,6 @@ function sendTyping(message: { channel: { isTextBased?: () => boolean; sendTypin
 }
 
 const integrations: Command[] = [
-  {
-    name: 'lastfm',
-    aliases: ['lfm'],
-    description: 'Last.fm integration',
-    category: 'integrations',
-    usage: 'lastfm <set|nowplaying|top> [username]',
-    premiumFeature: 'lastfm',
-    run: async ({ message, args }) => {
-      const sub = args[0]?.toLowerCase();
-
-      if (sub === 'set') {
-        const username = args[1];
-        if (!username) return void message.reply({ embeds: [errorEmbed('Usage: `,lastfm set <username>`')] });
-        await getSupabase().from('users').upsert({ id: message.author.id, lastfm_username: username });
-        return void message.reply({ embeds: [successEmbed(`Last.fm set to **${username}**.`)] });
-      }
-
-      if (sub === 'nowplaying' || sub === 'np') {
-        const { data: user } = await getSupabase().from('users').select('lastfm_username').eq('id', message.author.id).maybeSingle();
-        const username = args[1] ?? user?.lastfm_username;
-        if (!username) return void message.reply({ embeds: [errorEmbed('Set your Last.fm with `,lastfm set <username>`')] });
-
-        if (config.lastfmApiKey) {
-          try {
-            const res = await fetch(`https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${username}&api_key=${config.lastfmApiKey}&format=json&limit=1`);
-            const data = await res.json() as { recenttracks?: { track?: Array<{ name: string; artist: { '#text': string }; album?: { '#text': string } }> } };
-            const track = data.recenttracks?.track?.[0];
-            if (track) {
-              return void message.reply({ embeds: [deeloEmbed('🎵 Now Playing', `**${track.name}** by ${track.artist['#text']}\n[${username} on Last.fm](https://last.fm/user/${username})`)] });
-            }
-          } catch { /* fall through */ }
-        }
-        return void message.reply({ embeds: [deeloEmbed('🎵 Now Playing', `**${username}** on Last.fm\n*Add LASTFM_API_KEY to .env for live data.*`)] });
-      }
-
-      await message.reply({ embeds: [deeloEmbed('Last.fm', 'Commands: `set`, `nowplaying`\nTrack listening activity and leaderboards.')] });
-    },
-  },
   {
     name: 'social',
     aliases: ['feed', 'notify'],

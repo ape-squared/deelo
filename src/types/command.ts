@@ -56,6 +56,6 @@ export const CATEGORIES: CommandCategory[] = [
   { name: 'tickets', emoji: '🎫', description: 'Support ticket system' },
   { name: 'voicemaster', emoji: '🔊', description: 'Temporary voice channels' },
   { name: 'music', emoji: '🎵', description: 'Play music in voice channels' },
-  { name: 'integrations', emoji: '🔗', description: 'Last.fm, social feeds' },
+  { name: 'integrations', emoji: '🔗', description: 'Social feeds, Fortnite, ChatGPT' },
   { name: 'premium', emoji: '⭐', description: 'Plans, upgrades, perks' },
 ];

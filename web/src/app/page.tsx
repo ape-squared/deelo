@@ -32,10 +32,10 @@ export const dynamic = 'force-dynamic';
 export const metadata: Metadata = {
   title: 'Deelo — All-in-One Discord Bot',
   description:
-    'Replace your bot stack with Deelo — 1,144 commands, one prefix, one dashboard. Moderation, music, levels, tickets & more. Free forever.',
+    'Replace your bot stack with Deelo — 1,056 commands, one prefix, one dashboard. Moderation, music, levels, tickets & more. Free forever.',
   openGraph: {
     title: 'Deelo — Replace your bot stack for a fraction of the cost',
-    description: '1,144 commands. One dashboard. Anti-nuke, music, levels & tickets — free to start.',
+    description: '1,056 commands. One dashboard. Anti-nuke, music, levels & tickets — free to start.',
   },
 };
 
@@ -71,7 +71,7 @@ export default async function HomePage() {
               <FadeUp delay={200}>
                 <p className="mt-5 max-w-lg text-base text-muted leading-relaxed sm:text-lg">
                   Most servers run {TYPICAL_STACK_COST.bots.slice(0, 3).join(', ')}, and more — paying{' '}
-                  {TYPICAL_STACK_COST.label} across multiple dashboards. Deelo gives you 1,144 commands, one prefix,
+                  {TYPICAL_STACK_COST.label} across multiple dashboards. Deelo gives you 1,056 commands, one prefix,
                   and one dashboard starting free.
                 </p>
               </FadeUp>

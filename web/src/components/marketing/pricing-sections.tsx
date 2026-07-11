@@ -417,7 +417,7 @@ export function PricingFinalCta() {
               <ArrowRight className="h-4 w-4" />
             </a>
             <Link href="/commands" className="btn-secondary w-full text-base sm:w-auto">
-              Browse 1,144 commands
+              Browse 1,056 commands
             </Link>
           </div>
         </Reveal>

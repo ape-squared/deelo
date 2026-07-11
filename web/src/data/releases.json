@@ -1,13 +1,28 @@
 {
-  "generated_at": "2026-07-11T23:18:35.614Z",
+  "generated_at": "2026-07-11T23:39:43.970Z",
   "latest": {
     "id": "release-2026-07-11",
-    "version": "b01c3a5",
-    "published_at": "2026-07-11T19:00:48-04:00",
+    "version": "1a1fff5",
+    "published_at": "2026-07-11T19:37:26-04:00",
     "title": "Updates for July 11, 2026",
-    "category": "feature",
-    "body": "- v5 overhaul: rebuild ticket system end-to-end for bot and dashboard\n- Fix dashboard ticket panel creation failing to post to Discord\n- Revert \"Overhaul user, admin, and staff dashboards with HeroUI v3 on Tailwind v4.\"\n- Overhaul user, admin, and staff dashboards with HeroUI v3 on Tailwind v4\n- Improve Discord OAuth secret handling and diagnostics\n- Update July 11 changelog bundle and add docs wordmark asset\n- Fix slow Docker web builds during static page generation\n- Auto-join dashboard users to official Discord via guilds.join\n- Add guild economy system synced with dashboard\n- Declutter the marketing site navigation bar\n- Fix Dokploy web build failures for changelog deploys\n- Allow .git in Docker build context for release generation",
+    "category": "improvement",
+    "body": "- v5 command coverage: real lookups, 400+ native bridges, no more dead ends\n- Fix ticket panel button stuck on thinking after click\n- Sync changelog release data for v5 ticket overhaul\n- v5 overhaul: rebuild ticket system end-to-end for bot and dashboard\n- Fix dashboard ticket panel creation failing to post to Discord\n- Revert \"Overhaul user, admin, and staff dashboards with HeroUI v3 on Tailwind v4.\"\n- Overhaul user, admin, and staff dashboards with HeroUI v3 on Tailwind v4\n- Improve Discord OAuth secret handling and diagnostics\n- Update July 11 changelog bundle and add docs wordmark asset\n- Fix slow Docker web builds during static page generation\n- Auto-join dashboard users to official Discord via guilds.join\n- Add guild economy system synced with dashboard",
     "items": [
+      {
+        "title": "v5 command coverage: real lookups, 400+ native bridges, no more dead ends",
+        "category": "improvement",
+        "hash": "1a1fff5"
+      },
+      {
+        "title": "Fix ticket panel button stuck on thinking after click",
+        "category": "fix",
+        "hash": "5af9b01"
+      },
+      {
+        "title": "Sync changelog release data for v5 ticket overhaul",
+        "category": "feature",
+        "hash": "c37130e"
+      },
       {
         "title": "v5 overhaul: rebuild ticket system end-to-end for bot and dashboard",
         "category": "feature",
@@ -52,21 +67,6 @@
         "title": "Add guild economy system synced with dashboard",
         "category": "feature",
         "hash": "26c2780"
-      },
-      {
-        "title": "Declutter the marketing site navigation bar",
-        "category": "improvement",
-        "hash": "96d6048"
-      },
-      {
-        "title": "Fix Dokploy web build failures for changelog deploys",
-        "category": "fix",
-        "hash": "7cce4bc"
-      },
-      {
-        "title": "Allow .git in Docker build context for release generation",
-        "category": "improvement",
-        "hash": "e7c855d"
       }
     ],
     "source": "git"
@@ -74,12 +74,27 @@
   "releases": [
     {
       "id": "release-2026-07-11",
-      "version": "b01c3a5",
-      "published_at": "2026-07-11T19:00:48-04:00",
+      "version": "1a1fff5",
+      "published_at": "2026-07-11T19:37:26-04:00",
       "title": "Updates for July 11, 2026",
-      "category": "feature",
-      "body": "- v5 overhaul: rebuild ticket system end-to-end for bot and dashboard\n- Fix dashboard ticket panel creation failing to post to Discord\n- Revert \"Overhaul user, admin, and staff dashboards with HeroUI v3 on Tailwind v4.\"\n- Overhaul user, admin, and staff dashboards with HeroUI v3 on Tailwind v4\n- Improve Discord OAuth secret handling and diagnostics\n- Update July 11 changelog bundle and add docs wordmark asset\n- Fix slow Docker web builds during static page generation\n- Auto-join dashboard users to official Discord via guilds.join\n- Add guild economy system synced with dashboard\n- Declutter the marketing site navigation bar\n- Fix Dokploy web build failures for changelog deploys\n- Allow .git in Docker build context for release generation",
+      "category": "improvement",
+      "body": "- v5 command coverage: real lookups, 400+ native bridges, no more dead ends\n- Fix ticket panel button stuck on thinking after click\n- Sync changelog release data for v5 ticket overhaul\n- v5 overhaul: rebuild ticket system end-to-end for bot and dashboard\n- Fix dashboard ticket panel creation failing to post to Discord\n- Revert \"Overhaul user, admin, and staff dashboards with HeroUI v3 on Tailwind v4.\"\n- Overhaul user, admin, and staff dashboards with HeroUI v3 on Tailwind v4\n- Improve Discord OAuth secret handling and diagnostics\n- Update July 11 changelog bundle and add docs wordmark asset\n- Fix slow Docker web builds during static page generation\n- Auto-join dashboard users to official Discord via guilds.join\n- Add guild economy system synced with dashboard",
       "items": [
+        {
+          "title": "v5 command coverage: real lookups, 400+ native bridges, no more dead ends",
+          "category": "improvement",
+          "hash": "1a1fff5"
+        },
+        {
+          "title": "Fix ticket panel button stuck on thinking after click",
+          "category": "fix",
+          "hash": "5af9b01"
+        },
+        {
+          "title": "Sync changelog release data for v5 ticket overhaul",
+          "category": "feature",
+          "hash": "c37130e"
+        },
         {
           "title": "v5 overhaul: rebuild ticket system end-to-end for bot and dashboard",
           "category": "feature",
@@ -124,21 +139,6 @@
           "title": "Add guild economy system synced with dashboard",
           "category": "feature",
           "hash": "26c2780"
-        },
-        {
-          "title": "Declutter the marketing site navigation bar",
-          "category": "improvement",
-          "hash": "96d6048"
-        },
-        {
-          "title": "Fix Dokploy web build failures for changelog deploys",
-          "category": "fix",
-          "hash": "7cce4bc"
-        },
-        {
-          "title": "Allow .git in Docker build context for release generation",
-          "category": "improvement",
-          "hash": "e7c855d"
         }
       ],
       "source": "git"

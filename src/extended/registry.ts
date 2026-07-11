@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import type { CommandDef, CommandsCatalogFile } from './types';
+import { isExcludedCatalogCommand } from './catalog-exclusions';
 
 function sanitizeCatalogText(text: string): string {
   return text
@@ -22,15 +23,17 @@ export class CommandRegistry {
 
     for (const cog of raw.cogs) {
       if (!cog.commands?.length) continue;
+      const filteredCommands = cog.commands.filter((cmd) => !isExcludedCatalogCommand(cog.cog_name, cmd.name));
+      if (!filteredCommands.length) continue;
       const cogLabel = cog.alt_name || cog.cog_name;
       this.cogMeta.set(cog.cog_name, {
         name: cogLabel,
         description: sanitizeCatalogText(cog.description || ''),
-        count: cog.count,
+        count: filteredCommands.length,
       });
       const list: CommandDef[] = [];
 
-      for (const cmd of cog.commands) {
+      for (const cmd of filteredCommands) {
         const entry: CommandDef = {
           name: cmd.name.toLowerCase(),
           aliases: (cmd.aliases || []).map((a) => a.toLowerCase()),

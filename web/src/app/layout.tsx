@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 export async function generateMetadata(): Promise<Metadata> {
   const base = publicAppUrl();
   const description =
-    'Deelo is the all-in-one Discord bot for moderation, music, levels, tickets, and community management. 1,144 commands. One dashboard.';
+    'Deelo is the all-in-one Discord bot for moderation, music, levels, tickets, and community management. 1,056 commands. One dashboard.';
 
   return {
     title: {

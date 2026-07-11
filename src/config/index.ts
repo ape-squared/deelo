@@ -4,7 +4,6 @@ export const config = {
   token: process.env.DISCORD_TOKEN ?? '',
   ownerIds: (process.env.OWNER_IDS ?? '').split(',').filter(Boolean),
   supportGuildId: process.env.SUPPORT_GUILD_ID ?? '',
-  lastfmApiKey: process.env.LASTFM_API_KEY ?? '',
   /** Puter auth token — preferred free OpenAI gateway (https://developer.puter.com/tutorials/puter-auth-token/) */
   puterAuthToken: process.env.PUTER_AUTH_TOKEN ?? '',
   /** Direct OpenAI key — optional fallback when Puter is unavailable */

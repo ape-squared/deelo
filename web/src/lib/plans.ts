@@ -26,7 +26,7 @@ export const PLANS = {
       'Social feed integrations',
       'ChatGPT & TTS commands',
       'Custom prefix & bot appearance',
-      'Music filters & Spotify',
+      'Music filters & larger queue',
     ],
   },
   premium_plus: {
@@ -56,7 +56,7 @@ export const PRICING_STATS = [
   { label: 'Deelo Premium', value: '$5/mo' },
   { label: 'Typical bot stack', value: '$27+/mo' },
   { label: 'You save', value: '~80%' },
-  { label: 'Commands included', value: '1,144+' },
+  { label: 'Commands included', value: '1,056+' },
 ];
 
 export const BOT_STACK_ROWS = [
@@ -186,7 +186,7 @@ export const SWITCH_BENEFITS = [
   },
   {
     title: 'Free tier that actually works',
-    description: 'No 14-day trial games. Deelo Free includes real moderation, music, levels, and 1,144 commands with no expiration.',
+    description: 'No 14-day trial games. Deelo Free includes real moderation, music, levels, and 1,056 commands with no expiration.',
   },
 ];
 
@@ -211,7 +211,7 @@ export const MIGRATION_STEPS = [
 export const PRICING_FAQ = [
   {
     q: 'Can Deelo really replace MEE6, Dyno, and Ticket Tool?',
-    a: 'For most servers, yes. Deelo bundles moderation, levels, music, tickets, starboard, automod, and 1,144 commands in one bot with a unified dashboard. You get comparable features without paying for three or four separate subscriptions.',
+    a: 'For most servers, yes. Deelo bundles moderation, levels, music, tickets, starboard, automod, and 1,056 commands in one bot with a unified dashboard. You get comparable features without paying for three or four separate subscriptions.',
   },
   {
     q: 'Is the free plan actually free forever?',
@@ -243,8 +243,8 @@ export const FEATURE_SECTIONS = [
   },
   {
     title: 'Integrations',
-    description: 'Connect Last.fm, Spotify, Instagram, X, TikTok, YouTube, Twitch, and more.',
-    tags: ['Last.fm', 'Spotify', 'Social Feeds', 'Notifications'],
+    description: 'Connect Instagram, X, TikTok, YouTube, Twitch, and more.',
+    tags: ['Social Feeds', 'Fortnite', 'ChatGPT', 'Notifications'],
   },
   {
     title: 'Voicemaster',
@@ -253,8 +253,8 @@ export const FEATURE_SECTIONS = [
   },
   {
     title: 'Music',
-    description: 'Queue, filters, presets, and Spotify integration for premium servers.',
-    tags: ['Queue', 'Presets', 'Spotify', 'Volume Control'],
+    description: 'Queue, filters, presets, and URL playback for premium servers.',
+    tags: ['Queue', 'Presets', 'Filters', 'Volume Control'],
   },
   {
     title: 'Engagement',
@@ -264,7 +264,7 @@ export const FEATURE_SECTIONS = [
 ];
 
 export const STATS = [
-  { label: 'Commands', value: '1,144+' },
+  { label: 'Commands', value: '1,056+' },
   { label: 'Categories', value: '36' },
   { label: 'Integrations', value: '12+' },
   { label: 'Uptime', value: '99.9%' },

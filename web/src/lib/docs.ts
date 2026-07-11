@@ -81,7 +81,6 @@ export const DOCS_NAV: DocsNavGroup[] = [
     {
       title: 'Integrations',
       items: [
-        { title: 'Last.fm', href: '/docs/integrations/lastfm' },
         { title: 'Social Feeds', href: '/docs/integrations/social' },
         { title: 'Fortnite', href: '/docs/integrations/fortnite' },
         { title: 'Second Life', href: '/docs/integrations/secondlife' },
@@ -119,14 +118,14 @@ export const DOCS_PAGES: DocsPage[] = [
         items: [
           { title: 'Security Setup', description: 'Antinuke, antiraid, moderation, and automod.', href: '/docs/security/antinuke' },
           { title: 'Server Configuration', description: 'Welcome, logs, tickets, roles, VoiceMaster, and levels.', href: '/docs/configuration/welcome' },
-          { title: 'Integrations', description: 'Last.fm, social feeds, Fortnite shop, and more.', href: '/docs/integrations/lastfm' },
+          { title: 'Integrations', description: 'Social feeds, Fortnite shop, ChatGPT, TTS, and more.', href: '/docs/integrations/social' },
           { title: 'Getting Started', description: 'Invite Deelo and configure your first server.', href: '/docs/overview/getting-started' },
         ],
       },
       { type: 'h2', id: 'what-is-deelo', text: 'What is Deelo?' },
       {
         type: 'p',
-        text: 'Deelo is an all-in-one Discord bot for moderation, music, levels, tickets, security, and community tools — one prefix, one dashboard, and 1,144+ commands.',
+        text: 'Deelo is an all-in-one Discord bot for moderation, music, levels, tickets, security, and community tools — one prefix, one dashboard, and 1,056+ commands.',
       },
       {
         type: 'ul',
@@ -201,7 +200,7 @@ export const DOCS_PAGES: DocsPage[] = [
           'Social feed integrations',
           'ChatGPT & TTS commands',
           'Custom prefix & bot appearance',
-          'Music filters & Spotify playlists',
+          'Music filters & larger queue',
         ],
       },
       {
@@ -527,7 +526,7 @@ export const DOCS_PAGES: DocsPage[] = [
       { type: 'h2', id: 'overview', text: 'Overview' },
       {
         type: 'p',
-        text: 'Aliases let you map short names to longer commands — for example `,b` → `ban` or `,np` → `lastfm nowplaying`. Configure them in the dashboard or with alias commands.',
+        text: 'Aliases let you map short names to longer commands — for example `,b` → `ban` or `,q` → `queue`. Configure them in the dashboard or with alias commands.',
       },
       {
         type: 'callout',
@@ -553,7 +552,7 @@ export const DOCS_PAGES: DocsPage[] = [
         type: 'ul',
         items: [
           'Join a voice channel before `,play`.',
-          'Free plan includes a queue; Premium unlocks filters and Spotify.',
+          'Free plan includes a queue; Premium unlocks filters and presets.',
           'Use `,stream <url>` for live radio / continuous streams.',
         ],
       },
@@ -590,24 +589,6 @@ export const DOCS_PAGES: DocsPage[] = [
       {
         type: 'p',
         text: 'See the full utility catalog on /commands.',
-      },
-    ],
-  ),
-  page(
-    'integrations/lastfm',
-    'Last.fm',
-    'Share what you are listening to with `,lastfm` / `,lfm`.',
-    'Integrations',
-    [
-      {
-        type: 'code',
-        language: 'bash',
-        code: ',lastfm set <username>\n,lastfm nowplaying\n,lfm np',
-      },
-      {
-        type: 'callout',
-        variant: 'info',
-        text: 'Last.fm is a Premium integration. Live now-playing needs LASTFM_API_KEY configured on the bot host.',
       },
     ],
   ),
@@ -784,7 +765,7 @@ export const DOCS_PAGES: DocsPage[] = [
     [
       {
         type: 'p',
-        text: 'Deelo ships 1,144+ commands across moderation, security, music, levels, tickets, fun, and integrations.',
+        text: 'Deelo ships 1,056+ commands across moderation, security, music, levels, tickets, fun, and integrations.',
       },
       {
         type: 'cards',

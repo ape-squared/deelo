@@ -87,13 +87,9 @@ export interface PlanFeatures {
   // Music
   music: boolean;
   musicFilters: boolean;
-  musicSpotify: boolean;
 
   // Integrations
-  lastfm: boolean;
-  lastfmCustomMode: boolean;
   socialNotifications: boolean;
-  spotifyControl: boolean;
   fortnite: boolean;
 
   // Premium extras
@@ -204,11 +200,7 @@ const FREE_FEATURES: PlanFeatures = {
   ticketStats: false,
   music: true,
   musicFilters: false,
-  musicSpotify: true,
-  lastfm: true,
-  lastfmCustomMode: false,
   socialNotifications: false,
-  spotifyControl: false,
   fortnite: false,
   chatgpt: false,
   cleverbot: false,
@@ -246,10 +238,7 @@ const PREMIUM_FEATURES: PlanFeatures = {
   ticketForms: true,
   ticketStats: true,
   musicFilters: true,
-  musicSpotify: true,
-  lastfmCustomMode: true,
   socialNotifications: true,
-  spotifyControl: true,
   fortnite: true,
   chatgpt: true,
   cleverbot: true,

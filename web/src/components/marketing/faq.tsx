@@ -5,7 +5,7 @@ import { ChevronDown } from 'lucide-react';
 const FAQ = [
   {
     q: 'Is Deelo free to use?',
-    a: 'Yes. Deelo has a generous free tier with moderation, levels, music, snipe, giveaways, and 1,144 commands. Premium unlocks anti-nuke, tickets, social feeds, ChatGPT, and higher limits.',
+    a: 'Yes. Deelo has a generous free tier with moderation, levels, music, snipe, giveaways, and 1,056 commands. Premium unlocks anti-nuke, tickets, social feeds, ChatGPT, and higher limits.',
   },
   {
     q: 'How do I configure my server?',

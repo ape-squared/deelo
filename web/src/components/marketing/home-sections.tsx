@@ -75,7 +75,7 @@ export function ModulesSection() {
           <span className="section-label">Modules</span>
           <h2 className="section-heading">One bot. Every tool your server needs.</h2>
           <p className="section-sub mx-auto">
-            Six core systems with 1,144 commands — moderation, music, levels, tickets, automod, and utilities under one prefix.
+            Six core systems with 1,056 commands — moderation, music, levels, tickets, automod, and utilities under one prefix.
           </p>
         </Reveal>
         <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
