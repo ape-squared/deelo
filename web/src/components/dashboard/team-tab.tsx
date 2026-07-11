@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { UserPlus, Trash2 } from 'lucide-react';
-import { DashButton, DashInput, DashPanel } from '@/components/ui/dashboard-kit';
 
 interface TeamMember {
   discord_id: string;
@@ -73,11 +72,16 @@ export function TeamTab({
 
   return (
     <div className="space-y-6">
-      <DashPanel title="Dashboard team" desc="Invite moderators or viewers who shouldn't need full server admin on Discord. Owners and Discord admins always have full access.">
-        <form onSubmit={invite} className="flex flex-wrap items-end gap-3">
-          <div className="min-w-[200px] flex-1">
+      <div className="card p-6">
+        <h2 className="text-lg font-semibold">Dashboard team</h2>
+        <p className="mt-1 text-sm text-muted">
+          Invite moderators or viewers who shouldn&apos;t need full server admin on Discord. Owners and Discord admins always have full access.
+        </p>
+
+        <form onSubmit={invite} className="mt-6 flex flex-wrap items-end gap-3">
+          <div className="flex-1 min-w-[200px]">
             <label className="label">Discord user ID</label>
-            <DashInput value={discordId} onChange={(e) => setDiscordId(e.target.value)} placeholder="123456789012345678" />
+            <input className="input font-mono text-sm" value={discordId} onChange={(e) => setDiscordId(e.target.value)} placeholder="123456789012345678" />
           </div>
           <div>
             <label className="label">Role</label>
@@ -87,14 +91,15 @@ export function TeamTab({
               <option value="viewer">Viewer — read-only overview</option>
             </select>
           </div>
-          <DashButton type="submit" size="sm">
+          <button type="submit" className="btn-primary text-sm py-2.5">
             <UserPlus className="h-4 w-4" />
             Add
-          </DashButton>
+          </button>
         </form>
-      </DashPanel>
+      </div>
 
-      <DashPanel title={`Members (${members.length})`}>
+      <div className="card p-6">
+        <h3 className="font-semibold mb-4">Members ({members.length})</h3>
         {members.length === 0 ? (
           <p className="text-sm text-muted">No delegated members yet.</p>
         ) : (
@@ -112,9 +117,10 @@ export function TeamTab({
             ))}
           </ul>
         )}
-      </DashPanel>
+      </div>
 
-      <DashPanel title="Recent activity">
+      <div className="card p-6">
+        <h3 className="font-semibold mb-4">Recent activity</h3>
         {audit.length === 0 ? (
           <p className="text-sm text-muted">No audit entries yet.</p>
         ) : (
@@ -127,7 +133,7 @@ export function TeamTab({
             ))}
           </ul>
         )}
-      </DashPanel>
+      </div>
     </div>
   );
 }

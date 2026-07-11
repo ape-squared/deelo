@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Shield, LogOut, ExternalLink, Wrench } from 'lucide-react';
-import { Button, Chip } from '@heroui/react';
 import { DeeloIcon, DeeloWordmark } from '@/components/brand/logo';
 import { platformHasPermission, platformRoleLabel, type PlatformStaffRole } from '@/lib/platform-roles';
 import { STAFF_NAV_SECTIONS } from '@/lib/staff-nav';
@@ -28,7 +27,7 @@ export function StaffShell({
   })).filter((section) => section.items.length > 0);
 
   return (
-    <div className="staff-app mesh-bg v3-mesh flex min-h-screen" data-theme="dark">
+    <div className="staff-app mesh-bg v3-mesh flex min-h-screen">
       <aside className="staff-sidebar">
         <div className="staff-sidebar-brand">
           <DeeloIcon size={36} className="shadow-lg shadow-accent/25" />
@@ -41,9 +40,7 @@ export function StaffShell({
         <div className="staff-sidebar-user">
           <div className="flex items-center gap-2">
             <Shield className="h-3.5 w-3.5 text-accent-bright" />
-            <Chip size="sm" color="accent" variant="soft" className="font-semibold">
-              {platformRoleLabel(staff.role)}
-            </Chip>
+            <span className="text-xs font-semibold text-accent-bright">{platformRoleLabel(staff.role)}</span>
           </div>
           <p className="truncate text-xs text-muted mt-1">{staff.username}</p>
         </div>
@@ -86,10 +83,10 @@ export function StaffShell({
             <ExternalLink className="h-3.5 w-3.5" />
             View site
           </Link>
-          <Button type="button" variant="ghost" className="staff-nav-link w-full justify-start text-left text-danger" onPress={logout}>
+          <button type="button" onClick={logout} className="staff-nav-link w-full text-left text-red-400/80 hover:text-red-400">
             <LogOut className="h-4 w-4" />
             Sign out
-          </Button>
+          </button>
         </div>
       </aside>
 

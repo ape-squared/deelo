@@ -9,7 +9,6 @@ import { discordAvatarUrl } from '@/lib/discord-avatar';
 import { DashboardShell, GuildIcon } from '@/components/dashboard/shell';
 import { WelcomeChecklist } from '@/components/dashboard/welcome-checklist';
 import { LoadingScreen, EmptyState } from '@/components/ui/animate';
-import { DashAlert, DashButton, DashLoginCard } from '@/components/ui/dashboard-kit';
 import { DiscordIcon } from '@/components/icons/discord';
 import { SearchField } from '@/components/search-field';
 import { Server, Crown, Plus } from 'lucide-react';
@@ -103,19 +102,25 @@ function DashboardContent() {
 
   if (!user) {
     return (
-      <div className="dashboard-app mesh-bg v3-mesh flex min-h-screen items-center justify-center px-4" data-theme="dark">
-        <DashLoginCard
-          title="Welcome back"
-          subtitle="Sign in with Discord to manage Deelo across your servers. You may be added to our community Discord (discord.gg/deelo) so you can vote on features and get support."
-        >
-          <div className="mx-auto mb-2 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#5865F2]/20">
+      <div className="dashboard-app mesh-bg v3-mesh flex min-h-screen items-center justify-center px-4">
+        <div className="card gradient-border w-full max-w-md p-10 text-center animate-scale-in">
+          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#5865F2]/20">
             <DiscordIcon className="h-9 w-11 text-[#5865F2]" />
           </div>
-          {authError && <DashAlert status="danger">{authErrorMessage(authError)}</DashAlert>}
-            <a href={`/api/auth/discord?return=${encodeURIComponent(loginReturnPath)}`} className="btn-primary w-full bg-[#5865F2] text-center hover:bg-[#4752C4]">
-              Continue with Discord
-            </a>
-        </DashLoginCard>
+          <h1 className="text-2xl font-bold mb-2">Welcome back</h1>
+          <p className="text-muted mb-8 text-sm">
+            Sign in with Discord to manage Deelo across your servers. You may be added to our community Discord
+            (discord.gg/deelo) so you can vote on features and get support.
+          </p>
+          {authError && (
+            <div className="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-left text-sm text-red-200">
+              {authErrorMessage(authError)}
+            </div>
+          )}
+          <a href={`/api/auth/discord?return=${encodeURIComponent(loginReturnPath)}`} className="btn-primary w-full bg-[#5865F2] hover:bg-[#4752C4]">
+            Continue with Discord
+          </a>
+        </div>
       </div>
     );
   }
@@ -257,7 +262,7 @@ function ServerPickerCard({ guild: g, invite, redeemIntent }: { guild: Guild; in
         <span className="relative z-10 mt-1 text-[11px] text-muted">Not installed</span>
       )}
       <div className="server-picker-overlay">
-        <span className="relative z-10 mt-1 rounded-lg bg-accent px-3 py-1.5 text-xs text-accent-foreground">{invite ? 'Invite' : 'Manage'}</span>
+        <span className="btn-primary text-xs py-2 px-4">{invite ? 'Invite' : 'Manage'}</span>
       </div>
     </>
   );

@@ -19,14 +19,6 @@ import { ModuleOverview } from '@/components/dashboard/module-overview';
 import { EmbedsTab } from '@/components/dashboard/embed-builder';
 import { TeamTab } from '@/components/dashboard/team-tab';
 import { guildRoleCanRead, type GuildDashboardRole } from '@/lib/guild-permissions';
-import {
-  DashSection as Section,
-  DashField as Field,
-  DashToggle as Toggle,
-  DashInput,
-  DashButton,
-  DashPanel,
-} from '@/components/ui/dashboard-kit';
 
 export function GuildSettingsEditor({
   guildId,
@@ -285,9 +277,7 @@ export function GuildSettingsEditor({
               <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4">
                 <p className="text-sm font-medium">Premium required</p>
                 <p className="mt-1 text-sm text-muted">Upgrade to customize Deelo&apos;s nickname, embed color, and footer in your server.</p>
-                <DashButton type="button" size="sm" className="mt-3" onPress={() => setTab('general')}>
-                  Redeem a code
-                </DashButton>
+                <button type="button" onClick={() => setTab('general')} className="btn-primary text-sm py-2 inline-flex mt-3">Redeem a code</button>
               </div>
             ) : (
               BOT_APPEARANCE_FIELDS.map((f) => (
@@ -560,10 +550,10 @@ export function GuildSettingsEditor({
               <p className="text-sm text-muted">
                 {dirty ? 'You have unsaved changes' : 'All changes saved'}
               </p>
-              <DashButton type="submit" size="sm" isDisabled={saving || !dirty}>
+              <button type="submit" className="btn-primary text-sm py-2.5" disabled={saving || !dirty}>
                 <Save className="h-4 w-4" />
                 {saving ? 'Saving...' : dirty ? 'Save changes' : 'Saved'}
-              </DashButton>
+              </button>
             </div>
           </div>
         )}
@@ -1117,12 +1107,18 @@ function PlanCard({ guild, subscription, onRedeem }: { guild: DashboardGuildSett
       <p className="font-medium capitalize">{guild.plan.replace('_', ' ')} plan</p>
       {subscription && <p className="text-sm text-muted">Subscription: <span className="capitalize">{subscription.status}</span>{subscription.expires_at && <> · expires {new Date(subscription.expires_at).toLocaleDateString()}</>}</p>}
       {guild.plan === 'free' && onRedeem && (
-        <DashButton type="button" size="sm" className="mt-2" onPress={onRedeem}>
-          Redeem a code
-        </DashButton>
+        <button type="button" onClick={onRedeem} className="btn-primary text-sm py-2 inline-flex mt-2">Redeem a code</button>
       )}
     </div>
   );
+}
+
+function Section({ title, desc, children }: { title: string; desc: string; children: React.ReactNode }) {
+  return <div className="card p-6 lg:p-8"><h2 className="text-lg font-semibold mb-1">{title}</h2><p className="text-sm text-muted mb-6">{desc}</p><div className="space-y-5">{children}</div></div>;
+}
+
+function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
+  return <div><label className="label">{label}</label>{hint && <p className="text-xs text-muted mb-2">{hint}</p>}{children}</div>;
 }
 
 function ChannelField({
@@ -1138,12 +1134,14 @@ function ChannelField({
 }
 
 function IdInput({ value, onChange }: { value: string | null; onChange: (v: string | null) => void }) {
-  return (
-    <DashInput
-      value={value ?? ''}
-      onChange={(e) => onChange(e.target.value || null)}
-      placeholder="123456789012345678"
-    />
-  );
+  return <input className="input font-mono text-sm" value={value ?? ''} onChange={(e) => onChange(e.target.value || null)} placeholder="123456789012345678" />;
 }
 
+function Toggle({ label, desc, checked, onChange, premium }: { label: string; desc?: string; checked: boolean; onChange: (v: boolean) => void; premium?: boolean }) {
+  return (
+    <div className={`flex items-center justify-between gap-4 rounded-xl border p-4 ${premium ? 'border-amber-500/30 bg-amber-500/5' : 'border-border bg-background/50'}`}>
+      <div><p className="text-sm font-medium">{label}{premium && <span className="ml-2 badge badge-warning text-[10px]">Premium</span>}</p>{desc && <p className="text-xs text-muted mt-0.5">{desc}</p>}</div>
+      <button type="button" role="switch" aria-checked={checked} onClick={() => onChange(!checked)} className={`toggle ${checked ? 'toggle-on' : ''}`}><span className="toggle-thumb" /></button>
+    </div>
+  );
+}

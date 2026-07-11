@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { Gift, Loader2 } from 'lucide-react';
-import { DashAlert, DashButton, DashInput } from '@/components/ui/dashboard-kit';
 
 export function RedeemCodePanel({
   guildId,
@@ -55,16 +54,16 @@ export function RedeemCodePanel({
       </div>
 
       <form onSubmit={redeem} className="flex flex-wrap gap-2">
-        <DashInput
-          className="min-w-[200px] flex-1 uppercase"
+        <input
+          className="input flex-1 min-w-[200px] font-mono text-sm uppercase"
           value={code}
           onChange={(e) => setCode(e.target.value)}
           placeholder="SYNTAX-XXXX-XXXX"
-          isDisabled={loading}
+          disabled={loading}
         />
-        <DashButton type="submit" size="sm" isDisabled={loading || !code.trim()}>
+        <button type="submit" className="btn-primary text-sm" disabled={loading || !code.trim()}>
           {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Redeem'}
-        </DashButton>
+        </button>
       </form>
 
       {message && (
