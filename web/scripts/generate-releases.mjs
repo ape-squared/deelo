@@ -9,7 +9,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const repoRoot = join(__dirname, '../..');
+const repoRoot = findRepoRoot(join(__dirname, '..'));
 const outFile = join(__dirname, '../src/data/releases.json');
 
 function inferCategory(subject) {
@@ -28,7 +28,18 @@ function inferCategory(subject) {
   return 'improvement';
 }
 
-function parseCommits() {
+function findRepoRoot(startDir) {
+  let dir = startDir;
+  for (let i = 0; i < 6; i++) {
+    if (existsSync(join(dir, '.git'))) return dir;
+    const parent = join(dir, '..');
+    if (parent === dir) break;
+    dir = parent;
+  }
+  return join(startDir, '..');
+}
+
+function parseCommits(repoRoot) {
   try {
     const raw = execSync("git log -40 --pretty=format:'%H|%h|%s|%cI' --no-merges", {
       cwd: repoRoot,
@@ -45,7 +56,7 @@ function parseCommits() {
   }
 }
 
-const commits = parseCommits();
+const commits = parseCommits(repoRoot);
 
 if (!commits.length) {
   if (existsSync(outFile)) {

@@ -12,7 +12,9 @@ yt-dlp-bin
 yt-dlp-latest
 bin
 .DS_Store
-web
+web/node_modules
+web/.next
+web/out
 supabase/.temp
 *-player-script.js
 shared/*.js

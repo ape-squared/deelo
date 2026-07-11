@@ -41,13 +41,19 @@ export function publicAppHost(): string {
 }
 
 /** URLs the bot may call to reach the web API (public first, then Docker internal). */
-export function fetchAppUrls(): string[] {
-  const raw = [
-    publicAppUrl(),
+export function fetchAppUrls(preferInternal = false): string[] {
+  const internal = [
     process.env.STATUS_INTERNAL_URL,
     process.env.WEB_INTERNAL_URL,
     'http://web:3000',
-  ];
+  ]
+    .filter(Boolean)
+    .map((u) => trimUrl(String(u)));
+
+  const publicUrl = publicAppUrl();
+  const raw = preferInternal
+    ? [...internal, publicUrl]
+    : [publicUrl, ...internal];
 
   const out: string[] = [];
   for (const u of raw) {
@@ -58,9 +64,13 @@ export function fetchAppUrls(): string[] {
   return out;
 }
 
-export async function fetchAppJson<T>(path: string, timeoutMs = 10_000): Promise<T | null> {
+export async function fetchAppJson<T>(
+  path: string,
+  timeoutMs = 10_000,
+  preferInternal = false,
+): Promise<T | null> {
   const normalized = path.startsWith('/') ? path : `/${path}`;
-  for (const base of fetchAppUrls()) {
+  for (const base of fetchAppUrls(preferInternal)) {
     try {
       const res = await fetch(`${base}${normalized}`, {
         signal: AbortSignal.timeout(timeoutMs),

@@ -1,45 +1,66 @@
 {
-  "generated_at": "2026-07-09T22:05:51.675Z",
+  "generated_at": "2026-07-11T16:36:30.203Z",
   "latest": {
-    "id": "release-2026-07-09",
-    "version": "4a67ee7",
-    "published_at": "2026-07-09T17:58:37-04:00",
-    "title": "Updates for July 9, 2026",
-    "category": "feature",
-    "body": "- Add Puter as free OpenAI gateway for ChatGPT and TTS\n- Make ChatGPT and TTS production-ready for Discord\n- Add Mintlify-style /docs site for Deelo setup guides\n- Make changelog sync day-aware for daily release bundles",
+    "id": "release-2026-07-11",
+    "version": "6ac90c1",
+    "published_at": "2026-07-11T00:11:40-04:00",
+    "title": "Updates for July 11, 2026",
+    "category": "improvement",
+    "body": "- Replace yt-dlp YouTube playback with SoundCloud streaming\n- Fix music playback by using standalone yt-dlp binaries",
     "items": [
       {
-        "title": "Add Puter as free OpenAI gateway for ChatGPT and TTS",
-        "category": "feature",
-        "hash": "4a67ee7"
-      },
-      {
-        "title": "Make ChatGPT and TTS production-ready for Discord",
+        "title": "Replace yt-dlp YouTube playback with SoundCloud streaming",
         "category": "improvement",
-        "hash": "9a80e52"
+        "hash": "6ac90c1"
       },
       {
-        "title": "Add Mintlify-style /docs site for Deelo setup guides",
-        "category": "feature",
-        "hash": "f8c8900"
-      },
-      {
-        "title": "Make changelog sync day-aware for daily release bundles",
-        "category": "improvement",
-        "hash": "b53dcc7"
+        "title": "Fix music playback by using standalone yt-dlp binaries",
+        "category": "fix",
+        "hash": "e16b540"
       }
     ],
     "source": "git"
   },
   "releases": [
     {
-      "id": "release-2026-07-09",
-      "version": "4a67ee7",
-      "published_at": "2026-07-09T17:58:37-04:00",
-      "title": "Updates for July 9, 2026",
-      "category": "feature",
-      "body": "- Add Puter as free OpenAI gateway for ChatGPT and TTS\n- Make ChatGPT and TTS production-ready for Discord\n- Add Mintlify-style /docs site for Deelo setup guides\n- Make changelog sync day-aware for daily release bundles",
+      "id": "release-2026-07-11",
+      "version": "6ac90c1",
+      "published_at": "2026-07-11T00:11:40-04:00",
+      "title": "Updates for July 11, 2026",
+      "category": "improvement",
+      "body": "- Replace yt-dlp YouTube playback with SoundCloud streaming\n- Fix music playback by using standalone yt-dlp binaries",
       "items": [
+        {
+          "title": "Replace yt-dlp YouTube playback with SoundCloud streaming",
+          "category": "improvement",
+          "hash": "6ac90c1"
+        },
+        {
+          "title": "Fix music playback by using standalone yt-dlp binaries",
+          "category": "fix",
+          "hash": "e16b540"
+        }
+      ],
+      "source": "git"
+    },
+    {
+      "id": "release-2026-07-09",
+      "version": "4824c01",
+      "published_at": "2026-07-09T18:13:30-04:00",
+      "title": "Updates for July 9, 2026",
+      "category": "improvement",
+      "body": "- Polish marketing site motion with scroll reveals and fluid hover\n- Fix Docker web build when Discord client ID is missing at build time\n- Add Puter as free OpenAI gateway for ChatGPT and TTS\n- Make ChatGPT and TTS production-ready for Discord\n- Add Mintlify-style /docs site for Deelo setup guides\n- Make changelog sync day-aware for daily release bundles",
+      "items": [
+        {
+          "title": "Polish marketing site motion with scroll reveals and fluid hover",
+          "category": "improvement",
+          "hash": "4824c01"
+        },
+        {
+          "title": "Fix Docker web build when Discord client ID is missing at build time",
+          "category": "fix",
+          "hash": "3513848"
+        },
         {
           "title": "Add Puter as free OpenAI gateway for ChatGPT and TTS",
           "category": "feature",

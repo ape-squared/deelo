@@ -188,7 +188,7 @@ async function fetchPublishedChangelogFromDb(): Promise<ChangelogEntry[]> {
 }
 
 async function fetchPublishedChangelog(): Promise<ChangelogEntry[]> {
-  const data = await fetchAppJson<{ entries: ChangelogEntry[] }>('/api/changelog');
+  const data = await fetchAppJson<{ entries: ChangelogEntry[] }>('/api/changelog', 10_000, true);
   const fromApi = (data?.entries ?? []).filter((e) => e.status === 'published');
   if (fromApi.length) return fromApi;
 
