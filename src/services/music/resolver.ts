@@ -1,7 +1,7 @@
 import play from 'play-dl';
 import type { SoundCloudPlaylist, SoundCloudTrack } from 'play-dl';
 import type { Track, TrackSource } from './types';
-import { searchYouTube } from './ytdlp';
+import { findSoundCloudTrack } from './soundcloud-audio';
 import {
   fetchSpotifyAlbumTracks,
   fetchSpotifyPlaylistTracks,
@@ -84,7 +84,7 @@ async function resolveSpotifySearch(query: string, requestedBy: string): Promise
     }
   } catch (err) {
     markSpotifySearchUnavailable(err);
-    console.warn('[music] Spotify search unavailable — using YouTube');
+    console.warn('[music] Spotify search unavailable — using SoundCloud');
   }
 
   return resolveYouTubeSearch(query, requestedBy);
@@ -113,11 +113,12 @@ async function resolveSpotifyCollection(
 async function youtubeUrlToTrack(url: string, requestedBy: string): Promise<Track> {
   const info = await play.video_info(url);
   const video = info.video_details;
+  const match = await findSoundCloudTrack(video.title ?? url);
   return {
-    title: video.title ?? 'Unknown',
-    url: video.url,
-    duration: video.durationInSec,
-    thumbnail: video.thumbnails[0]?.url,
+    title: video.title ?? match.title,
+    url: match.url,
+    duration: video.durationInSec || match.duration,
+    thumbnail: video.thumbnails[0]?.url ?? match.thumbnail,
     source: 'youtube',
     requestedBy,
   };
@@ -244,32 +245,14 @@ async function lookupAppleMusic(url: string): Promise<{ title: string; artist: s
 }
 
 async function resolveYouTubeSearch(query: string, requestedBy: string): Promise<Track[]> {
-  console.log(`[music] searching YouTube: ${query}`);
-
-  try {
-    const video = await searchYouTube(query);
-    return [{
-      title: video.title,
-      url: video.url,
-      duration: video.duration,
-      thumbnail: video.thumbnail,
-      source: 'youtube',
-      requestedBy,
-    }];
-  } catch (ytdlpErr) {
-    console.warn('[music] yt-dlp search failed, trying play-dl:', ytdlpErr);
-  }
-
-  const results = await play.search(query, { limit: 1, source: { youtube: 'video' } });
-  if (!results.length) throw new Error(`No results found for **${query}**.`);
-
-  const video = results[0];
+  console.log(`[music] searching SoundCloud: ${query}`);
+  const match = await findSoundCloudTrack(query);
   return [{
-    title: video.title ?? query,
-    url: video.url,
-    duration: video.durationInSec,
-    thumbnail: video.thumbnails[0]?.url,
-    source: 'youtube',
+    title: match.title,
+    url: match.url,
+    duration: match.duration,
+    thumbnail: match.thumbnail,
+    source: 'soundcloud',
     requestedBy,
   }];
 }

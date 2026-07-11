@@ -3,13 +3,8 @@ import type { Readable } from 'node:stream';
 import { Readable as NodeReadable } from 'node:stream';
 import prism from 'prism-media';
 import type { Track } from './types';
-import { getDirectAudioUrl } from './ytdlp';
+import { openTrackStream } from './soundcloud-audio';
 import { getPresetFilter } from './presets';
-
-const FETCH_HEADERS = {
-  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-  Referer: 'https://www.youtube.com/',
-};
 
 const RADIO_FETCH_HEADERS = {
   'User-Agent': 'Mozilla/5.0 (compatible; DeeloBot/1.0; +https://deelo.nikkithewikki.top)',
@@ -158,19 +153,8 @@ export async function createTrackStream(
     return createRadioStream(track.url, presetId, track);
   }
 
-  const directUrl = await getDirectAudioUrl(track.url);
-  const res = await fetch(directUrl, { headers: FETCH_HEADERS });
-  if (!res.ok || !res.body) {
-    throw new Error(`Failed to fetch audio stream (HTTP ${res.status}).`);
-  }
-
-  const contentType = res.headers.get('content-type') ?? '';
-  const isWebm = contentType.includes('webm') || /\.webm/i.test(directUrl);
-  const input = attachErrorLogging(
-    NodeReadable.fromWeb(res.body as import('stream/web').ReadableStream),
-    track,
-    'stream',
-  );
+  const { stream: input, inputType, inlineVolume } = await openTrackStream(track);
+  attachErrorLogging(input, track, 'stream');
 
   const filter = getPresetFilter(presetId);
   if (filter) {
@@ -178,9 +162,5 @@ export async function createTrackStream(
     return { stream: filtered, inputType: StreamType.Raw, inlineVolume: true };
   }
 
-  if (isWebm) {
-    return { stream: input, inputType: StreamType.WebmOpus, inlineVolume: false };
-  }
-
-  return { stream: input, inputType: StreamType.Arbitrary, inlineVolume: true };
+  return { stream: input, inputType, inlineVolume };
 }

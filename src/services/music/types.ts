@@ -11,7 +11,7 @@ export interface Track {
   thumbnail?: string;
   source: TrackSource;
   requestedBy: string;
-  /** Live internet radio — streamed via FFmpeg, not yt-dlp */
+  /** Live internet radio — streamed via FFmpeg */
   live?: boolean;
 }
 

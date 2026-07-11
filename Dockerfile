@@ -21,15 +21,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 
 RUN apt-get update \
-  && apt-get install -y --no-install-recommends ffmpeg ca-certificates curl \
-  && ARCH="$(uname -m)" \
-  && case "$ARCH" in \
-    aarch64|arm64) YTDLP_ASSET=yt-dlp_linux_aarch64 ;; \
-    *) YTDLP_ASSET=yt-dlp_linux ;; \
-  esac \
-  && curl -L "https://github.com/yt-dlp/yt-dlp/releases/latest/download/${YTDLP_ASSET}" \
-    -o /app/yt-dlp-bin \
-  && chmod a+rx /app/yt-dlp-bin \
+  && apt-get install -y --no-install-recommends ffmpeg ca-certificates \
   && rm -rf /var/lib/apt/lists/*
 
 RUN groupadd --system deelo && useradd --system --gid deelo --create-home deelo

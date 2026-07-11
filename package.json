@@ -37,8 +37,7 @@
     "opusscript": "^0.0.8",
     "play-dl": "^1.9.7",
     "sharp": "^0.33.5",
-    "ws": "^8.18.3",
-    "yt-dlp-wrap": "^2.3.12"
+    "ws": "^8.18.3"
   },
   "devDependencies": {
     "@types/node": "^22.13.10",

@@ -1,7 +1,6 @@
-import play from 'play-dl';
 import { config } from '../../config';
 import type { Track } from './types';
-import { searchYouTube } from './ytdlp';
+import { findSoundCloudTrack } from './soundcloud-audio';
 
 interface SpotifyApiArtist {
   name: string;
@@ -35,7 +34,7 @@ export function markSpotifySearchUnavailable(err: unknown): void {
   if (!/premium subscription/i.test(msg)) return;
   if (!spotifySearchDisabled) {
     spotifySearchDisabled = true;
-    console.warn('[music] Spotify search disabled for this session (premium required on app owner account). Using YouTube search.');
+    console.warn('[music] Spotify search disabled for this session (premium required on app owner account). Using SoundCloud search.');
   }
 }
 
@@ -161,42 +160,23 @@ export async function fetchSpotifyPlaylistTracks(id: string, max = 50): Promise<
   return tracks;
 }
 
-/** Resolve Spotify metadata to a playable track (audio via YouTube/yt-dlp). */
+/** Resolve Spotify metadata to a playable SoundCloud track. */
 export async function resolveSpotifyTrack(spTrack: SpotifyApiTrack, requestedBy: string): Promise<Track> {
   const title = formatSpotifyTitle(spTrack);
   const artist = spTrack.artists?.[0]?.name ?? '';
   const searchQuery = artist ? `${artist} ${spTrack.name}` : spTrack.name;
+  const match = await findSoundCloudTrack(searchQuery);
 
-  try {
-    const video = await searchYouTube(searchQuery);
-    return {
-      title,
-      url: video.url,
-      spotifyUrl: spTrack.external_urls.spotify,
-      artist: artist || undefined,
-      duration: Math.round((spTrack.duration_ms ?? 0) / 1000) || video.duration,
-      thumbnail: spTrack.album?.images?.[0]?.url ?? video.thumbnail,
-      source: 'spotify',
-      requestedBy,
-    };
-  } catch {
-    const results = await play.search(searchQuery, { limit: 3, source: { youtube: 'video' } });
-    if (!results.length) {
-      throw new Error(`Could not find audio for **${spTrack.name}**.`);
-    }
-
-    const video = results[0];
-    return {
-      title,
-      url: video.url,
-      spotifyUrl: spTrack.external_urls.spotify,
-      artist: artist || undefined,
-      duration: Math.round((spTrack.duration_ms ?? 0) / 1000) || video.durationInSec,
-      thumbnail: spTrack.album?.images?.[0]?.url ?? video.thumbnails[0]?.url,
-      source: 'spotify',
-      requestedBy,
-    };
-  }
+  return {
+    title,
+    url: match.url,
+    spotifyUrl: spTrack.external_urls.spotify,
+    artist: artist || undefined,
+    duration: Math.round((spTrack.duration_ms ?? 0) / 1000) || match.duration,
+    thumbnail: spTrack.album?.images?.[0]?.url ?? match.thumbnail,
+    source: 'spotify',
+    requestedBy,
+  };
 }
 
 export function trackDisplayUrl(track: Track): string {

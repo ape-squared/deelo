@@ -1,6 +1,5 @@
 import play from 'play-dl';
 import { config } from '../../config';
-import { initYtDlp } from './ytdlp';
 import { initVoiceDependencies } from './voice-deps';
 import { ensureSpotifyAccessToken, spotifyConfigured } from './spotify';
 
@@ -33,13 +32,11 @@ export async function initMusicService(): Promise<void> {
     if (spotifyConfigured()) {
       await ensureSpotifyAccessToken();
     }
-    await initYtDlp();
-
     initialized = true;
     if (spotifyConfigured()) {
-      console.log('Music service ready — Spotify + YouTube search, yt-dlp playback');
+      console.log('Music service ready — Spotify search, SoundCloud playback');
     } else {
-      console.warn('Music service ready — Spotify credentials missing; YouTube search fallback');
+      console.warn('Music service ready — Spotify credentials missing; SoundCloud search fallback');
     }
   } catch (err) {
     console.warn('Music service init warning:', err);
