@@ -10,12 +10,50 @@ const FALLBACK_PATHS = [
 
 let ytdlp: YTDlpWrap | null = null;
 
+/** Standalone release asset — the default `yt-dlp` file is a Python script. */
+function standaloneAssetName(): string {
+  switch (process.platform) {
+    case 'win32':
+      return 'yt-dlp.exe';
+    case 'darwin':
+      return 'yt-dlp_macos';
+    case 'linux':
+      return process.arch === 'arm64' ? 'yt-dlp_linux_aarch64' : 'yt-dlp_linux';
+    default:
+      throw new Error(`Unsupported platform for yt-dlp: ${process.platform}`);
+  }
+}
+
+function isPythonScript(filePath: string): boolean {
+  try {
+    const head = fs.readFileSync(filePath, { encoding: 'utf8' }).slice(0, 64);
+    return head.startsWith('#!') && head.includes('python');
+  } catch {
+    return false;
+  }
+}
+
+function isUsableBinary(filePath: string): boolean {
+  return fs.existsSync(filePath) && !isPythonScript(filePath);
+}
+
 function findExistingBinary(): string | null {
-  if (fs.existsSync(BIN_PATH)) return BIN_PATH;
+  if (isUsableBinary(BIN_PATH)) return BIN_PATH;
   for (const p of FALLBACK_PATHS) {
-    if (fs.existsSync(p)) return p;
+    if (isUsableBinary(p)) return p;
   }
   return null;
+}
+
+async function downloadStandaloneBinary(dest: string): Promise<void> {
+  const asset = standaloneAssetName();
+  const [release] = await YTDlpWrap.getGithubReleases(1, 1);
+  const url = `https://github.com/yt-dlp/yt-dlp/releases/download/${release.tag_name}/${asset}`;
+  console.log(`[music] Downloading ${asset} (${release.tag_name})...`);
+  await YTDlpWrap.downloadFile(url, dest);
+  if (process.platform !== 'win32') {
+    fs.chmodSync(dest, 0o755);
+  }
 }
 
 export async function initYtDlp(): Promise<void> {
@@ -26,9 +64,13 @@ export async function initYtDlp(): Promise<void> {
     return;
   }
 
-  if (!fs.existsSync(BIN_PATH)) {
-    console.log('[music] Downloading yt-dlp binary (first run, ~30s)...');
-    await YTDlpWrap.downloadFromGithub(BIN_PATH);
+  if (!isUsableBinary(BIN_PATH)) {
+    if (fs.existsSync(BIN_PATH) && isPythonScript(BIN_PATH)) {
+      console.log('[music] Replacing Python yt-dlp script with standalone binary...');
+    } else {
+      console.log('[music] Downloading yt-dlp binary (first run)...');
+    }
+    await downloadStandaloneBinary(BIN_PATH);
     console.log('[music] yt-dlp ready');
   }
   ytdlp = new YTDlpWrap(BIN_PATH);
