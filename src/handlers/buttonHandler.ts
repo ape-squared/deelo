@@ -10,6 +10,17 @@ function parseSuggestionVotes(footerText?: string | null): { authorId: string; u
   return { authorId, up, down };
 }
 
+async function replyTicketButton(
+  interaction: import('discord.js').ButtonInteraction,
+  content: string,
+): Promise<void> {
+  if (interaction.deferred || interaction.replied) {
+    await interaction.editReply({ content }).catch(() => {});
+    return;
+  }
+  await interaction.reply({ content, ephemeral: true }).catch(() => {});
+}
+
 export function registerButtonHandlers(client: DeeloClient): void {
   if (client.buttonsRegistered) return;
   client.buttonsRegistered = true;
@@ -21,32 +32,46 @@ export function registerButtonHandlers(client: DeeloClient): void {
       const roleId = interaction.customId.replace('role_', '');
       const role = interaction.guild?.roles.cache.get(roleId);
       if (!role || !interaction.member || !('roles' in interaction.member)) return;
-      const member = await interaction.guild!.members.fetch(interaction.user.id);
-      if (member.roles.cache.has(roleId)) {
-        await member.roles.remove(role);
-        await interaction.reply({ content: `Removed ${role}`, ephemeral: true });
-      } else {
-        await member.roles.add(role);
-        await interaction.reply({ content: `Added ${role}`, ephemeral: true });
+      try {
+        const member = await interaction.guild!.members.fetch(interaction.user.id);
+        if (member.roles.cache.has(roleId)) {
+          await member.roles.remove(role);
+          await interaction.reply({ content: `Removed ${role}`, ephemeral: true });
+        } else {
+          await member.roles.add(role);
+          await interaction.reply({ content: `Added ${role}`, ephemeral: true });
+        }
+      } catch (err) {
+        console.error('[buttons] role toggle failed:', err);
+        await replyTicketButton(interaction, 'Could not update that role. Check my permissions.');
       }
       return;
     }
 
     if (interaction.customId.startsWith('ticket_open_')) {
-      if (!interaction.guild) return;
-
-      await interaction.deferReply({ ephemeral: true });
-
-      const panel = await resolvePanel(interaction.guild.id, interaction.customId);
-      const panelName = panel?.name ?? interaction.customId.replace('ticket_open_', '');
-
-      const result = await openTicketFromPanel(interaction.guild, interaction.user, panel, panelName);
-      if ('error' in result) {
-        await interaction.editReply({ content: result.error });
+      if (!interaction.guild) {
+        await interaction.reply({ content: 'Tickets can only be opened in a server.', ephemeral: true }).catch(() => {});
         return;
       }
 
-      await interaction.editReply({ content: `Ticket created: ${result.channel}` });
+      try {
+        await interaction.deferReply({ ephemeral: true });
+
+        const panel = await resolvePanel(interaction.guild.id, interaction.customId);
+        const panelName = panel?.name ?? interaction.customId.replace('ticket_open_', '');
+
+        const result = await openTicketFromPanel(interaction.guild, interaction.user, panel, panelName);
+        if ('error' in result) {
+          await interaction.editReply({ content: result.error });
+          return;
+        }
+
+        await interaction.editReply({ content: `Ticket created: ${result.channel}` });
+      } catch (err) {
+        console.error('[tickets] button handler failed:', err);
+        const message = err instanceof Error ? err.message : 'Something went wrong opening your ticket.';
+        await replyTicketButton(interaction, `Could not open ticket: ${message}`);
+      }
       return;
     }
 

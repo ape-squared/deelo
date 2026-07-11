@@ -3,6 +3,7 @@ import {
   ButtonBuilder,
   ButtonStyle,
   ChannelType,
+  OverwriteType,
   PermissionFlagsBits,
   type Guild,
   type GuildMember,
@@ -40,18 +41,27 @@ export interface TicketPanelRow {
 }
 
 export async function isTicketsModuleDisabled(guildId: string): Promise<boolean> {
-  return (await getConfigValue(guildId, 'modules.tickets.disabled', false)) === true;
+  try {
+    return (await getConfigValue(guildId, 'modules.tickets.disabled', false)) === true;
+  } catch {
+    return false;
+  }
 }
 
 export async function assertTicketsFeature(guildId: string): Promise<{ ok: true; plan: Awaited<ReturnType<typeof getGuildPlan>> } | { ok: false; reason: string }> {
-  if (await isTicketsModuleDisabled(guildId)) {
-    return { ok: false, reason: 'Tickets are disabled for this server. Enable them in the dashboard under Tickets.' };
+  try {
+    if (await isTicketsModuleDisabled(guildId)) {
+      return { ok: false, reason: 'Tickets are disabled for this server. Enable them in the dashboard under Tickets.' };
+    }
+    const plan = await getGuildPlan(guildId);
+    if (!hasFeature(plan, 'tickets')) {
+      return { ok: false, reason: 'Tickets require Premium. Redeem a code with `,redeem` or upgrade via the dashboard.' };
+    }
+    return { ok: true, plan };
+  } catch (err) {
+    console.error('[tickets] assertTicketsFeature failed:', err);
+    return { ok: false, reason: 'Could not verify ticket settings. Try again in a moment.' };
   }
-  const plan = await getGuildPlan(guildId);
-  if (!hasFeature(plan, 'tickets')) {
-    return { ok: false, reason: 'Tickets require **Premium**. Redeem a code with `,redeem` or upgrade via the dashboard.' };
-  }
-  return { ok: true, plan };
 }
 
 export async function isUserTicketBlacklisted(guildId: string, member: GuildMember): Promise<boolean> {
@@ -204,7 +214,8 @@ export async function openTicketFromPanel(
   const gate = await assertTicketsFeature(guild.id);
   if (!gate.ok) return { error: gate.reason };
 
-  const member = await guild.members.fetch(opener.id).catch(() => null);
+  const member =
+    guild.members.cache.get(opener.id) ?? (await guild.members.fetch(opener.id).catch(() => null));
   if (!member) return { error: 'Could not resolve your server membership.' };
   if (await isUserTicketBlacklisted(guild.id, member)) {
     return { error: 'You are blocked from opening tickets in this server.' };
@@ -215,45 +226,96 @@ export async function openTicketFromPanel(
     return { error: `You already have an open ticket: <#${existing.channel_id}>` };
   }
 
-  const overwrites: Array<{ id: string; allow?: bigint[]; deny?: bigint[] }> = [
-    { id: guild.id, deny: [PermissionFlagsBits.ViewChannel] },
+  const me = guild.members.me;
+  if (!me?.permissions.has(PermissionFlagsBits.ManageChannels)) {
+    return { error: 'I need **Manage Channels** permission to create ticket channels.' };
+  }
+
+  const overwrites: Array<{ id: string; type: OverwriteType; allow?: bigint[]; deny?: bigint[] }> = [
+    {
+      id: guild.id,
+      type: OverwriteType.Role,
+      deny: [PermissionFlagsBits.ViewChannel],
+    },
     {
       id: opener.id,
-      allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.ReadMessageHistory, PermissionFlagsBits.AttachFiles],
+      type: OverwriteType.Member,
+      allow: [
+        PermissionFlagsBits.ViewChannel,
+        PermissionFlagsBits.SendMessages,
+        PermissionFlagsBits.ReadMessageHistory,
+        PermissionFlagsBits.AttachFiles,
+      ],
     },
   ];
 
   if (panel?.support_role) {
-    overwrites.push({
-      id: panel.support_role,
-      allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.ReadMessageHistory],
-    });
+    const role = guild.roles.cache.get(panel.support_role) ?? (await guild.roles.fetch(panel.support_role).catch(() => null));
+    if (role) {
+      overwrites.push({
+        id: role.id,
+        type: OverwriteType.Role,
+        allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.ReadMessageHistory],
+      });
+    }
   }
 
-  const channel = await guild.channels.create({
-    name: `ticket-${opener.username}`.slice(0, 100),
-    type: ChannelType.GuildText,
-    parent: panel?.category_id ?? undefined,
-    permissionOverwrites: overwrites,
-  });
+  let parentId: string | undefined;
+  if (panel?.category_id) {
+    const category =
+      guild.channels.cache.get(panel.category_id)
+      ?? (await guild.channels.fetch(panel.category_id).catch(() => null));
+    if (category?.type === ChannelType.GuildCategory) {
+      parentId = category.id;
+    }
+  }
+
+  let channel: TextChannel;
+  try {
+    channel = (await guild.channels.create({
+      name: `ticket-${opener.username}`.slice(0, 100),
+      type: ChannelType.GuildText,
+      parent: parentId,
+      permissionOverwrites: overwrites,
+      reason: `Ticket opened by ${opener.tag}`,
+    })) as TextChannel;
+  } catch (err) {
+    console.error('[tickets] channel create failed:', err);
+    const msg = err instanceof Error ? err.message : 'Unknown error';
+    if (/missing permissions/i.test(msg)) {
+      return { error: 'I could not create the ticket channel. Check that I have **Manage Channels** and can set permissions in that category.' };
+    }
+    if (/maximum number of channels/i.test(msg)) {
+      return { error: 'This server has reached Discord\'s channel limit.' };
+    }
+    return { error: `Could not create ticket channel: ${msg}` };
+  }
 
   const panelName = panel?.name ?? panelNameFallback;
-  await getSupabase().from('tickets').insert({
+  const { error: insertError } = await getSupabase().from('tickets').insert({
     guild_id: guild.id,
     channel_id: channel.id,
     user_id: opener.id,
     panel_name: panelName,
   });
 
+  if (insertError) {
+    console.error('[tickets] insert failed:', insertError);
+    await channel.delete('Ticket record failed to save').catch(() => {});
+    return { error: 'Ticket channel was created but could not be saved. Please try again.' };
+  }
+
   const supportMention = panel?.support_role ? `<@&${panel.support_role}>` : '';
-  await channel.send({
-    embeds: [
-      deeloEmbed(
-        '🎫 Ticket Opened',
-        `${opener}, support will be with you shortly.${supportMention ? `\n${supportMention}` : ''}\n\nStaff: \`,tickets claim\` · \`,tickets close\` · \`,tickets add @user\``,
-      ),
-    ],
-  });
+  await channel
+    .send({
+      embeds: [
+        deeloEmbed(
+          '🎫 Ticket Opened',
+          `${opener}, support will be with you shortly.${supportMention ? `\n${supportMention}` : ''}\n\nStaff: \`,tickets claim\` · \`,tickets close\` · \`,tickets add @user\``,
+        ),
+      ],
+    })
+    .catch((err) => console.error('[tickets] welcome message failed:', err));
 
   return { channel };
 }
