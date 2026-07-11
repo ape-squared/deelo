@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "node scripts/generate-releases.mjs && next dev",
-    "prebuild": "node scripts/generate-releases.mjs",
+    "prebuild": "node scripts/generate-releases.mjs && node scripts/generate-native-commands.mjs",
+    "dev": "node scripts/generate-releases.mjs && node scripts/generate-native-commands.mjs && next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"

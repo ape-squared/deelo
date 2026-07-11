@@ -1,0 +1,607 @@
+{
+  "generated_at": "2026-07-11T23:56:51.581Z",
+  "by_cog": {
+    "servers": [
+      {
+        "name": "autoreact",
+        "description": "Auto-react to messages matching triggers"
+      },
+      {
+        "name": "autoreact add",
+        "description": "Add an auto-react trigger — ,autoreact add <word> <emoji>"
+      },
+      {
+        "name": "autoreact list",
+        "description": "List auto-react triggers for this server"
+      },
+      {
+        "name": "autoreact remove",
+        "description": "Remove an auto-react trigger by ID"
+      },
+      {
+        "name": "autorole",
+        "description": "Set auto-role for new members"
+      },
+      {
+        "name": "event",
+        "description": "Toggle bot events"
+      },
+      {
+        "name": "goodbye",
+        "description": "Configure goodbye messages"
+      },
+      {
+        "name": "log",
+        "description": "Configure server event logging channels"
+      },
+      {
+        "name": "log add",
+        "description": "Route a log event to a channel — ,log add #channel <event>"
+      },
+      {
+        "name": "modlog",
+        "description": "Set moderation log channel"
+      },
+      {
+        "name": "prefix",
+        "description": "View or change the server prefix"
+      },
+      {
+        "name": "responder",
+        "description": "Manage auto responders"
+      },
+      {
+        "name": "settings",
+        "description": "View server configuration summary"
+      },
+      {
+        "name": "suggest",
+        "description": "Submit or manage server suggestions"
+      },
+      {
+        "name": "suggest channel",
+        "description": "Set the channel for member suggestions"
+      },
+      {
+        "name": "welcome",
+        "description": "Configure welcome messages"
+      }
+    ],
+    "economy": [
+      {
+        "name": "balance",
+        "description": "View your or a member balance"
+      },
+      {
+        "name": "baltop",
+        "description": "View the richest members"
+      },
+      {
+        "name": "buy",
+        "description": "Buy a shop item"
+      },
+      {
+        "name": "daily",
+        "description": "Claim your daily reward"
+      },
+      {
+        "name": "economy",
+        "description": "Configure the economy system"
+      },
+      {
+        "name": "pay",
+        "description": "Pay another member"
+      },
+      {
+        "name": "shop",
+        "description": "View the server shop"
+      },
+      {
+        "name": "work",
+        "description": "Work for coins"
+      }
+    ],
+    "fun": [
+      {
+        "name": "8ball",
+        "description": "Ask the magic 8-ball"
+      },
+      {
+        "name": "blacktea",
+        "description": "Play blacktea word game"
+      },
+      {
+        "name": "coinflip",
+        "description": "Flip a coin"
+      },
+      {
+        "name": "fact",
+        "description": "Get a random fact"
+      },
+      {
+        "name": "game",
+        "description": "Look up video game information"
+      },
+      {
+        "name": "joke",
+        "description": "Get a random joke"
+      },
+      {
+        "name": "juul",
+        "description": "Share a juul with your friends"
+      },
+      {
+        "name": "lyrics",
+        "description": "Get song lyrics"
+      },
+      {
+        "name": "meme",
+        "description": "Get a random meme"
+      },
+      {
+        "name": "move",
+        "description": "Make a move in tic-tac-toe"
+      },
+      {
+        "name": "roll",
+        "description": "Roll dice"
+      },
+      {
+        "name": "secondlife",
+        "description": "Second Life grid stats and LindeX exchange data"
+      },
+      {
+        "name": "secondlife lindex",
+        "description": "LindeX market buy/sell rates and volumes for Second Life"
+      },
+      {
+        "name": "tictactoe",
+        "description": "Play tic-tac-toe with someone"
+      }
+    ],
+    "giveaways": [
+      {
+        "name": "giveaway",
+        "description": "Manage giveaways"
+      }
+    ],
+    "misc": [
+      {
+        "name": "activate",
+        "description": "Activate premium for a server (owner only)"
+      },
+      {
+        "name": "afk",
+        "description": "Set your AFK status"
+      },
+      {
+        "name": "avatar",
+        "description": "View a user avatar"
+      },
+      {
+        "name": "chatgpt",
+        "description": "Ask ChatGPT with per-channel conversation memory"
+      },
+      {
+        "name": "chatgpt reset",
+        "description": "Clear ChatGPT conversation memory in the current channel"
+      },
+      {
+        "name": "editsnipe",
+        "description": "View the last edited message"
+      },
+      {
+        "name": "help",
+        "description": "View all commands"
+      },
+      {
+        "name": "perks",
+        "description": "View your current plan perks"
+      },
+      {
+        "name": "ping",
+        "description": "Check bot latency"
+      },
+      {
+        "name": "poll",
+        "description": "Create a quick poll"
+      },
+      {
+        "name": "premium",
+        "description": "View premium plans and server status"
+      },
+      {
+        "name": "redeem",
+        "description": "Redeem a premium code for this server"
+      },
+      {
+        "name": "remind",
+        "description": "Set a reminder"
+      },
+      {
+        "name": "serverinfo",
+        "description": "View server information"
+      },
+      {
+        "name": "snipe",
+        "description": "View the last deleted message"
+      },
+      {
+        "name": "social",
+        "description": "Social media notification feeds"
+      },
+      {
+        "name": "social add",
+        "description": "Track a social feed — ,social add <platform> #channel <username>. Premium."
+      },
+      {
+        "name": "social list",
+        "description": "List configured social notification feeds"
+      },
+      {
+        "name": "social remove",
+        "description": "Remove a social feed by platform and username"
+      },
+      {
+        "name": "status",
+        "description": "View bot status and uptime"
+      },
+      {
+        "name": "translate",
+        "description": "Translate text"
+      },
+      {
+        "name": "tts",
+        "description": "Convert text to speech (MP3 and optional voice channel)"
+      },
+      {
+        "name": "tts channel",
+        "description": "Speak in your current voice channel — ,tts channel <text>"
+      },
+      {
+        "name": "tts voices",
+        "description": "List available text-to-speech voices"
+      },
+      {
+        "name": "userinfo",
+        "description": "View user information"
+      }
+    ],
+    "levels": [
+      {
+        "name": "leaderboard",
+        "description": "View the XP leaderboard"
+      },
+      {
+        "name": "levels",
+        "description": "Configure the leveling system"
+      },
+      {
+        "name": "rank",
+        "description": "View your or a member rank"
+      }
+    ],
+    "moderation": [
+      {
+        "name": "automod",
+        "description": "Toggle automod"
+      },
+      {
+        "name": "ban",
+        "description": "Ban a member from the server"
+      },
+      {
+        "name": "case",
+        "description": "View a specific moderation case"
+      },
+      {
+        "name": "clearwarnings",
+        "description": "Clear all warnings for a member"
+      },
+      {
+        "name": "fakepermissions",
+        "description": "Restrict mods to use Deelo for moderation only"
+      },
+      {
+        "name": "filter",
+        "description": "Manage word/link filters"
+      },
+      {
+        "name": "history",
+        "description": "View moderation history"
+      },
+      {
+        "name": "kick",
+        "description": "Kick a member from the server"
+      },
+      {
+        "name": "lock",
+        "description": "Lock a channel"
+      },
+      {
+        "name": "mute",
+        "description": "Mute a member (role-based)"
+      },
+      {
+        "name": "nickname",
+        "description": "Change a member nickname"
+      },
+      {
+        "name": "purge",
+        "description": "Delete messages in bulk"
+      },
+      {
+        "name": "slowmode",
+        "description": "Set channel slowmode"
+      },
+      {
+        "name": "timeout",
+        "description": "Timeout a member"
+      },
+      {
+        "name": "unlock",
+        "description": "Unlock a channel"
+      },
+      {
+        "name": "unmute",
+        "description": "Unmute a member"
+      },
+      {
+        "name": "untimeout",
+        "description": "Remove timeout from a member"
+      },
+      {
+        "name": "warn",
+        "description": "Warn a member"
+      },
+      {
+        "name": "warnings",
+        "description": "View warnings for a member"
+      }
+    ],
+    "music": [
+      {
+        "name": "nowplaying",
+        "description": "Show currently playing track"
+      },
+      {
+        "name": "pause",
+        "description": "Pause playback"
+      },
+      {
+        "name": "play",
+        "description": "Play music — search, queue, and URL playback (YouTube, SoundCloud, optional Spotify links)"
+      },
+      {
+        "name": "preset",
+        "description": "Apply audio filters (bass boost, nightcore, 8D, etc.)"
+      },
+      {
+        "name": "queue",
+        "description": "View the music queue"
+      },
+      {
+        "name": "repeat",
+        "description": "Toggle looping the current track"
+      },
+      {
+        "name": "resume",
+        "description": "Resume playback"
+      },
+      {
+        "name": "shuffle",
+        "description": "Shuffle the queue"
+      },
+      {
+        "name": "skip",
+        "description": "Skip the current song"
+      },
+      {
+        "name": "stop",
+        "description": "Stop music and clear the queue"
+      },
+      {
+        "name": "stream",
+        "description": "Internet radio — play, switch stations, queue, skip, volume, and more"
+      },
+      {
+        "name": "stream add",
+        "description": "Queue a radio station without switching — ,stream add [name] <url>"
+      },
+      {
+        "name": "stream clear",
+        "description": "Clear queued radio stations (keeps the current stream)"
+      },
+      {
+        "name": "stream help",
+        "description": "Show radio / stream command help"
+      },
+      {
+        "name": "stream now",
+        "description": "Show the currently streaming radio station"
+      },
+      {
+        "name": "stream pause",
+        "description": "Pause live radio playback"
+      },
+      {
+        "name": "stream play",
+        "description": "Play or switch to a live stream URL — ,stream play <url> or ,stream <url>"
+      },
+      {
+        "name": "stream queue",
+        "description": "View the current station and queued radio streams"
+      },
+      {
+        "name": "stream remove",
+        "description": "Remove a station from the radio queue by position"
+      },
+      {
+        "name": "stream resume",
+        "description": "Resume paused radio playback"
+      },
+      {
+        "name": "stream skip",
+        "description": "Skip to the next queued radio station"
+      },
+      {
+        "name": "stream stop",
+        "description": "Stop radio playback and clear the queue"
+      },
+      {
+        "name": "stream volume",
+        "description": "Set radio volume — ,stream volume <0-200>"
+      },
+      {
+        "name": "volume",
+        "description": "Set playback volume (0–200)"
+      }
+    ],
+    "autorole": [
+      {
+        "name": "buttonrole",
+        "description": "Create button roles"
+      },
+      {
+        "name": "reactionrole",
+        "description": "Create reaction roles"
+      },
+      {
+        "name": "rolerestore",
+        "description": "Restore roles a member had before leaving"
+      },
+      {
+        "name": "vanity",
+        "description": "Reward members for server vanity in status"
+      }
+    ],
+    "antinuke": [
+      {
+        "name": "antinuke",
+        "description": "Configure anti-nuke protection"
+      }
+    ],
+    "antiraid": [
+      {
+        "name": "antiraid",
+        "description": "Configure anti-raid protection"
+      }
+    ],
+    "tickets": [
+      {
+        "name": "tickets",
+        "description": "Support ticket system — panels, claim, close, transcripts"
+      },
+      {
+        "name": "tickets add",
+        "description": "Add a member to the current ticket"
+      },
+      {
+        "name": "tickets blacklist add",
+        "description": "Block a user from opening tickets"
+      },
+      {
+        "name": "tickets blacklist list",
+        "description": "List users blocked from opening tickets"
+      },
+      {
+        "name": "tickets blacklist remove",
+        "description": "Remove a user from the ticket blacklist"
+      },
+      {
+        "name": "tickets delete",
+        "description": "Delete a ticket panel by ID"
+      },
+      {
+        "name": "tickets list",
+        "description": "List open support tickets"
+      },
+      {
+        "name": "tickets panel",
+        "description": "Create and post a ticket panel (Administrator). Premium."
+      },
+      {
+        "name": "tickets panels",
+        "description": "List configured ticket panels"
+      },
+      {
+        "name": "tickets remove",
+        "description": "Remove a member from the current ticket"
+      },
+      {
+        "name": "tickets unclaim",
+        "description": "Release a claimed ticket back to the queue"
+      }
+    ],
+    "voicemaster": [
+      {
+        "name": "voicemaster",
+        "description": "Temporary voice channel system"
+      }
+    ],
+    "information": [
+      {
+        "name": "cashapp",
+        "description": "Look up a Cash App $cashtag profile"
+      },
+      {
+        "name": "define",
+        "description": "Look up an English word definition"
+      },
+      {
+        "name": "github",
+        "description": "Look up a GitHub user profile"
+      },
+      {
+        "name": "minecraft",
+        "description": "Look up a Minecraft player profile"
+      },
+      {
+        "name": "osu",
+        "description": "Look up an osu! player profile"
+      },
+      {
+        "name": "roblox",
+        "description": "Look up a Roblox user profile"
+      },
+      {
+        "name": "screenshot",
+        "description": "Capture a screenshot of a website URL"
+      },
+      {
+        "name": "snapchat",
+        "description": "Look up a Snapchat profile"
+      },
+      {
+        "name": "snapchatstory",
+        "description": "Look up a Snapchat story"
+      },
+      {
+        "name": "steam",
+        "description": "Look up a Steam profile by ID or vanity URL"
+      },
+      {
+        "name": "telegram",
+        "description": "Look up a Telegram profile"
+      },
+      {
+        "name": "valorant",
+        "description": "Look up a Valorant player profile"
+      },
+      {
+        "name": "weather",
+        "description": "Get weather for a city"
+      },
+      {
+        "name": "xbox",
+        "description": "Look up an Xbox gamertag"
+      }
+    ]
+  },
+  "new_cogs": {
+    "economy": {
+      "alt_name": "Economy",
+      "description": "Server economy — balance, daily rewards, shop, and transfers."
+    }
+  }
+}

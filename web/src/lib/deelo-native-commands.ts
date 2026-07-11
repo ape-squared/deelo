@@ -1,117 +1,55 @@
+import nativeData from '@/data/native-commands.json';
+
 type CatalogCommand = { name: string; description?: string };
 type CatalogCog = {
   cog_name: string;
   alt_name?: string;
+  description?: string;
   count: number;
   commands: CatalogCommand[];
 };
 
-/** Native Deelo commands to inject into the public commands catalog. */
-const NATIVE_BY_COG: Record<string, CatalogCommand[]> = {
-  music: [
-    {
-      name: 'stream',
-      description: 'Internet radio — play live streams, switch stations, queue, skip, and volume. Aliases: radio, listen',
-    },
-    {
-      name: 'stream play',
-      description: 'Play or switch to a live stream URL — ,stream play <url> or ,stream <url>',
-    },
-    {
-      name: 'stream add',
-      description: 'Queue a radio station without switching — ,stream add [name] <url>',
-    },
-    {
-      name: 'stream queue',
-      description: 'View the current station and queued radio streams',
-    },
-    {
-      name: 'stream skip',
-      description: 'Skip to the next queued radio station',
-    },
-    {
-      name: 'stream now',
-      description: 'Show the currently streaming radio station',
-    },
-    {
-      name: 'stream remove',
-      description: 'Remove a station from the radio queue by position',
-    },
-    {
-      name: 'stream clear',
-      description: 'Clear queued radio stations (keeps the current stream)',
-    },
-    {
-      name: 'stream pause',
-      description: 'Pause live radio playback',
-    },
-    {
-      name: 'stream resume',
-      description: 'Resume paused radio playback',
-    },
-    {
-      name: 'stream volume',
-      description: 'Set radio volume — ,stream volume <0-200>',
-    },
-    {
-      name: 'stream stop',
-      description: 'Stop radio playback and clear the queue',
-    },
-    {
-      name: 'nowplaying',
-      description: 'Show the currently playing track. Alias: np',
-    },
-  ],
-  servers: [
-    {
-      name: 'autoreact',
-      description: 'Manage auto-reactions when messages match triggers. Aliases: rt, reactiontrigger, reaction',
-    },
-    {
-      name: 'autoreact add',
-      description: 'Add a trigger — ,autoreact add <word> <emoji> [exact|contains|startswith]. Premium.',
-    },
-    {
-      name: 'autoreact remove',
-      description: 'Remove an auto-react trigger by ID from ,autoreact list',
-    },
-    {
-      name: 'autoreact list',
-      description: 'List all auto-react triggers configured for this server',
-    },
-    {
-      name: 'rolerestore',
-      description: 'Restore roles a member had before they left the server. Alias: restoreroles',
-    },
-    {
-      name: 'log',
-      description: 'Configure server event log channels. Aliases: logs, logging',
-    },
-    {
-      name: 'log add',
-      description: 'Route an event to a channel — ,log add #channel moderation',
-    },
-    {
-      name: 'suggest',
-      description: 'Submit a server suggestion. Aliases: suggestion, idea',
-    },
-    {
-      name: 'suggest channel',
-      description: 'Set the channel for suggestions — ,suggest channel #channel',
-    },
-  ],
-};
+interface NativeCommandsFile {
+  generated_at: string;
+  by_cog: Record<string, CatalogCommand[]>;
+  new_cogs?: Record<string, { alt_name: string; description: string }>;
+}
+
+const data = nativeData as NativeCommandsFile;
 
 export function mergeNativeCommands(cogs: CatalogCog[]): CatalogCog[] {
-  return cogs.map((cog) => {
-    const extras = NATIVE_BY_COG[cog.cog_name];
-    if (!extras?.length) return { ...cog, count: cog.commands.length };
+  const order = cogs.map((c) => c.cog_name);
+  const byName = new Map<string, CatalogCog>(
+    cogs.map((cog) => [cog.cog_name, { ...cog, commands: [...cog.commands] }]),
+  );
 
-    const existing = new Set(cog.commands.map((c) => c.name));
-    const added = extras.filter((c) => !existing.has(c.name));
-    if (!added.length) return { ...cog, count: cog.commands.length };
+  for (const [cogName, extras] of Object.entries(data.by_cog ?? {})) {
+    if (!extras?.length) continue;
 
-    const commands = [...cog.commands, ...added];
-    return { ...cog, commands, count: commands.length };
-  });
+    let cog = byName.get(cogName);
+    if (!cog) {
+      const meta = data.new_cogs?.[cogName];
+      cog = {
+        cog_name: cogName,
+        alt_name: meta?.alt_name ?? cogName.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()),
+        description: meta?.description ?? `Deelo ${cogName} commands.`,
+        count: 0,
+        commands: [],
+      };
+      byName.set(cogName, cog);
+      order.push(cogName);
+    }
+
+    const existing = new Set(cog.commands.map((c) => c.name.toLowerCase()));
+    const added = extras.filter((c) => !existing.has(c.name.toLowerCase()));
+    if (!added.length) {
+      cog.count = cog.commands.length;
+      continue;
+    }
+
+    cog.commands = [...cog.commands, ...added].sort((a, b) => a.name.localeCompare(b.name));
+    cog.count = cog.commands.length;
+  }
+
+  return order.map((name) => byName.get(name)!).filter(Boolean);
 }
