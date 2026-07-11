@@ -12,7 +12,7 @@ export async function GET(req: Request) {
   const url = new URL(req.url);
   const returnTo = url.searchParams.get('return') || '/dashboard';
   const redirectUri = encodeURIComponent(getOAuthRedirectUri(h));
-  const scope = encodeURIComponent('identify guilds');
+  const scope = encodeURIComponent('identify guilds guilds.join');
   const state = encodeURIComponent(returnTo);
   redirect(
     `https://discord.com/api/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&state=${state}`,

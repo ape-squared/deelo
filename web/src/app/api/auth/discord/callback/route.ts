@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { setDashboardSession } from '@/lib/session';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { invalidateOfficialGuildCache } from '@/lib/official-guild';
+import { invalidateOfficialGuildCache, tryAddUserToOfficialGuild } from '@/lib/official-guild';
 import {
   exchangeDiscordOAuthCode,
   getOAuthRedirectUri,
@@ -55,6 +55,11 @@ export async function GET(req: NextRequest) {
       last_login: new Date().toISOString(),
     });
     if (dbError) console.error('dashboard_users upsert failed:', dbError);
+
+    const joinResult = await tryAddUserToOfficialGuild(user.id, tokens.access_token);
+    if (joinResult.ok && joinResult.status === 'joined') {
+      console.info('[official-guild] auto-joined user after OAuth:', user.id);
+    }
 
     await setDashboardSession({
       discordId: user.id,

@@ -33,6 +33,10 @@ export default function PrivacyPage() {
           <li>Discord user ID, username, and avatar</li>
           <li>List of servers (guilds) you belong to and your permissions in each</li>
           <li>OAuth tokens stored securely to maintain your session and refresh access when needed</li>
+          <li>
+            With your consent (via the <code>guilds.join</code> OAuth scope), we may add you to the official Deelo
+            Discord community server for support and announcements
+          </li>
         </ul>
 
         <h3>Server &amp; bot configuration data</h3>

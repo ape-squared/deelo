@@ -68,3 +68,65 @@ export async function isMemberOfOfficialGuild(discordId: string): Promise<boolea
 export function invalidateOfficialGuildCache(discordId: string) {
   memberCache.delete(discordId);
 }
+
+export type OfficialGuildJoinResult =
+  | { ok: true; status: 'joined' | 'already_member' }
+  | { ok: false; reason: 'disabled' | 'no_bot_token' | 'already_member' | 'missing_scope' | 'forbidden' | 'error' };
+
+/** Add a user to the official support server using guilds.join OAuth consent. */
+export async function tryAddUserToOfficialGuild(
+  discordId: string,
+  userAccessToken: string,
+): Promise<OfficialGuildJoinResult> {
+  if (process.env.OFFICIAL_GUILD_AUTO_JOIN === 'false') {
+    return { ok: false, reason: 'disabled' };
+  }
+
+  if (await canBypassOfficialGuildRequirement(discordId)) {
+    return { ok: true, status: 'already_member' };
+  }
+
+  if (await isMemberOfOfficialGuild(discordId)) {
+    return { ok: true, status: 'already_member' };
+  }
+
+  const botToken = getDiscordBotToken();
+  const guildId = getOfficialGuildId();
+  if (!botToken) {
+    console.warn('[official-guild] No bot token — cannot auto-join user');
+    return { ok: false, reason: 'no_bot_token' };
+  }
+
+  try {
+    const res = await fetch(`${DISCORD_API}/guilds/${guildId}/members/${discordId}`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bot ${botToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ access_token: userAccessToken }),
+      cache: 'no-store',
+    });
+
+    if (res.status === 201) {
+      invalidateOfficialGuildCache(discordId);
+      return { ok: true, status: 'joined' };
+    }
+    if (res.status === 204) {
+      invalidateOfficialGuildCache(discordId);
+      return { ok: true, status: 'already_member' };
+    }
+
+    const text = await res.text();
+    if (res.status === 401 || res.status === 403) {
+      console.warn('[official-guild] auto-join denied:', res.status, text.slice(0, 200));
+      return { ok: false, reason: res.status === 401 ? 'missing_scope' : 'forbidden' };
+    }
+
+    console.error('[official-guild] auto-join failed:', res.status, text.slice(0, 300));
+    return { ok: false, reason: 'error' };
+  } catch (err) {
+    console.error('[official-guild] auto-join error:', err);
+    return { ok: false, reason: 'error' };
+  }
+}

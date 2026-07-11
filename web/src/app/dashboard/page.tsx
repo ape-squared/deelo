@@ -108,7 +108,10 @@ function DashboardContent() {
             <DiscordIcon className="h-9 w-11 text-[#5865F2]" />
           </div>
           <h1 className="text-2xl font-bold mb-2">Welcome back</h1>
-          <p className="text-muted mb-8 text-sm">Sign in with Discord to manage Deelo across your servers.</p>
+          <p className="text-muted mb-8 text-sm">
+            Sign in with Discord to manage Deelo across your servers. You may be added to our community Discord
+            (discord.gg/deelo) so you can vote on features and get support.
+          </p>
           {authError && (
             <div className="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-left text-sm text-red-200">
               {authErrorMessage(authError)}
