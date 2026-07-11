@@ -19,6 +19,8 @@ export const GET = guildRoute(async (req, { guildId, db }) => {
   switch (resource) {
     case 'level-rewards':
       return crudList(db, 'level_rewards', guildId, 'levelRewards');
+    case 'economy-shop':
+      return crudList(db, 'economy_shop_items', guildId, 'economyShopItems');
     case 'counters':
       return crudList(db, 'counters', guildId, 'counters');
     case 'social-feeds':
@@ -50,6 +52,27 @@ export const POST = guildRoute(async (req, { guildId, db }) => {
       const role_id = snowflake(body.role_id);
       if (!level || !role_id) return badRequest('Level and role ID required.');
       const { data, error } = await db.from('level_rewards').insert({ guild_id: guildId, level, role_id }).select().single();
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ item: data });
+    }
+    case 'economy-shop': {
+      const name = String(body.name ?? '').trim();
+      const price = parseInt(String(body.price), 10);
+      const role_id = body.role_id ? snowflake(body.role_id) : null;
+      const description = body.description ? String(body.description).slice(0, 500) : null;
+      const stockRaw = body.stock;
+      const stock = stockRaw === '' || stockRaw == null ? null : parseInt(String(stockRaw), 10);
+      const enabled = body.enabled !== false;
+      if (!name || !price || price <= 0) return badRequest('Name and positive price required.');
+      const { data, error } = await db.from('economy_shop_items').insert({
+        guild_id: guildId,
+        name,
+        price,
+        role_id,
+        description,
+        stock: stock == null || isNaN(stock) ? null : stock,
+        enabled,
+      }).select().single();
       if (error) return NextResponse.json({ error: error.message }, { status: 500 });
       return NextResponse.json({ item: data });
     }
@@ -174,6 +197,7 @@ export const DELETE = guildRoute(async (req, { guildId, db }) => {
 
   switch (resource) {
     case 'level-rewards':
+    case 'economy-shop':
     case 'counters':
     case 'social-feeds':
     case 'reaction-triggers':
@@ -183,6 +207,7 @@ export const DELETE = guildRoute(async (req, { guildId, db }) => {
       const rowId = parseInt(id ?? '', 10);
       if (!rowId) return badRequest('Missing id.');
       const table = resource === 'level-rewards' ? 'level_rewards'
+        : resource === 'economy-shop' ? 'economy_shop_items'
         : resource === 'counters' ? 'counters'
         : resource === 'social-feeds' ? 'social_feeds'
         : resource === 'reaction-triggers' ? 'reaction_triggers'

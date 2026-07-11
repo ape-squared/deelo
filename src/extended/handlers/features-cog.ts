@@ -7,7 +7,7 @@ import { setExtraConfig, getConfigValue, listConfigSection } from '../lib/guild-
 import { replyComingSoon } from '../../lib/coming-soon';
 
 const FEATURE_COGS = new Set([
-  'starboard', 'clownboard', 'levels', 'autorole', 'giveaways', 'tickets', 'voicemaster',
+  'starboard', 'clownboard', 'levels', 'economy', 'autorole', 'giveaways', 'tickets', 'voicemaster',
   'counters', 'bumpreminder', 'snipe', 'reaction', 'timers', 'logs', 'antinuke', 'antiraid', 'fortnite', 'crypto',
 ]);
 
@@ -21,6 +21,7 @@ export async function handleFeaturesCog(cmd: CommandDef, message: Message, args:
     return handleStarboard(cmd.cog, name, message, args);
   }
   if (cmd.cog === 'levels') return handleLevels(name, message, args);
+  if (cmd.cog === 'economy') return handleEconomy(name, message, args);
   if (cmd.cog === 'autorole') return handleAutorole(name, message, args);
   if (cmd.cog === 'giveaways') return name.startsWith('giveaways') ? false : handleGiveawaysExtra(name, message, args);
   if (cmd.cog === 'tickets') return handleTickets(name, message, args);
@@ -143,6 +144,53 @@ async function handleLevels(name: string, message: Message, args: string[]) {
   if (name.startsWith('levels ')) {
     await setExtraConfig(guildId, `levels.${name.replace('levels ', '').replace(/ /g, '.')}`, args.join(' ') || true);
     await replySuccess(message, 'Levels setting updated.');
+    return true;
+  }
+  return false;
+}
+
+async function handleEconomy(name: string, message: Message, args: string[]) {
+  const guildId = message.guild!.id;
+  if (name === 'economy' || name === 'economy config') {
+    const g = await getGuild(guildId);
+    await replyInfo(
+      message,
+      'Economy',
+      [
+        `**Enabled:** ${g.economy_enabled ? 'yes' : 'no'}`,
+        `**Currency:** ${g.economy_currency_name || 'coins'}`,
+        `**Daily:** ${(g.economy_daily_min ?? 100).toLocaleString()}–${(g.economy_daily_max ?? 500).toLocaleString()}`,
+        `**Work cooldown:** ${Math.round((g.economy_work_cooldown_ms ?? 3600000) / 60000)}m`,
+        `**Transfer tax:** ${g.economy_transfer_tax_percent ?? 0}%`,
+      ].join('\n'),
+    );
+    return true;
+  }
+  if (name === 'economy unlock') {
+    await updateGuild(guildId, { economy_enabled: true });
+    await replySuccess(message, 'Economy enabled.');
+    return true;
+  }
+  if (name === 'economy lock') {
+    await updateGuild(guildId, { economy_enabled: false });
+    await replySuccess(message, 'Economy disabled.');
+    return true;
+  }
+  if (name === 'economy currency') {
+    const cur = args.join(' ').trim().slice(0, 32);
+    if (!cur) { await replyError(message, 'Usage: `,economy currency <name>`'); return true; }
+    await updateGuild(guildId, { economy_currency_name: cur });
+    await replySuccess(message, `Currency set to **${cur}**.`);
+    return true;
+  }
+  if (name === 'economy reset') {
+    await getSupabase().from('member_balance').delete().eq('guild_id', guildId);
+    await replySuccess(message, 'All balances reset.');
+    return true;
+  }
+  if (name.startsWith('economy ')) {
+    await setExtraConfig(guildId, `economy.${name.replace('economy ', '').replace(/ /g, '.')}`, args.join(' ') || true);
+    await replySuccess(message, 'Economy setting updated.');
     return true;
   }
   return false;

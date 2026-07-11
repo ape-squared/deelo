@@ -34,6 +34,18 @@ export interface LevelRewardRow {
   role_id: string;
 }
 
+export interface EconomyShopItemRow {
+  id: number;
+  guild_id: string;
+  name: string;
+  description: string | null;
+  price: number;
+  role_id: string | null;
+  stock: number | null;
+  enabled: boolean;
+  sort_order: number;
+}
+
 export interface CounterRow {
   id: number;
   guild_id: string;
@@ -127,6 +139,7 @@ export interface GuildFullConfig {
   responders: ResponderRow[];
   ticketPanels: TicketPanelRow[];
   levelRewards: LevelRewardRow[];
+  economyShopItems: EconomyShopItemRow[];
   counters: CounterRow[];
   socialFeeds: SocialFeedRow[];
   vanityRoles: VanityRoleRow[];
@@ -145,6 +158,8 @@ export const EXTRA_CONFIG_FIELDS = [
   { key: 'starboard.emoji', label: 'Starboard emoji', type: 'text', placeholder: '⭐' },
   { key: 'clownboard.emoji', label: 'Clownboard emoji', type: 'text', placeholder: '🤡' },
   { key: 'levels.message', label: 'Level-up message', type: 'textarea', placeholder: 'GG {user}, you reached level {level}!' },
+  { key: 'economy.daily_message', label: 'Daily claim message', type: 'textarea', placeholder: 'You collected {amount} {currency}!' },
+  { key: 'economy.work_message', label: 'Work success message', type: 'textarea', placeholder: 'You earned {amount} {currency} from working.' },
   { key: 'suggest.channel', label: 'Suggestions channel', type: 'channel' },
   { key: 'logs.join', label: 'Join log channel', type: 'channel' },
   { key: 'logs.leave', label: 'Leave log channel', type: 'channel' },
@@ -167,6 +182,7 @@ export const SOCIAL_FEED_PLATFORMS = [
 export const KNOWN_EVENTS = [
   { id: 'snipe', label: 'Snipe', desc: 'Show deleted/edited messages' },
   { id: 'levels', label: 'Levels', desc: 'XP and leveling system' },
+  { id: 'economy', label: 'Economy', desc: 'Currency, shop, daily, and work' },
   { id: 'afk', label: 'AFK', desc: 'AFK status commands' },
   { id: 'autoresponder', label: 'Auto-responders', desc: 'Trigger-based auto replies' },
   { id: 'reactiontrigger', label: 'Reaction triggers', desc: 'React to trigger messages' },

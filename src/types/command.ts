@@ -49,6 +49,7 @@ export const CATEGORIES: CommandCategory[] = [
   { name: 'utility', emoji: '🔧', description: 'Snipe, AFK, translate, avatar, help' },
   { name: 'fun', emoji: '🎮', description: 'Games, trivia, memes' },
   { name: 'levels', emoji: '📊', description: 'XP, leaderboards, rewards' },
+  { name: 'economy', emoji: '💰', description: 'Balance, daily, work, shop, and transfers' },
   { name: 'config', emoji: '⚙️', description: 'Welcome, logging, prefix, events' },
   { name: 'roles', emoji: '🎭', description: 'Reaction roles, button roles, vanity' },
   { name: 'giveaways', emoji: '🎁', description: 'Create and manage giveaways' },

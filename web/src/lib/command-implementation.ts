@@ -19,6 +19,7 @@ export const SUPPORTED_COGS = new Set([
   'bleedtickets',
   'tickets',
   'levels',
+  'economy',
   'giveaways',
   'clownboard',
   'alias',

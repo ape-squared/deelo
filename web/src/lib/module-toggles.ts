@@ -44,6 +44,8 @@ export function isModuleEnabled(
       return !!(guild.autorole || config.autoroles.length || config.vanityRoles.length);
     case 'levels':
       return guild.levels_enabled;
+    case 'economy':
+      return guild.economy_enabled;
     case 'starboard':
       return !!guild.starboard_channel || !!getExtraConfigPath((guild.extra_config ?? {}) as Record<string, unknown>, 'clownboard.channel');
     case 'voicemaster':
@@ -76,6 +78,9 @@ export function buildModuleTogglePatch(
   switch (id) {
     case 'levels':
       guildPatch.levels_enabled = enabled;
+      break;
+    case 'economy':
+      guildPatch.economy_enabled = enabled;
       break;
     case 'moderation':
       if (!enabled) {

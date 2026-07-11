@@ -41,6 +41,7 @@ export default function GuildDashboardPage() {
       responders: data.responders ?? [],
       ticketPanels: data.ticketPanels ?? [],
       levelRewards: data.levelRewards ?? [],
+      economyShopItems: data.economyShopItems ?? [],
       counters: data.counters ?? [],
       socialFeeds: data.socialFeeds ?? [],
       vanityRoles: data.vanityRoles ?? [],

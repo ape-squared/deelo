@@ -36,6 +36,15 @@ export interface DashboardGuildSettings {
   voicemaster_join_role: string | null;
   bump_channel: string | null;
   bump_interval: number;
+  economy_enabled: boolean;
+  economy_currency_name: string;
+  economy_daily_min: number;
+  economy_daily_max: number;
+  economy_work_min: number;
+  economy_work_max: number;
+  economy_work_cooldown_ms: number;
+  economy_transfer_tax_percent: number;
+  economy_starting_balance: number;
   extra_config?: Record<string, unknown>;
 }
 
@@ -70,6 +79,15 @@ export const DASHBOARD_PATCH_FIELDS = [
   'voicemaster_join_role',
   'bump_channel',
   'bump_interval',
+  'economy_enabled',
+  'economy_currency_name',
+  'economy_daily_min',
+  'economy_daily_max',
+  'economy_work_min',
+  'economy_work_max',
+  'economy_work_cooldown_ms',
+  'economy_transfer_tax_percent',
+  'economy_starting_balance',
 ] as const;
 
 export type DashboardPatchField = (typeof DASHBOARD_PATCH_FIELDS)[number];
@@ -77,6 +95,7 @@ export type DashboardPatchField = (typeof DASHBOARD_PATCH_FIELDS)[number];
 export const EVENT_TOGGLE_SYNC: Record<string, string> = {
   snipe_enabled: 'snipe',
   levels_enabled: 'levels',
+  economy_enabled: 'economy',
 };
 
 export const WELCOME_VARIABLES = '{user}, {user.name}, {server}, {membercount}';
@@ -105,6 +124,18 @@ export function sanitizeMultiplier(value: unknown): number | null {
 }
 
 export function sanitizeThreshold(value: unknown, min = 1, max = 50): number | null {
+  const n = typeof value === 'number' ? value : parseInt(String(value), 10);
+  if (isNaN(n) || n < min || n > max) return null;
+  return n;
+}
+
+export function sanitizeCurrencyName(value: unknown): string | null {
+  if (value === null || value === '') return null;
+  const s = String(value).trim().slice(0, 32);
+  return s.length ? s : null;
+}
+
+export function sanitizeEconomyAmount(value: unknown, min = 0, max = 1_000_000_000): number | null {
   const n = typeof value === 'number' ? value : parseInt(String(value), 10);
   if (isNaN(n) || n < min || n > max) return null;
   return n;

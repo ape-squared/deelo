@@ -387,6 +387,41 @@ export function GuildSettingsEditor({
           </>
         )}
 
+        {tab === 'economy' && (
+          <>
+            <Section title="Economy" desc={`Event: ${eventOn('economy') ? 'on' : 'off'}`}>
+              <Toggle label="Economy enabled" checked={guild.economy_enabled} onChange={(v) => update('economy_enabled', v)} />
+              <Field label="Currency name">
+                <input className="input max-w-[200px]" value={guild.economy_currency_name ?? 'coins'} onChange={(e) => update('economy_currency_name', e.target.value)} placeholder="coins" />
+              </Field>
+              <Field label="Starting balance">
+                <input type="number" min={0} className="input max-w-[120px]" value={guild.economy_starting_balance ?? 0} onChange={(e) => update('economy_starting_balance', parseInt(e.target.value, 10) || 0)} />
+              </Field>
+              <Field label="Daily reward range">
+                <div className="flex items-center gap-2">
+                  <input type="number" min={0} className="input max-w-[100px]" value={guild.economy_daily_min ?? 100} onChange={(e) => update('economy_daily_min', parseInt(e.target.value, 10) || 0)} />
+                  <span className="text-muted text-sm">to</span>
+                  <input type="number" min={0} className="input max-w-[100px]" value={guild.economy_daily_max ?? 500} onChange={(e) => update('economy_daily_max', parseInt(e.target.value, 10) || 0)} />
+                </div>
+              </Field>
+              <Field label="Work reward range">
+                <div className="flex items-center gap-2">
+                  <input type="number" min={0} className="input max-w-[100px]" value={guild.economy_work_min ?? 50} onChange={(e) => update('economy_work_min', parseInt(e.target.value, 10) || 0)} />
+                  <span className="text-muted text-sm">to</span>
+                  <input type="number" min={0} className="input max-w-[100px]" value={guild.economy_work_max ?? 200} onChange={(e) => update('economy_work_max', parseInt(e.target.value, 10) || 0)} />
+                </div>
+              </Field>
+              <Field label="Work cooldown (minutes)">
+                <input type="number" min={1} max={1440} className="input max-w-[120px]" value={Math.round((guild.economy_work_cooldown_ms ?? 3600000) / 60000)} onChange={(e) => update('economy_work_cooldown_ms', (parseInt(e.target.value, 10) || 60) * 60000)} />
+              </Field>
+              <Field label="Transfer tax (%)">
+                <input type="number" min={0} max={50} className="input max-w-[120px]" value={guild.economy_transfer_tax_percent ?? 0} onChange={(e) => update('economy_transfer_tax_percent', parseInt(e.target.value, 10) || 0)} />
+              </Field>
+            </Section>
+            <EconomyShopList guildId={guildId} items={initial.economyShopItems} onReload={onReload} />
+          </>
+        )}
+
         {tab === 'starboard' && (
           <>
             <Section title="Starboard" desc="Highlight popular messages — Premium">
@@ -679,6 +714,63 @@ function LevelRewardsList({ guildId, items, onReload }: { guildId: string; items
         <MiniInput label="Level" value={level} onChange={setLevel} />
         <MiniInput label="Role ID" value={role_id} onChange={setRoleId} />
       </AddRow>}
+    />
+  );
+}
+
+function EconomyShopList({ guildId, items, onReload }: { guildId: string; items: GuildFullConfig['economyShopItems']; onReload: () => Promise<void> }) {
+  const [name, setName] = useState('');
+  const [price, setPrice] = useState('');
+  const [role_id, setRoleId] = useState('');
+  const [description, setDescription] = useState('');
+  const [stock, setStock] = useState('');
+  return (
+    <CrudList
+      title="Shop items"
+      desc="Members buy items with ,buy. Role items grant the role on purchase."
+      items={items}
+      columns={['Name', 'Price', 'Role', 'Stock']}
+      renderRow={(r) => [
+        `#${r.id} ${r.name}${r.enabled ? '' : ' (disabled)'}`,
+        String(r.price),
+        r.role_id ?? '—',
+        r.stock == null ? '∞' : String(r.stock),
+      ]}
+      onDelete={async (r) => {
+        await fetch(`/api/guilds/${guildId}/resources?resource=economy-shop&id=${r.id}`, { method: 'DELETE' });
+        await onReload();
+      }}
+      addForm={
+        <AddRow
+          label="Add shop item"
+          onAdd={async () => {
+            await fetch(`/api/guilds/${guildId}/resources`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                resource: 'economy-shop',
+                name,
+                price,
+                role_id: role_id || null,
+                description: description || null,
+                stock: stock || null,
+              }),
+            });
+            setName('');
+            setPrice('');
+            setRoleId('');
+            setDescription('');
+            setStock('');
+            await onReload();
+          }}
+        >
+          <MiniInput label="Name" value={name} onChange={setName} />
+          <MiniInput label="Price" value={price} onChange={setPrice} />
+          <MiniInput label="Role ID (optional)" value={role_id} onChange={setRoleId} />
+          <MiniInput label="Stock (blank = unlimited)" value={stock} onChange={setStock} />
+          <MiniInput label="Description" value={description} onChange={setDescription} />
+        </AddRow>
+      }
     />
   );
 }

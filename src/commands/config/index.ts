@@ -408,7 +408,7 @@ const configCommands: Command[] = [
         `**Plan:** ${guild.plan.replace('_', ' ')}${guild.plan_expires_at ? ` (expires <t:${Math.floor(new Date(guild.plan_expires_at).getTime() / 1000)}:R>)` : ''}`,
         `**Prefix:** \`${prefix}\``,
         `**Welcome:** ${guild.welcome_channel ? `<#${guild.welcome_channel}>` : 'off'}`,
-        `**Levels:** ${guild.levels_enabled ? 'on' : 'off'} · **Snipe:** ${guild.snipe_enabled ? 'on' : 'off'}`,
+        `**Levels:** ${guild.levels_enabled ? 'on' : 'off'} · **Economy:** ${guild.economy_enabled ? 'on' : 'off'} · **Snipe:** ${guild.snipe_enabled ? 'on' : 'off'}`,
         `**Automod:** ${guild.automod_enabled ? 'on' : 'off'} · **Anti-raid:** ${guild.antiraid_enabled ? 'on' : 'off'}`,
         `**Anti-nuke:** ${guild.antinuke_enabled ? 'on' : 'off'} · **Starboard:** ${guild.starboard_channel ? `<#${guild.starboard_channel}>` : 'off'}`,
         `**Voicemaster:** ${guild.voicemaster_join_channel ? `<#${guild.voicemaster_join_channel}>` : 'off'}`,

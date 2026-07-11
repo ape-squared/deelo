@@ -4,6 +4,8 @@ import {
   pickPatchFields,
   sanitizeBoolean,
   sanitizeChannelId,
+  sanitizeCurrencyName,
+  sanitizeEconomyAmount,
   sanitizeMultiplier,
   sanitizePrefix,
   sanitizeRoleId,
@@ -71,12 +73,30 @@ export function normalizeGuildPatch(
       case 'voicemaster_default_bitrate':
         updates[key] = sanitizeThreshold(value, 8, 384) ?? 64;
         break;
-      case 'bump_interval': {
+      case 'bump_interval':
+      case 'economy_work_cooldown_ms': {
         const ms = typeof value === 'number' ? value : parseInt(String(value), 10);
-        updates[key] = isNaN(ms) ? 7200000 : Math.min(Math.max(ms, 60000), 86400000);
+        updates[key] = isNaN(ms) ? (key === 'bump_interval' ? 7200000 : 3600000) : Math.min(Math.max(ms, 60000), 86400000);
         break;
       }
+      case 'economy_currency_name': {
+        const cur = sanitizeCurrencyName(value);
+        if (!cur) return { updates: {}, error: 'Invalid currency name (1–32 characters).', eventToggles: [] };
+        updates[key] = cur;
+        break;
+      }
+      case 'economy_daily_min':
+      case 'economy_daily_max':
+      case 'economy_work_min':
+      case 'economy_work_max':
+      case 'economy_starting_balance':
+        updates[key] = sanitizeEconomyAmount(value, 0) ?? 0;
+        break;
+      case 'economy_transfer_tax_percent':
+        updates[key] = sanitizeThreshold(value, 0, 50) ?? 0;
+        break;
       case 'levels_enabled':
+      case 'economy_enabled':
       case 'snipe_enabled':
       case 'automod_enabled':
       case 'antinuke_enabled':

@@ -1,7 +1,7 @@
 import type { LucideIcon } from 'lucide-react';
 import {
   LayoutGrid, Sparkles, MessageSquare, Shield, Filter, Bot, Users,
-  TrendingUp, Star, Mic, Ticket, Zap, Radio, Settings2, Smile, Palette, LayoutTemplate,
+  TrendingUp, Star, Mic, Ticket, Zap, Radio, Settings2, Smile, Palette, LayoutTemplate, Coins,
 } from 'lucide-react';
 import type { DashboardGuildSettings } from '@/lib/guild-settings';
 import { getExtraConfigPath } from '@/lib/guild-settings';
@@ -18,6 +18,7 @@ export type ModuleId =
   | 'autoreact'
   | 'roles'
   | 'levels'
+  | 'economy'
   | 'starboard'
   | 'voicemaster'
   | 'tickets'
@@ -67,6 +68,7 @@ export const MODULE_GROUPS: ModuleGroup[] = [
     modules: [
       { id: 'roles', label: 'Autoroles', description: 'Join roles, vanity, reaction roles', icon: Users },
       { id: 'levels', label: 'Leveling', description: 'XP, level-up channel, and rewards', icon: TrendingUp },
+      { id: 'economy', label: 'Economy', description: 'Currency, shop, daily, and work rewards', icon: Coins },
       { id: 'starboard', label: 'Starboard', description: 'Highlight popular messages', icon: Star, premium: true },
     ],
   },
@@ -163,6 +165,13 @@ export function getModuleStatus(
       return {
         enabled: guild.levels_enabled,
         detail: guild.levels_enabled ? `${config.levelRewards.length} rewards` : 'Disabled',
+      };
+    case 'economy':
+      return {
+        enabled: guild.economy_enabled,
+        detail: guild.economy_enabled
+          ? `${config.economyShopItems.length} shop items · ${guild.economy_currency_name || 'coins'}`
+          : 'Disabled',
       };
     case 'starboard':
       return {

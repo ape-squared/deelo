@@ -35,6 +35,15 @@ export interface GuildSettings {
   voicemaster_join_role: string | null;
   bump_channel: string | null;
   bump_interval: number;
+  economy_enabled: boolean;
+  economy_currency_name: string;
+  economy_daily_min: number;
+  economy_daily_max: number;
+  economy_work_min: number;
+  economy_work_max: number;
+  economy_work_cooldown_ms: number;
+  economy_transfer_tax_percent: number;
+  economy_starting_balance: number;
   extra_config?: Record<string, unknown> | null;
 }
 
@@ -71,6 +80,15 @@ const DEFAULT_GUILD: Omit<GuildSettings, 'id'> = {
   voicemaster_join_role: null,
   bump_channel: null,
   bump_interval: 7200000,
+  economy_enabled: true,
+  economy_currency_name: 'coins',
+  economy_daily_min: 100,
+  economy_daily_max: 500,
+  economy_work_min: 50,
+  economy_work_max: 200,
+  economy_work_cooldown_ms: 3600000,
+  economy_transfer_tax_percent: 0,
+  economy_starting_balance: 0,
 };
 
 export async function getGuild(guildId: string): Promise<GuildSettings> {
@@ -333,6 +351,77 @@ export async function getAfk(userId: string) {
   const { data, error } = await getSupabase().from('afk_users').select('*').eq('user_id', userId).maybeSingle();
   if (error) throw error;
   return data;
+}
+
+export interface MemberBalanceRow {
+  guild_id: string;
+  user_id: string;
+  balance: number;
+  last_daily_at: string | null;
+  last_work_at: string | null;
+}
+
+export interface EconomyShopItemRow {
+  id: number;
+  guild_id: string;
+  name: string;
+  description: string | null;
+  price: number;
+  role_id: string | null;
+  stock: number | null;
+  enabled: boolean;
+  sort_order: number;
+}
+
+export async function getMemberBalance(guildId: string, userId: string, startingBalance = 0): Promise<MemberBalanceRow> {
+  const { data, error } = await getSupabase()
+    .from('member_balance')
+    .select('*')
+    .eq('guild_id', guildId)
+    .eq('user_id', userId)
+    .maybeSingle();
+  if (error) throw error;
+  if (data) return data as MemberBalanceRow;
+
+  const { error: upsertError } = await getSupabase()
+    .from('member_balance')
+    .upsert(
+      { guild_id: guildId, user_id: userId, balance: startingBalance },
+      { onConflict: 'guild_id,user_id', ignoreDuplicates: true },
+    );
+  if (upsertError) throw upsertError;
+
+  const { data: created, error: fetchError } = await getSupabase()
+    .from('member_balance')
+    .select('*')
+    .eq('guild_id', guildId)
+    .eq('user_id', userId)
+    .single();
+  if (fetchError) throw fetchError;
+  return created as MemberBalanceRow;
+}
+
+export async function getEconomyShopItems(guildId: string, enabledOnly = true): Promise<EconomyShopItemRow[]> {
+  let query = getSupabase().from('economy_shop_items').select('*').eq('guild_id', guildId).order('sort_order').order('id');
+  if (enabledOnly) query = query.eq('enabled', true);
+  const { data, error } = await query;
+  if (error) throw error;
+  return (data ?? []) as EconomyShopItemRow[];
+}
+
+export async function logEconomyTransaction(row: {
+  guild_id: string;
+  user_id: string;
+  type: string;
+  amount: number;
+  balance_after?: number;
+  target_user_id?: string;
+  item_id?: number;
+  moderator_id?: string;
+  note?: string;
+}): Promise<void> {
+  const { error } = await getSupabase().from('economy_transactions').insert(row);
+  if (error) throw error;
 }
 
 export { testConnection } from './supabase';
