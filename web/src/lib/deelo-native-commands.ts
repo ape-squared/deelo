@@ -8,6 +8,60 @@ type CatalogCog = {
 
 /** Native Deelo commands to inject into the public commands catalog. */
 const NATIVE_BY_COG: Record<string, CatalogCommand[]> = {
+  music: [
+    {
+      name: 'stream',
+      description: 'Internet radio — play live streams, switch stations, queue, skip, and volume. Aliases: radio, listen',
+    },
+    {
+      name: 'stream play',
+      description: 'Play or switch to a live stream URL — ,stream play <url> or ,stream <url>',
+    },
+    {
+      name: 'stream add',
+      description: 'Queue a radio station without switching — ,stream add [name] <url>',
+    },
+    {
+      name: 'stream queue',
+      description: 'View the current station and queued radio streams',
+    },
+    {
+      name: 'stream skip',
+      description: 'Skip to the next queued radio station',
+    },
+    {
+      name: 'stream now',
+      description: 'Show the currently streaming radio station',
+    },
+    {
+      name: 'stream remove',
+      description: 'Remove a station from the radio queue by position',
+    },
+    {
+      name: 'stream clear',
+      description: 'Clear queued radio stations (keeps the current stream)',
+    },
+    {
+      name: 'stream pause',
+      description: 'Pause live radio playback',
+    },
+    {
+      name: 'stream resume',
+      description: 'Resume paused radio playback',
+    },
+    {
+      name: 'stream volume',
+      description: 'Set radio volume — ,stream volume <0-200>',
+    },
+    {
+      name: 'stream stop',
+      description: 'Stop radio playback and clear the queue',
+    },
+    {
+      name: 'nowplaying',
+      description: 'Show the currently playing track. Alias: np',
+    },
+  ],
   servers: [
     {
       name: 'autoreact',
