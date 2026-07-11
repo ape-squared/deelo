@@ -477,7 +477,7 @@ export function GuildSettingsEditor({
               onReload={onReload}
               setMessage={setMessage}
             />
-            <OpenTicketsTab guildId={guildId} tickets={initial.tickets} onReload={onReload} setMessage={setMessage} />
+            <OpenTicketsTab guildId={guildId} plan={guild.plan as PlanTier} tickets={initial.tickets} onReload={onReload} setMessage={setMessage} />
           </>
         )}
 
@@ -991,18 +991,25 @@ function ButtonRolesList({
 
 function OpenTicketsTab({
   guildId,
+  plan,
   tickets,
   onReload,
   setMessage,
 }: {
   guildId: string;
+  plan: PlanTier;
   tickets: GuildFullConfig['tickets'];
   onReload: () => Promise<void>;
   setMessage: (m: string) => void;
 }) {
   const [acting, setActing] = useState<number | null>(null);
+  const ticketsEnabled = hasPlanFeature(plan, 'tickets');
 
   async function ticketAction(id: number, action: 'claim' | 'close') {
+    if (!ticketsEnabled) {
+      setMessage('Tickets require Premium');
+      return;
+    }
     setActing(id);
     const res = await fetch(`/api/guilds/${guildId}/tickets`, {
       method: 'PATCH',
@@ -1014,7 +1021,14 @@ function OpenTicketsTab({
       setMessage((await res.json()).error ?? `Failed to ${action} ticket`);
       return;
     }
-    setMessage(action === 'claim' ? 'Ticket claimed' : 'Ticket closed');
+    const data = await res.json().catch(() => ({}));
+    setMessage(
+      action === 'claim'
+        ? 'Ticket claimed — staff notified in the channel'
+        : data.transcriptSaved
+          ? 'Ticket closed — transcript sent to log channel'
+          : 'Ticket closed',
+    );
     await onReload();
     setTimeout(() => setMessage(''), 3000);
   }
@@ -1023,9 +1037,15 @@ function OpenTicketsTab({
 
   return (
     <div className="card p-6 lg:p-8 space-y-5">
+      {!ticketsEnabled && (
+        <div className="border border-amber-500/30 bg-amber-500/5 rounded-xl p-4 text-sm">
+          <p className="font-medium">Premium required</p>
+          <p className="mt-1 text-muted">Open ticket management requires Premium. Panels and in-Discord commands use the same plan gate.</p>
+        </div>
+      )}
       <div>
         <h3 className="font-semibold">Open tickets</h3>
-        <p className="text-sm text-muted mt-1">Claim or close tickets — closing deletes the Discord channel.</p>
+        <p className="text-sm text-muted mt-1">Claim or close tickets from the dashboard. Closing saves a transcript to your log channel when configured.</p>
       </div>
       {open.length === 0 ? (
         <p className="text-sm text-muted">No open tickets.</p>

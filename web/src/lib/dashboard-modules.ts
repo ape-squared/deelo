@@ -76,7 +76,7 @@ export const MODULE_GROUPS: ModuleGroup[] = [
     label: 'Utility',
     modules: [
       { id: 'voicemaster', label: 'VoiceMaster', description: 'Join-to-create voice channels', icon: Mic },
-      { id: 'tickets', label: 'Tickets', description: 'Support ticket panels', icon: Ticket },
+      { id: 'tickets', label: 'Tickets', description: 'Support ticket panels', icon: Ticket, premium: true },
       { id: 'social', label: 'Social', description: 'Feeds and stat counters', icon: Radio },
       { id: 'embeds', label: 'Embeds', description: 'Build and send custom embeds', icon: LayoutTemplate },
       { id: 'events', label: 'Events', description: 'Toggle bot event handlers', icon: Zap },
@@ -186,11 +186,13 @@ export function getModuleStatus(
         enabled: !!guild.voicemaster_join_channel,
         detail: guild.voicemaster_join_channel ? 'Join channel set' : 'Not configured',
       };
-    case 'tickets':
+    case 'tickets': {
+      const open = config.tickets?.filter((t) => t.status === 'open').length ?? 0;
       return {
-        enabled: config.ticketPanels.length > 0,
-        detail: `${config.ticketPanels.length} panel${config.ticketPanels.length === 1 ? '' : 's'}`,
+        enabled: config.ticketPanels.length > 0 || open > 0,
+        detail: `${config.ticketPanels.length} panel${config.ticketPanels.length === 1 ? '' : 's'} · ${open} open`,
       };
+    }
     case 'social':
       return {
         enabled: config.socialFeeds.length > 0 || config.counters.length > 0,

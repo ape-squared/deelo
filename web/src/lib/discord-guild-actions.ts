@@ -197,3 +197,97 @@ export async function renameDiscordChannel(channelId: string, name: string): Pro
     throw new Error(`Failed to rename channel (${res.status})${detail ? `: ${detail.slice(0, 120)}` : ''}`);
   }
 }
+
+type DiscordMessage = {
+  id: string;
+  content: string;
+  timestamp: string;
+  author?: { username?: string; id?: string };
+  embeds?: Array<{ description?: string }>;
+};
+
+export async function fetchChannelMessages(channelId: string, limit = 100, before?: string): Promise<DiscordMessage[]> {
+  const token = requireDiscordBotToken();
+  const url = new URL(`${DISCORD_API}/channels/${channelId}/messages`);
+  url.searchParams.set('limit', String(Math.min(limit, 100)));
+  if (before) url.searchParams.set('before', before);
+  const res = await fetchWithTimeout(url.toString(), {
+    headers: { Authorization: `Bot ${token}` },
+    timeoutMs: 12_000,
+  });
+  if (!res.ok) {
+    const detail = await discordErrorDetail(res);
+    throw new Error(`Failed to fetch messages (${res.status})${detail ? `: ${detail}` : ''}`);
+  }
+  return (await res.json()) as DiscordMessage[];
+}
+
+export async function buildTicketTranscript(
+  channelId: string,
+  meta?: { ticketId?: number; userId?: string; panelName?: string | null },
+): Promise<string> {
+  const lines: string[] = [
+    `Ticket transcript — channel ${channelId}`,
+    meta?.ticketId ? `Ticket ID: ${meta.ticketId} | User: ${meta.userId ?? '—'} | Panel: ${meta.panelName ?? '—'}` : '',
+    `Exported: ${new Date().toISOString()}`,
+    '─'.repeat(48),
+    '',
+  ];
+
+  let before: string | undefined;
+  for (let page = 0; page < 20; page++) {
+    const batch = await fetchChannelMessages(channelId, 100, before);
+    if (!batch.length) break;
+    const sorted = [...batch].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+    for (const msg of sorted) {
+      const author = msg.author?.username ?? msg.author?.id ?? 'unknown';
+      const content = msg.content || (msg.embeds?.[0]?.description ? `[embed] ${msg.embeds[0].description}` : '[attachment/embed]');
+      lines.push(`[${msg.timestamp}] ${author}: ${content}`);
+    }
+    before = sorted[0]?.id;
+    if (batch.length < 100) break;
+  }
+
+  return lines.filter(Boolean).join('\n');
+}
+
+export async function sendChannelMessage(
+  channelId: string,
+  content: string,
+  options?: { files?: Array<{ name: string; data: Buffer }> },
+): Promise<void> {
+  const token = requireDiscordBotToken();
+  if (!options?.files?.length) {
+    const res = await fetchWithTimeout(`${DISCORD_API}/channels/${channelId}/messages`, {
+      method: 'POST',
+      headers: botHeaders(token),
+      timeoutMs: 12_000,
+      body: JSON.stringify({ content }),
+    });
+    if (!res.ok) {
+      const detail = await discordErrorDetail(res);
+      throw new Error(`Failed to send message (${res.status})${detail ? `: ${detail}` : ''}`);
+    }
+    return;
+  }
+
+  const form = new FormData();
+  form.append('payload_json', JSON.stringify({ content }));
+  for (const file of options.files) {
+    form.append('files[0]', new Blob([new Uint8Array(file.data)]), file.name);
+  }
+  const res = await fetchWithTimeout(`${DISCORD_API}/channels/${channelId}/messages`, {
+    method: 'POST',
+    headers: { Authorization: `Bot ${token}` },
+    body: form,
+    timeoutMs: 20_000,
+  });
+  if (!res.ok) {
+    const detail = await discordErrorDetail(res);
+    throw new Error(`Failed to send message (${res.status})${detail ? `: ${detail}` : ''}`);
+  }
+}
+
+export async function sendTicketClaimNotice(channelId: string, claimerId: string): Promise<void> {
+  await sendChannelMessage(channelId, `<@${claimerId}> claimed this ticket from the dashboard.`);
+}

@@ -51,6 +51,12 @@ export async function handleMessage(client: DeeloClient, message: import('discor
   const native = client.commands.get(nativeName);
   const extMatch = commandRegistry.match(content);
 
+  const NATIVE_PRIORITY_ROOTS = new Set(['tickets', 'ticket', 'tix', 'log', 'logs', 'logging', 'logger', 'counter', 'bumpreminder']);
+  if (NATIVE_PRIORITY_ROOTS.has(firstWord) && native) {
+    await runNativeCommand(client, message, native, words.slice(1));
+    return;
+  }
+
   // Prefer multi-word catalog commands over single-word native (e.g. `kick add` vs mod `kick`)
   const preferExtended =
     extMatch &&

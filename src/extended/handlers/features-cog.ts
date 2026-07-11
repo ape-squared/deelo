@@ -24,7 +24,7 @@ export async function handleFeaturesCog(cmd: CommandDef, message: Message, args:
   if (cmd.cog === 'economy') return handleEconomy(name, message, args);
   if (cmd.cog === 'autorole') return handleAutorole(name, message, args);
   if (cmd.cog === 'giveaways') return name.startsWith('giveaways') ? false : handleGiveawaysExtra(name, message, args);
-  if (cmd.cog === 'tickets') return handleTickets(name, message, args);
+  if (cmd.cog === 'tickets') return false;
   if (cmd.cog === 'voicemaster') return name.startsWith('voicemaster') ? false : false;
   if (cmd.cog === 'counters') return handleCounters(name, message, args);
   if (cmd.cog === 'bumpreminder') return handleBumpReminder(name, message, args);
