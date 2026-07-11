@@ -1,5 +1,6 @@
 import { DISCORD_API } from '@/lib/discord-api';
-import { getDiscordBotToken } from '@/lib/discord-bot';
+import { requireDiscordBotToken } from '@/lib/discord-bot';
+import { fetchWithTimeout } from '@/lib/fetch-with-timeout';
 
 function botHeaders(token: string): HeadersInit {
   return {
@@ -8,10 +9,17 @@ function botHeaders(token: string): HeadersInit {
   };
 }
 
-function requireToken(): string {
-  const token = getDiscordBotToken();
-  if (!token) throw new Error('Bot token is not configured.');
-  return token;
+async function discordErrorDetail(res: Response): Promise<string> {
+  const text = await res.text().catch(() => '');
+  try {
+    const json = JSON.parse(text) as { message?: string; code?: number };
+    if (json.message) {
+      return json.code ? `${json.message} (${json.code})` : json.message;
+    }
+  } catch {
+    /* plain text */
+  }
+  return text.slice(0, 200);
 }
 
 function encodeEmoji(emoji: string): string {
@@ -22,14 +30,14 @@ function encodeEmoji(emoji: string): string {
 }
 
 export async function addMessageReaction(channelId: string, messageId: string, emoji: string): Promise<void> {
-  const token = requireToken();
-  const res = await fetch(
+  const token = requireDiscordBotToken();
+  const res = await fetchWithTimeout(
     `${DISCORD_API}/channels/${channelId}/messages/${messageId}/reactions/${encodeEmoji(emoji)}/@me`,
-    { method: 'PUT', headers: { Authorization: `Bot ${token}` } },
+    { method: 'PUT', headers: { Authorization: `Bot ${token}` }, timeoutMs: 8_000 },
   );
   if (!res.ok && res.status !== 204) {
-    const detail = await res.text().catch(() => '');
-    throw new Error(`Failed to add reaction (${res.status})${detail ? `: ${detail.slice(0, 120)}` : ''}`);
+    const detail = await discordErrorDetail(res);
+    throw new Error(`Failed to add reaction (${res.status})${detail ? `: ${detail}` : ''}`);
   }
 }
 
@@ -39,11 +47,12 @@ export async function createButtonRolePanel(
   roleId: string,
   options?: { title?: string; description?: string; style?: 'primary' | 'secondary' | 'success' | 'danger' },
 ): Promise<string> {
-  const token = requireToken();
+  const token = requireDiscordBotToken();
   const styleMap = { primary: 1, secondary: 2, success: 3, danger: 4 } as const;
-  const res = await fetch(`${DISCORD_API}/channels/${channelId}/messages`, {
+  const res = await fetchWithTimeout(`${DISCORD_API}/channels/${channelId}/messages`, {
     method: 'POST',
     headers: botHeaders(token),
+    timeoutMs: 12_000,
     body: JSON.stringify({
       embeds: [
         {
@@ -69,8 +78,8 @@ export async function createButtonRolePanel(
   });
 
   if (!res.ok) {
-    const detail = await res.text().catch(() => '');
-    throw new Error(`Failed to create button panel (${res.status})${detail ? `: ${detail.slice(0, 120)}` : ''}`);
+    const detail = await discordErrorDetail(res);
+    throw new Error(`Failed to create button panel (${res.status})${detail ? `: ${detail}` : ''}`);
   }
 
   const data = (await res.json()) as { id: string };
@@ -78,7 +87,7 @@ export async function createButtonRolePanel(
 }
 
 export async function deleteDiscordChannel(channelId: string): Promise<void> {
-  const token = requireToken();
+  const token = requireDiscordBotToken();
   const res = await fetch(`${DISCORD_API}/channels/${channelId}`, {
     method: 'DELETE',
     headers: { Authorization: `Bot ${token}` },
@@ -90,7 +99,7 @@ export async function deleteDiscordChannel(channelId: string): Promise<void> {
 }
 
 export async function deleteDiscordMessage(channelId: string, messageId: string): Promise<void> {
-  const token = requireToken();
+  const token = requireDiscordBotToken();
   const res = await fetch(`${DISCORD_API}/channels/${channelId}/messages/${messageId}`, {
     method: 'DELETE',
     headers: { Authorization: `Bot ${token}` },
@@ -107,10 +116,11 @@ export async function createTicketPanel(
   name: string,
   options?: { description?: string },
 ): Promise<string> {
-  const token = requireToken();
-  const res = await fetch(`${DISCORD_API}/channels/${channelId}/messages`, {
+  const token = requireDiscordBotToken();
+  const res = await fetchWithTimeout(`${DISCORD_API}/channels/${channelId}/messages`, {
     method: 'POST',
     headers: botHeaders(token),
+    timeoutMs: 12_000,
     body: JSON.stringify({
       embeds: [
         {
@@ -127,7 +137,6 @@ export async function createTicketPanel(
               type: 2,
               style: 1,
               label: 'Open Ticket',
-              emoji: { name: '🎫' },
               custom_id: `ticket_open_${panelId}`,
             },
           ],
@@ -137,8 +146,8 @@ export async function createTicketPanel(
   });
 
   if (!res.ok) {
-    const detail = await res.text().catch(() => '');
-    throw new Error(`Failed to create ticket panel (${res.status})${detail ? `: ${detail.slice(0, 120)}` : ''}`);
+    const detail = await discordErrorDetail(res);
+    throw new Error(`Failed to create ticket panel (${res.status})${detail ? `: ${detail}` : ''}`);
   }
 
   const data = (await res.json()) as { id: string };
@@ -146,7 +155,7 @@ export async function createTicketPanel(
 }
 
 export async function fetchGuildCounterStats(guildId: string): Promise<{ members: number; bots: number; channels: number }> {
-  const token = requireToken();
+  const token = requireDiscordBotToken();
   const [guildRes, channelsRes] = await Promise.all([
     fetch(`${DISCORD_API}/guilds/${guildId}?with_counts=true`, {
       headers: { Authorization: `Bot ${token}` },
@@ -177,7 +186,7 @@ export function formatCounterChannelName(format: string, count: number): string 
 }
 
 export async function renameDiscordChannel(channelId: string, name: string): Promise<void> {
-  const token = requireToken();
+  const token = requireDiscordBotToken();
   const res = await fetch(`${DISCORD_API}/channels/${channelId}`, {
     method: 'PATCH',
     headers: botHeaders(token),

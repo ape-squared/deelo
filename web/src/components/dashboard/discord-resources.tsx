@@ -159,11 +159,13 @@ export function MiniChannelSelect({
   value,
   onChange,
   kinds = ['text'],
+  optional = false,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   kinds?: ChannelKind[];
+  optional?: boolean;
 }) {
   return (
     <div>
@@ -172,9 +174,9 @@ export function MiniChannelSelect({
         value={value || null}
         onChange={(v) => onChange(v ?? '')}
         kinds={kinds}
-        allowNone={false}
+        allowNone={optional}
         placeholder="Select channel"
-        noneLabel="Select channel"
+        noneLabel={optional ? '— None —' : 'Select channel'}
       />
     </div>
   );

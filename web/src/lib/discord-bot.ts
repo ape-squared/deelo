@@ -10,6 +10,16 @@ export function getDiscordBotToken(): string | undefined {
   return bot || legacy || undefined;
 }
 
+export function requireDiscordBotToken(): string {
+  const token = getDiscordBotToken();
+  if (!token) {
+    throw new Error(
+      'Discord bot token is not configured on the web service. Set DISCORD_BOT_TOKEN or DISCORD_TOKEN in Dokploy (web service) — same token as the bot.',
+    );
+  }
+  return token;
+}
+
 /** Guild IDs where the Deelo bot is a member (Discord API). */
 export async function getBotGuildIds(): Promise<Set<string>> {
   if (cache && Date.now() < cache.expires) return cache.ids;

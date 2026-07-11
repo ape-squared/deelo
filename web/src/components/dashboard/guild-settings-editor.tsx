@@ -4,8 +4,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useState } from 'react';
 import { Save } from 'lucide-react';
-import type { DashboardGuildSettings } from '@/lib/guild-settings';
-import { WELCOME_VARIABLES, getExtraConfigPath } from '@/lib/guild-settings';
+import type { DashboardGuildSettings, PlanTier } from '@/lib/guild-settings';
 import { BOT_APPEARANCE_FIELDS } from '@/lib/bot-appearance';
 import type { GuildFullConfig } from '@/lib/guild-types';
 import type { ChannelKind } from '@/lib/discord-channels';
@@ -19,7 +18,8 @@ import { ModuleOverview } from '@/components/dashboard/module-overview';
 import { EmbedsTab } from '@/components/dashboard/embed-builder';
 import { TeamTab } from '@/components/dashboard/team-tab';
 import { guildRoleCanRead, type GuildDashboardRole } from '@/lib/guild-permissions';
-
+import { hasPlanFeature } from '@/lib/plan-limits';
+import { WELCOME_VARIABLES, getExtraConfigPath } from '@/lib/guild-settings';
 export function GuildSettingsEditor({
   guildId,
   config: initial,
@@ -470,7 +470,13 @@ export function GuildSettingsEditor({
 
         {tab === 'tickets' && (
           <>
-            <TicketPanelsTab guildId={guildId} panels={initial.ticketPanels} onReload={onReload} setMessage={setMessage} />
+            <TicketPanelsTab
+              guildId={guildId}
+              plan={guild.plan as PlanTier}
+              panels={initial.ticketPanels}
+              onReload={onReload}
+              setMessage={setMessage}
+            />
             <OpenTicketsTab guildId={guildId} tickets={initial.tickets} onReload={onReload} setMessage={setMessage} />
           </>
         )}
@@ -648,25 +654,39 @@ function RespondersTab({ guildId, responders, onReload, setMessage }: { guildId:
 
 function TicketPanelsTab({
   guildId,
+  plan,
   panels,
   onReload,
   setMessage,
 }: {
   guildId: string;
+  plan: PlanTier;
   panels: GuildFullConfig['ticketPanels'];
   onReload: () => Promise<void>;
   setMessage: (m: string) => void;
 }) {
   const [name, setName] = useState('');
   const [channel_id, setChannelId] = useState('');
+  const [category_id, setCategoryId] = useState('');
   const [support_role, setSupportRole] = useState('');
+  const ticketsEnabled = hasPlanFeature(plan, 'tickets');
+
   return (
+    <>
+      {!ticketsEnabled && (
+        <div className="card mb-6 border-amber-500/30 bg-amber-500/5 p-5 text-sm">
+          <p className="font-medium">Premium required</p>
+          <p className="mt-1 text-muted">
+            Ticket panels are a Premium feature. Redeem a code on the General tab or upgrade your plan to post support panels to Discord.
+          </p>
+        </div>
+      )}
     <CrudList
       title="Ticket panels"
       desc="Posts an Open Ticket button in the selected channel — synced to Discord immediately."
       items={panels}
-      columns={['Name', 'Channel', 'Message', 'Support role']}
-      renderRow={(p) => [p.name, p.channel_id, p.message_id ?? '—', p.support_role ?? '—']}
+      columns={['Name', 'Channel', 'Message', 'Category', 'Support role']}
+      renderRow={(p) => [p.name, p.channel_id, p.message_id ?? '—', p.category_id ?? '—', p.support_role ?? '—']}
       onDelete={async (p) => {
         const res = await fetch(`/api/guilds/${guildId}/ticket-panels?id=${p.id}`, { method: 'DELETE' });
         if (!res.ok) {
@@ -679,28 +699,43 @@ function TicketPanelsTab({
       }}
       addForm={
         <AddRow label="Create panel" onAdd={async () => {
+          if (!ticketsEnabled) {
+            setMessage('Ticket panels require Premium');
+            return;
+          }
           if (!name.trim()) { setMessage('Panel name is required'); return; }
           if (!channel_id) { setMessage('Select a channel for the panel'); return; }
           const res = await fetch(`/api/guilds/${guildId}/ticket-panels`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, channel_id, support_role: support_role || null }),
+            body: JSON.stringify({
+              name,
+              channel_id,
+              category_id: category_id || null,
+              support_role: support_role || null,
+            }),
           });
+          const data = await res.json().catch(() => ({}));
           if (!res.ok) {
-            setMessage((await res.json()).error ?? 'Failed to create panel');
+            setMessage(data.error ?? 'Failed to create panel');
             return;
           }
           setMessage('Ticket panel posted to Discord');
-          setName(''); setChannelId(''); setSupportRole('');
+          setName('');
+          setChannelId('');
+          setCategoryId('');
+          setSupportRole('');
           await onReload();
           setTimeout(() => setMessage(''), 3000);
         }}>
           <MiniInput label="Panel name" value={name} onChange={setName} placeholder="Support" />
-          <MiniChannelSelect label="Channel" value={channel_id} onChange={setChannelId} />
+          <MiniChannelSelect label="Panel channel" value={channel_id} onChange={setChannelId} />
+          <MiniChannelSelect label="Ticket category (optional)" value={category_id} onChange={setCategoryId} kinds={['category']} optional />
           <MiniInput label="Support role ID" value={support_role} onChange={setSupportRole} placeholder="Optional" />
         </AddRow>
       }
     />
+    </>
   );
 }
 
