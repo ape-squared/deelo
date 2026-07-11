@@ -1,13 +1,43 @@
 {
-  "generated_at": "2026-07-11T17:23:33.553Z",
+  "generated_at": "2026-07-11T23:18:35.614Z",
   "latest": {
     "id": "release-2026-07-11",
-    "version": "24d1660",
-    "published_at": "2026-07-11T13:21:57-04:00",
+    "version": "b01c3a5",
+    "published_at": "2026-07-11T19:00:48-04:00",
     "title": "Updates for July 11, 2026",
-    "category": "fix",
-    "body": "- Fix slow Docker web builds during static page generation\n- Auto-join dashboard users to official Discord via guilds.join\n- Add guild economy system synced with dashboard\n- Declutter the marketing site navigation bar\n- Fix Dokploy web build failures for changelog deploys\n- Allow .git in Docker build context for release generation\n- Fix Discord #changelogs not updating on Dokploy deploys\n- Replace yt-dlp YouTube playback with SoundCloud streaming\n- Fix music playback by using standalone yt-dlp binaries",
+    "category": "feature",
+    "body": "- v5 overhaul: rebuild ticket system end-to-end for bot and dashboard\n- Fix dashboard ticket panel creation failing to post to Discord\n- Revert \"Overhaul user, admin, and staff dashboards with HeroUI v3 on Tailwind v4.\"\n- Overhaul user, admin, and staff dashboards with HeroUI v3 on Tailwind v4\n- Improve Discord OAuth secret handling and diagnostics\n- Update July 11 changelog bundle and add docs wordmark asset\n- Fix slow Docker web builds during static page generation\n- Auto-join dashboard users to official Discord via guilds.join\n- Add guild economy system synced with dashboard\n- Declutter the marketing site navigation bar\n- Fix Dokploy web build failures for changelog deploys\n- Allow .git in Docker build context for release generation",
     "items": [
+      {
+        "title": "v5 overhaul: rebuild ticket system end-to-end for bot and dashboard",
+        "category": "feature",
+        "hash": "b01c3a5"
+      },
+      {
+        "title": "Fix dashboard ticket panel creation failing to post to Discord",
+        "category": "fix",
+        "hash": "c575bf2"
+      },
+      {
+        "title": "Revert \"Overhaul user, admin, and staff dashboards with HeroUI v3 on Tailwind v4.\"",
+        "category": "feature",
+        "hash": "c78fed3"
+      },
+      {
+        "title": "Overhaul user, admin, and staff dashboards with HeroUI v3 on Tailwind v4",
+        "category": "feature",
+        "hash": "cc4052e"
+      },
+      {
+        "title": "Improve Discord OAuth secret handling and diagnostics",
+        "category": "improvement",
+        "hash": "f50bf6f"
+      },
+      {
+        "title": "Update July 11 changelog bundle and add docs wordmark asset",
+        "category": "improvement",
+        "hash": "d44243d"
+      },
       {
         "title": "Fix slow Docker web builds during static page generation",
         "category": "fix",
@@ -37,21 +67,6 @@
         "title": "Allow .git in Docker build context for release generation",
         "category": "improvement",
         "hash": "e7c855d"
-      },
-      {
-        "title": "Fix Discord #changelogs not updating on Dokploy deploys",
-        "category": "fix",
-        "hash": "7503501"
-      },
-      {
-        "title": "Replace yt-dlp YouTube playback with SoundCloud streaming",
-        "category": "improvement",
-        "hash": "6ac90c1"
-      },
-      {
-        "title": "Fix music playback by using standalone yt-dlp binaries",
-        "category": "fix",
-        "hash": "e16b540"
       }
     ],
     "source": "git"
@@ -59,12 +74,42 @@
   "releases": [
     {
       "id": "release-2026-07-11",
-      "version": "24d1660",
-      "published_at": "2026-07-11T13:21:57-04:00",
+      "version": "b01c3a5",
+      "published_at": "2026-07-11T19:00:48-04:00",
       "title": "Updates for July 11, 2026",
-      "category": "fix",
-      "body": "- Fix slow Docker web builds during static page generation\n- Auto-join dashboard users to official Discord via guilds.join\n- Add guild economy system synced with dashboard\n- Declutter the marketing site navigation bar\n- Fix Dokploy web build failures for changelog deploys\n- Allow .git in Docker build context for release generation\n- Fix Discord #changelogs not updating on Dokploy deploys\n- Replace yt-dlp YouTube playback with SoundCloud streaming\n- Fix music playback by using standalone yt-dlp binaries",
+      "category": "feature",
+      "body": "- v5 overhaul: rebuild ticket system end-to-end for bot and dashboard\n- Fix dashboard ticket panel creation failing to post to Discord\n- Revert \"Overhaul user, admin, and staff dashboards with HeroUI v3 on Tailwind v4.\"\n- Overhaul user, admin, and staff dashboards with HeroUI v3 on Tailwind v4\n- Improve Discord OAuth secret handling and diagnostics\n- Update July 11 changelog bundle and add docs wordmark asset\n- Fix slow Docker web builds during static page generation\n- Auto-join dashboard users to official Discord via guilds.join\n- Add guild economy system synced with dashboard\n- Declutter the marketing site navigation bar\n- Fix Dokploy web build failures for changelog deploys\n- Allow .git in Docker build context for release generation",
       "items": [
+        {
+          "title": "v5 overhaul: rebuild ticket system end-to-end for bot and dashboard",
+          "category": "feature",
+          "hash": "b01c3a5"
+        },
+        {
+          "title": "Fix dashboard ticket panel creation failing to post to Discord",
+          "category": "fix",
+          "hash": "c575bf2"
+        },
+        {
+          "title": "Revert \"Overhaul user, admin, and staff dashboards with HeroUI v3 on Tailwind v4.\"",
+          "category": "feature",
+          "hash": "c78fed3"
+        },
+        {
+          "title": "Overhaul user, admin, and staff dashboards with HeroUI v3 on Tailwind v4",
+          "category": "feature",
+          "hash": "cc4052e"
+        },
+        {
+          "title": "Improve Discord OAuth secret handling and diagnostics",
+          "category": "improvement",
+          "hash": "f50bf6f"
+        },
+        {
+          "title": "Update July 11 changelog bundle and add docs wordmark asset",
+          "category": "improvement",
+          "hash": "d44243d"
+        },
         {
           "title": "Fix slow Docker web builds during static page generation",
           "category": "fix",
@@ -94,21 +139,6 @@
           "title": "Allow .git in Docker build context for release generation",
           "category": "improvement",
           "hash": "e7c855d"
-        },
-        {
-          "title": "Fix Discord #changelogs not updating on Dokploy deploys",
-          "category": "fix",
-          "hash": "7503501"
-        },
-        {
-          "title": "Replace yt-dlp YouTube playback with SoundCloud streaming",
-          "category": "improvement",
-          "hash": "6ac90c1"
-        },
-        {
-          "title": "Fix music playback by using standalone yt-dlp binaries",
-          "category": "fix",
-          "hash": "e16b540"
         }
       ],
       "source": "git"
