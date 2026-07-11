@@ -1,5 +1,7 @@
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
+import { Card } from '@heroui/react';
+import { DashHubCard, DashPageHeader, DashStatCard } from '@/components/ui/dashboard-kit';
 
 export function StaffPageHeader({
   title,
@@ -12,18 +14,7 @@ export function StaffPageHeader({
   badge?: string;
   action?: React.ReactNode;
 }) {
-  return (
-    <div className="staff-page-header">
-      <div>
-        {badge && (
-          <p className="text-xs font-semibold uppercase tracking-widest text-accent mb-2">{badge}</p>
-        )}
-        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{title}</h1>
-        {description && <p className="mt-2 max-w-2xl text-muted leading-relaxed">{description}</p>}
-      </div>
-      {action}
-    </div>
-  );
+  return <DashPageHeader eyebrow={badge} title={title} description={description} action={action} />;
 }
 
 export function StaffHubCard({
@@ -38,15 +29,17 @@ export function StaffHubCard({
   icon: React.ComponentType<{ className?: string }>;
 }) {
   return (
-    <Link href={href} className="staff-hub-card group">
-      <div className="staff-hub-card-icon">
-        <Icon className="h-6 w-6" />
-      </div>
-      <h2 className="font-semibold text-lg mt-4">{title}</h2>
-      <p className="text-sm text-muted mt-1 leading-relaxed">{description}</p>
-      <span className="mt-4 inline-flex items-center gap-1 text-xs font-medium text-accent opacity-0 group-hover:opacity-100 transition-opacity">
-        Open <ArrowRight className="h-3 w-3" />
-      </span>
+    <Link href={href} className="block">
+      <Card className="group h-full border border-default/40 bg-surface p-6 transition hover:border-accent/40 hover:bg-surface-secondary">
+        <div className="text-accent">
+          <Icon className="h-6 w-6" />
+        </div>
+        <h2 className="mt-4 text-lg font-semibold">{title}</h2>
+        <p className="mt-1 text-sm leading-relaxed text-muted">{description}</p>
+        <span className="mt-4 inline-flex items-center gap-1 text-xs font-medium text-accent opacity-0 transition-opacity group-hover:opacity-100">
+          Open <ArrowRight className="h-3 w-3" />
+        </span>
+      </Card>
     </Link>
   );
 }
@@ -60,11 +53,5 @@ export function StaffStatCard({
   value: string | number;
   hint?: string;
 }) {
-  return (
-    <div className="staff-stat-card">
-      <p className="staff-stat-value">{typeof value === 'number' ? value.toLocaleString() : value}</p>
-      <p className="staff-stat-label">{label}</p>
-      {hint && <p className="text-xs text-muted mt-1">{hint}</p>}
-    </div>
-  );
+  return <DashStatCard label={label} value={value} hint={hint} />;
 }

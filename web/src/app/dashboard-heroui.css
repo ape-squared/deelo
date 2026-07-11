@@ -1,0 +1,90 @@
+/** Deelo dashboard theme — HeroUI (NextUI v4) scoped to admin/staff/user dashboards. */
+
+.dashboard-app[data-theme="dark"],
+.admin-app[data-theme="dark"],
+.staff-app[data-theme="dark"] {
+  color-scheme: dark;
+  --accent: oklch(0.52 0.22 264);
+  --accent-foreground: oklch(0.99 0 0);
+  --background: oklch(0.12 0.01 264);
+  --foreground: oklch(0.98 0 0);
+  --surface: oklch(0.16 0.015 264);
+  --surface-foreground: var(--foreground);
+  --surface-secondary: oklch(0.19 0.015 264);
+  --surface-tertiary: oklch(0.22 0.015 264);
+  --muted: oklch(0.68 0.02 264);
+  --border: oklch(1 0 0 / 8%);
+  --field-background: oklch(0.14 0.015 264);
+  --field-foreground: var(--foreground);
+  --field-border: oklch(1 0 0 / 10%);
+  --radius: 0.75rem;
+}
+
+.dashboard-app[data-theme="dark"] .input,
+.admin-app[data-theme="dark"] .input,
+.staff-app[data-theme="dark"] .input,
+.dashboard-app[data-theme="dark"] textarea.input,
+.admin-app[data-theme="dark"] textarea.input,
+.staff-app[data-theme="dark"] textarea.input,
+.dashboard-app[data-theme="dark"] select.input,
+.admin-app[data-theme="dark"] select.input,
+.staff-app[data-theme="dark"] select.input {
+  width: 100%;
+  border-radius: var(--field-radius, 0.75rem);
+  border: 1px solid var(--field-border);
+  background: var(--field-background);
+  color: var(--field-foreground);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  outline: none;
+  transition: box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.dashboard-app[data-theme="dark"] .input:focus,
+.admin-app[data-theme="dark"] .input:focus,
+.staff-app[data-theme="dark"] .input:focus,
+.dashboard-app[data-theme="dark"] textarea.input:focus,
+.admin-app[data-theme="dark"] textarea.input:focus,
+.staff-app[data-theme="dark"] textarea.input:focus {
+  border-color: color-mix(in oklch, var(--accent) 55%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in oklch, var(--accent) 25%, transparent);
+}
+
+.dashboard-app[data-theme="dark"] .btn-primary,
+.admin-app[data-theme="dark"] .btn-primary,
+.staff-app[data-theme="dark"] .btn-primary {
+  background: var(--accent);
+  color: var(--accent-foreground);
+  border: none;
+  box-shadow: none;
+}
+
+.dashboard-app[data-theme="dark"] .btn-primary::after,
+.admin-app[data-theme="dark"] .btn-primary::after,
+.staff-app[data-theme="dark"] .btn-primary::after {
+  display: none;
+}
+
+.dashboard-app[data-theme="dark"] .card,
+.admin-app[data-theme="dark"] .card,
+.staff-app[data-theme="dark"] .card,
+.dashboard-app[data-theme="dark"] .admin-card,
+.admin-app[data-theme="dark"] .admin-card,
+.staff-app[data-theme="dark"] .staff-stat-card {
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+.dashboard-app[data-theme="dark"] .module-sidebar,
+.admin-app[data-theme="dark"] .admin-sidebar,
+.staff-app[data-theme="dark"] .staff-sidebar {
+  background: color-mix(in oklch, var(--surface) 92%, black);
+  border-color: var(--border);
+}
+
+.dashboard-app[data-theme="dark"] .dashboard-topbar,
+.admin-app[data-theme="dark"] .admin-main,
+.staff-app[data-theme="dark"] .staff-main {
+  border-color: var(--border);
+}

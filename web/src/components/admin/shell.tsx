@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Shield, LogOut, ExternalLink, Activity, LayoutGrid } from 'lucide-react';
+import { Button, Chip } from '@heroui/react';
 import { DeeloIcon, DeeloWordmark } from '@/components/brand/logo';
 import { platformRoleLabel } from '@/lib/platform-roles';
 import type { PlatformOperator } from '@/lib/platform-operator-shared';
@@ -35,7 +36,7 @@ export function AdminShell({
   }
 
   return (
-    <div className="admin-app mesh-bg v3-mesh flex min-h-screen">
+    <div className="admin-app mesh-bg v3-mesh flex min-h-screen" data-theme="dark">
       <aside className="admin-sidebar">
         <div className="admin-sidebar-brand">
           <div className="admin-sidebar-logo">
@@ -49,9 +50,9 @@ export function AdminShell({
 
         <div className="admin-sidebar-user">
           <div className="flex items-center gap-2">
-            <span className="admin-role-pill">
+            <span className="admin-role-pill inline-flex items-center gap-1.5">
               <Shield className="h-3 w-3" />
-              {roleLabel}
+              <Chip size="sm" color="accent" variant="soft">{roleLabel}</Chip>
             </span>
           </div>
           <p className="truncate text-xs text-foreground/90 mt-2 font-medium">{operator.label}</p>
@@ -102,14 +103,15 @@ export function AdminShell({
             <ExternalLink className="h-3.5 w-3.5" />
             View site
           </Link>
-          <button
+          <Button
             type="button"
-            onClick={logout}
-            className="admin-nav-link admin-nav-link-danger w-full text-left text-xs"
+            variant="ghost"
+            className="admin-nav-link admin-nav-link-danger w-full justify-start text-left text-xs"
+            onPress={logout}
           >
             <LogOut className="h-3.5 w-3.5" />
             Sign out
-          </button>
+          </Button>
         </div>
       </aside>
 

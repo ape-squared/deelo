@@ -7,9 +7,11 @@ import {
   LayoutDashboard, CreditCard, BookOpen, LogOut, ExternalLink,
   ChevronRight, Plus, Home,
 } from 'lucide-react';
+import { Button, Chip } from '@heroui/react';
 import { DeeloIcon, DeeloWordmark } from '@/components/brand/logo';
 import { inviteApiPath } from '@/lib/invite';
 import { dashboardRedeemPath } from '@/lib/dashboard-paths';
+import { DashPageHeader, DashUserChip } from '@/components/ui/dashboard-kit';
 
 export interface DashboardGuild {
   id: string;
@@ -44,7 +46,7 @@ export function DashboardShell({
   const redeemHref = currentGuild ? dashboardRedeemPath(currentGuild.id) : dashboardRedeemPath();
 
   return (
-    <div className="dashboard-app mesh-bg v3-mesh flex min-h-screen flex-col">
+    <div className="dashboard-app mesh-bg v3-mesh flex min-h-screen flex-col" data-theme="dark">
       <header className="dashboard-topbar shrink-0">
         <div className="flex items-center gap-4">
           <Link href="/dashboard" className="flex items-center gap-2.5 font-bold transition hover:opacity-90">
@@ -54,7 +56,9 @@ export function DashboardShell({
             <span className="hidden sm:inline pt-0.5">
               <DeeloWordmark height={20} />
             </span>
-            <span className="hidden md:inline-flex badge badge-accent text-[10px] py-0">v3</span>
+            <span className="hidden md:inline-flex">
+              <Chip size="sm" color="accent" variant="soft">v3</Chip>
+            </span>
           </Link>
           {currentGuild && (
             <div className="hidden items-center gap-2 border-l border-border pl-4 md:flex">
@@ -76,23 +80,11 @@ export function DashboardShell({
             <ExternalLink className="h-3.5 w-3.5" />
             Site
           </Link>
-          {user && (
-            <div className="flex items-center gap-2 rounded-xl border border-border bg-card/60 py-1 pl-1 pr-3">
-              {user.avatar ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={user.avatar} alt="" className="h-7 w-7 rounded-lg" />
-              ) : (
-                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent/20 text-xs font-bold text-accent">
-                  {user.username[0]?.toUpperCase()}
-                </div>
-              )}
-              <span className="hidden max-w-[120px] truncate text-sm sm:inline">{user.username}</span>
-            </div>
-          )}
+          {user && <DashUserChip username={user.username} avatar={user.avatar} />}
           {onLogout && (
-            <button type="button" onClick={onLogout} className="btn-ghost p-2 text-red-400/80 hover:text-red-400" title="Log out">
+            <Button type="button" variant="ghost" size="sm" isIconOnly onPress={onLogout} className="text-danger" aria-label="Log out">
               <LogOut className="h-4 w-4" />
-            </button>
+            </Button>
           )}
         </div>
       </header>
@@ -184,24 +176,8 @@ export function GuildIcon({
   );
 }
 
-export function PageHeader({ title, description, badge, action }: {
-  title: string;
-  description?: string;
-  badge?: React.ReactNode;
-  action?: React.ReactNode;
-}) {
-  return (
-    <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
-      <div>
-        <div className="mb-2 flex items-center gap-3">
-          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{title}</h1>
-          {badge}
-        </div>
-        {description && <p className="max-w-2xl text-muted">{description}</p>}
-      </div>
-      {action}
-    </div>
-  );
+export function PageHeader(props: React.ComponentProps<typeof DashPageHeader>) {
+  return <DashPageHeader {...props} />;
 }
 
 export function Breadcrumb({ items }: { items: { label: string; href?: string }[] }) {

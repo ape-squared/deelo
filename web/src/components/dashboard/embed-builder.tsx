@@ -16,6 +16,7 @@ import { getLimit } from '@/lib/plan-limits';
 import type { PlanTier } from '@/lib/guild-settings';
 import { ChannelSelect } from '@/components/dashboard/discord-resources';
 import { dashboardRedeemPath } from '@/lib/dashboard-paths';
+import { DashButton, DashPanel } from '@/components/ui/dashboard-kit';
 
 export function EmbedsTab({
   guildId,
@@ -164,26 +165,23 @@ export function EmbedsTab({
 
   return (
     <div className="space-y-6">
-      <div className="card p-6 lg:p-8">
+      <DashPanel
+        title="Embed builder"
+        desc="Create reusable embeds for announcements and posts. Use ,embed send #channel name in Discord or send from here."
+      >
         <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <h2 className="text-lg font-semibold">Embed builder</h2>
-            <p className="mt-1 text-sm text-muted">
-              Create reusable embeds for announcements and posts. Use <code className="font-mono text-xs">,embed send #channel name</code> in Discord or send from here.
-            </p>
-            <p className="mt-2 text-xs text-muted">
-              {items.length} / {maxEmbeds} saved embeds
-              {!isPremium && (
-                <> · <Link href={dashboardRedeemPath(guildId)} className="text-accent hover:underline">Redeem a code</Link> for fields, images, and send</>
-              )}
-            </p>
-          </div>
-          <button type="button" className="btn-primary text-sm py-2" onClick={startNew} disabled={items.length >= maxEmbeds}>
+          <p className="text-xs text-muted">
+            {items.length} / {maxEmbeds} saved embeds
+            {!isPremium && (
+              <> · <Link href={dashboardRedeemPath(guildId)} className="text-accent hover:underline">Redeem a code</Link> for fields, images, and send</>
+            )}
+          </p>
+          <DashButton type="button" size="sm" onPress={startNew} isDisabled={items.length >= maxEmbeds}>
             <Plus className="h-4 w-4" />
             New embed
-          </button>
+          </DashButton>
         </div>
-      </div>
+      </DashPanel>
 
       <div className="grid gap-6 xl:grid-cols-[240px_1fr_320px]">
         <div className="card p-4 space-y-2">
@@ -313,9 +311,9 @@ export function EmbedsTab({
               )}
 
               <div className="flex flex-wrap gap-3 pt-2">
-                <button type="button" className="btn-primary text-sm py-2" onClick={save} disabled={saving}>
+                <DashButton type="button" size="sm" onPress={save} isDisabled={saving}>
                   {saving ? 'Saving…' : 'Save embed'}
-                </button>
+                </DashButton>
                 {typeof selectedId === 'number' && (
                   <button type="button" className="text-sm text-red-400 hover:text-red-300 px-3" onClick={() => remove(selectedId)}>
                     Delete
@@ -327,10 +325,10 @@ export function EmbedsTab({
                 <div className="rounded-xl border border-border bg-background/50 p-4 space-y-3">
                   <p className="text-sm font-medium">Send to Discord</p>
                   <ChannelSelect value={sendChannel} onChange={setSendChannel} />
-                  <button type="button" className="btn-primary text-sm py-2" onClick={send} disabled={sending || !sendChannel}>
+                  <DashButton type="button" size="sm" onPress={send} isDisabled={sending || !sendChannel}>
                     <Send className="h-4 w-4" />
                     {sending ? 'Sending…' : 'Send embed'}
-                  </button>
+                  </DashButton>
                 </div>
               )}
             </>
