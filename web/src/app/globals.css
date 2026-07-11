@@ -1090,13 +1090,33 @@ body {
 }
 
 .site-nav-link {
-  @apply relative rounded-lg px-3.5 py-2 text-sm text-muted transition-all duration-200;
+  @apply relative rounded-lg px-3 py-2 text-sm text-muted transition-all duration-200;
 }
 .site-nav-link:hover {
   @apply bg-white/5 text-foreground;
 }
 .site-nav-link-active {
   @apply bg-accent/10 font-medium text-accent;
+}
+
+.site-nav-more-menu {
+  @apply absolute right-0 top-[calc(100%+0.35rem)] z-[120] min-w-[11rem] rounded-xl border border-border/60 p-1.5 shadow-xl;
+  background: rgba(8, 8, 14, 0.98);
+  backdrop-filter: blur(20px);
+}
+
+.site-nav-more-item {
+  @apply block rounded-lg px-3 py-2 text-sm text-muted transition-colors;
+}
+.site-nav-more-item:hover {
+  @apply bg-white/5 text-foreground;
+}
+.site-nav-more-item-active {
+  @apply bg-accent/10 font-medium text-accent;
+}
+
+.site-mobile-nav-label {
+  @apply px-3 text-[10px] font-semibold uppercase tracking-widest text-muted/80;
 }
 
 .site-header-brand {
@@ -1114,7 +1134,7 @@ body {
 }
 
 .site-mobile-nav-overlay {
-  @apply fixed inset-0 z-[105] md:hidden;
+  @apply fixed inset-0 z-[105] lg:hidden;
 }
 
 .site-mobile-nav-backdrop {
