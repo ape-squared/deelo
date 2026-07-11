@@ -1,13 +1,38 @@
 {
-  "generated_at": "2026-07-11T16:42:30.266Z",
+  "generated_at": "2026-07-11T17:23:33.553Z",
   "latest": {
     "id": "release-2026-07-11",
-    "version": "e7c855d",
-    "published_at": "2026-07-11T12:37:57-04:00",
+    "version": "24d1660",
+    "published_at": "2026-07-11T13:21:57-04:00",
     "title": "Updates for July 11, 2026",
-    "category": "improvement",
-    "body": "- Allow .git in Docker build context for release generation\n- Fix Discord #changelogs not updating on Dokploy deploys\n- Replace yt-dlp YouTube playback with SoundCloud streaming\n- Fix music playback by using standalone yt-dlp binaries",
+    "category": "fix",
+    "body": "- Fix slow Docker web builds during static page generation\n- Auto-join dashboard users to official Discord via guilds.join\n- Add guild economy system synced with dashboard\n- Declutter the marketing site navigation bar\n- Fix Dokploy web build failures for changelog deploys\n- Allow .git in Docker build context for release generation\n- Fix Discord #changelogs not updating on Dokploy deploys\n- Replace yt-dlp YouTube playback with SoundCloud streaming\n- Fix music playback by using standalone yt-dlp binaries",
     "items": [
+      {
+        "title": "Fix slow Docker web builds during static page generation",
+        "category": "fix",
+        "hash": "24d1660"
+      },
+      {
+        "title": "Auto-join dashboard users to official Discord via guilds.join",
+        "category": "improvement",
+        "hash": "7d6d87b"
+      },
+      {
+        "title": "Add guild economy system synced with dashboard",
+        "category": "feature",
+        "hash": "26c2780"
+      },
+      {
+        "title": "Declutter the marketing site navigation bar",
+        "category": "improvement",
+        "hash": "96d6048"
+      },
+      {
+        "title": "Fix Dokploy web build failures for changelog deploys",
+        "category": "fix",
+        "hash": "7cce4bc"
+      },
       {
         "title": "Allow .git in Docker build context for release generation",
         "category": "improvement",
@@ -34,12 +59,37 @@
   "releases": [
     {
       "id": "release-2026-07-11",
-      "version": "e7c855d",
-      "published_at": "2026-07-11T12:37:57-04:00",
+      "version": "24d1660",
+      "published_at": "2026-07-11T13:21:57-04:00",
       "title": "Updates for July 11, 2026",
-      "category": "improvement",
-      "body": "- Allow .git in Docker build context for release generation\n- Fix Discord #changelogs not updating on Dokploy deploys\n- Replace yt-dlp YouTube playback with SoundCloud streaming\n- Fix music playback by using standalone yt-dlp binaries",
+      "category": "fix",
+      "body": "- Fix slow Docker web builds during static page generation\n- Auto-join dashboard users to official Discord via guilds.join\n- Add guild economy system synced with dashboard\n- Declutter the marketing site navigation bar\n- Fix Dokploy web build failures for changelog deploys\n- Allow .git in Docker build context for release generation\n- Fix Discord #changelogs not updating on Dokploy deploys\n- Replace yt-dlp YouTube playback with SoundCloud streaming\n- Fix music playback by using standalone yt-dlp binaries",
       "items": [
+        {
+          "title": "Fix slow Docker web builds during static page generation",
+          "category": "fix",
+          "hash": "24d1660"
+        },
+        {
+          "title": "Auto-join dashboard users to official Discord via guilds.join",
+          "category": "improvement",
+          "hash": "7d6d87b"
+        },
+        {
+          "title": "Add guild economy system synced with dashboard",
+          "category": "feature",
+          "hash": "26c2780"
+        },
+        {
+          "title": "Declutter the marketing site navigation bar",
+          "category": "improvement",
+          "hash": "96d6048"
+        },
+        {
+          "title": "Fix Dokploy web build failures for changelog deploys",
+          "category": "fix",
+          "hash": "7cce4bc"
+        },
         {
           "title": "Allow .git in Docker build context for release generation",
           "category": "improvement",
