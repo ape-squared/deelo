@@ -70,7 +70,12 @@ export function tryGetDiscordClientId(): string | undefined {
 }
 
 export function getDiscordClientSecret(): string {
-  const secret = env('DISCORD_CLIENT_SECRET')?.trim();
+  const raw = env('DISCORD_CLIENT_SECRET')?.trim() ?? '';
+  const secret = raw.startsWith('"') && raw.endsWith('"')
+    ? raw.slice(1, -1).trim()
+    : raw.startsWith("'") && raw.endsWith("'")
+      ? raw.slice(1, -1).trim()
+      : raw;
   if (!secret) {
     throw new Error('DISCORD_CLIENT_SECRET is required');
   }

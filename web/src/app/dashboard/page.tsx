@@ -33,7 +33,7 @@ function authErrorMessage(code: string): string {
   const messages: Record<string, string> = {
     token: 'Discord sign-in failed. Try again in a fresh tab (don’t refresh the callback URL).',
     invalid_client:
-      'Discord rejected the client secret. Set DISCORD_CLIENT_SECRET on the web service to match Discord Developer Portal.',
+      'Discord rejected the client ID + secret pair. In Developer Portal → OAuth2, reset the client secret, set DISCORD_CLIENT_SECRET on the **web** service in Dokploy (no quotes), and redeploy web.',
     missing_secret: 'DISCORD_CLIENT_SECRET is not set on the web container.',
     redirect_uri:
       'Redirect URI mismatch. Register your site URL + /api/auth/discord/callback in Discord OAuth2 redirects.',
