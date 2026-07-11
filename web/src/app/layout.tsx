@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
-import { headers } from 'next/headers';
-import { resolveAppUrl } from '@/lib/runtime-env';
+import { publicAppUrl } from '@/lib/app-url-display';
 import { Analytics } from '@/components/analytics';
 import './globals.css';
 
@@ -16,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export async function generateMetadata(): Promise<Metadata> {
-  const base = resolveAppUrl(await headers());
+  const base = publicAppUrl();
   const description =
     'Deelo is the all-in-one Discord bot for moderation, music, levels, tickets, and community management. 1,144 commands. One dashboard.';
 

@@ -1,6 +1,7 @@
 import { DISCORD_API } from '@/lib/session';
 import { getBotGuildIds } from '@/lib/discord-bot';
 import { publicAppHost } from '@/lib/app-url-display';
+import { fetchWithTimeout } from '@/lib/fetch-with-timeout';
 
 export interface BotStatus {
   online: boolean;
@@ -47,13 +48,15 @@ export async function getBotStatus(): Promise<BotStatus> {
   const start = Date.now();
   try {
     const [meRes, gatewayRes, guildIds] = await Promise.all([
-      fetch(`${DISCORD_API}/users/@me`, {
+      fetchWithTimeout(`${DISCORD_API}/users/@me`, {
         headers: { Authorization: `Bot ${token}` },
         cache: 'no-store',
+        timeoutMs: 8_000,
       }),
-      fetch(`${DISCORD_API}/gateway/bot`, {
+      fetchWithTimeout(`${DISCORD_API}/gateway/bot`, {
         headers: { Authorization: `Bot ${token}` },
         cache: 'no-store',
+        timeoutMs: 8_000,
       }).catch(() => null),
       getBotGuildIds(),
     ]);

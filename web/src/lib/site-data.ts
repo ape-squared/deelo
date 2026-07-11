@@ -32,8 +32,21 @@ function isOfflineDbError(err: unknown): boolean {
     isMissingTableError(msg) ||
     /fetch failed/i.test(msg) ||
     /connect timeout/i.test(msg) ||
-    /ECONNREFUSED|ENOTFOUND|ETIMEDOUT|UND_ERR_CONNECT_TIMEOUT/i.test(msg)
+    /timed out/i.test(msg) ||
+    /ECONNREFUSED|ENOTFOUND|ETIMEDOUT|UND_ERR_CONNECT_TIMEOUT|AbortError/i.test(msg)
   );
+}
+
+const DB_QUERY_TIMEOUT_MS = 8_000;
+
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error('Database query timed out')), ms);
+    promise.then(
+      (value) => { clearTimeout(timer); resolve(value); },
+      (err) => { clearTimeout(timer); reject(err); },
+    );
+  });
 }
 
 function handleDbError(error: { message: string } | null): void {
@@ -48,7 +61,7 @@ function handleDbError(error: { message: string } | null): void {
 
 async function safeQuery<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
   try {
-    return await fn();
+    return await withTimeout(fn(), DB_QUERY_TIMEOUT_MS);
   } catch (e) {
     if (isOfflineDbError(e) || (e as { missingTable?: boolean })?.missingTable) return fallback;
     throw e;

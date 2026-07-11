@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { SiteFooter, SiteTopBanner } from '@/components/site-chrome';
 import { SiteHeader } from '@/components/site-header';
 import { getLatestAutoRelease } from '@/lib/releases';
@@ -21,10 +22,16 @@ export async function MarketingLayout({
         Skip to content
       </a>
       <SiteJsonLd />
-      {banner ? <SiteTopBanner /> : null}
+      {banner ? (
+        <Suspense fallback={null}>
+          <SiteTopBanner />
+        </Suspense>
+      ) : null}
       <SiteHeader />
       {children}
-      <SiteFooter />
+      <Suspense fallback={null}>
+        <SiteFooter />
+      </Suspense>
       <MobileCtaBar />
       <CookieConsent />
       <WhatsNewModal release={latestRelease} />

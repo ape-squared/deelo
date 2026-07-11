@@ -1,4 +1,5 @@
 import { DISCORD_API } from '@/lib/discord-api';
+import { fetchWithTimeout, isFetchTimeoutError } from '@/lib/fetch-with-timeout';
 
 let cache: { ids: Set<string>; expires: number } | null = null;
 const CACHE_MS = 60_000;
@@ -29,9 +30,10 @@ export async function getBotGuildIds(): Promise<Set<string>> {
       url.searchParams.set('limit', '200');
       if (after) url.searchParams.set('after', after);
 
-      const res = await fetch(url.toString(), {
+      const res = await fetchWithTimeout(url.toString(), {
         headers: { Authorization: `Bot ${token}` },
         cache: 'no-store',
+        timeoutMs: 8_000,
       });
 
       if (!res.ok) {
@@ -49,7 +51,9 @@ export async function getBotGuildIds(): Promise<Set<string>> {
     }
   } catch (err) {
     ok = false;
-    console.error('[discord-bot] getBotGuildIds:', err);
+    if (!isFetchTimeoutError(err)) {
+      console.error('[discord-bot] getBotGuildIds:', err);
+    }
   }
 
   if (ok && ids.size > 0) {
@@ -65,9 +69,10 @@ export async function probeBotInGuild(guildId: string): Promise<boolean> {
   if (!token) return false;
 
   try {
-    const res = await fetch(`${DISCORD_API}/guilds/${guildId}`, {
+    const res = await fetchWithTimeout(`${DISCORD_API}/guilds/${guildId}`, {
       headers: { Authorization: `Bot ${token}` },
       cache: 'no-store',
+      timeoutMs: 5_000,
     });
     return res.ok;
   } catch {
