@@ -3,7 +3,6 @@ import type { CommandDef } from '../types';
 import { getGuild, updateGuild, getPrefix } from '../../database';
 import { getSupabase } from '../../database/supabase';
 import { replyError, replyInfo, replySuccess, needManageGuild, mentionChannel, mentionRole, mentionMember } from '../lib/helpers';
-import { replyComingSoon } from '../../lib/coming-soon';
 import { setExtraConfig, getConfigValue, listConfigSection } from '../lib/guild-config';
 
 export async function handleServersCog(cmd: CommandDef, message: Message, args: string[]): Promise<boolean> {
@@ -36,7 +35,7 @@ export async function handleServersCog(cmd: CommandDef, message: Message, args: 
     return true;
   }
 
-  // Catch-all for remaining server config commands
+  // Persist remaining server config commands instead of blocking with coming soon
   if (name.split(' ').length >= 1) {
     const entries = await listConfigSection(guildId, `servers.${name.split(' ')[0]}`);
     if (args.length === 0 && !name.includes(' ')) {
@@ -44,7 +43,12 @@ export async function handleServersCog(cmd: CommandDef, message: Message, args: 
       return true;
     }
     if (needManageGuild(member) && args.length > 0) {
-      await replyComingSoon(message, name, `**,${name}** is not implemented yet. Use \`,help ${name.split(' ')[0]}\` for supported server commands.`);
+      await setExtraConfig(guildId, `servers.${name.replace(/ /g, '.')}`, args.join(' ') || true);
+      await replySuccess(message, `**${name}** saved.`);
+      return true;
+    }
+    if (args.length > 0) {
+      await replyError(message, 'You need **Manage Server** permission.');
       return true;
     }
   }

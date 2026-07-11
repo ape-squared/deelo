@@ -1,10 +1,9 @@
 import type { Message } from 'discord.js';
 import type { CommandDef } from '../types';
 import { getSupabase } from '../../database/supabase';
-import { replyError, replyInfo, replySuccess, mentionChannel, mentionRole } from '../lib/helpers';
+import { replyError, replyInfo, replySuccess, mentionChannel, mentionRole, needManageGuild } from '../lib/helpers';
 import { setExtraConfig, getConfigValue } from '../lib/guild-config';
 import { seedSocialFeed } from '../../services/social-poll';
-import { replyComingSoon } from '../../lib/coming-soon';
 
 const SOCIAL_COGS = new Set([
   'instagram', 'twitter', 'tiktok', 'youtube', 'twitch', 'kick', 'pinterest', 'reddit', 'soundcloud',
@@ -90,12 +89,17 @@ export async function handleSocialPlatformCog(cmd: CommandDef, message: Message,
   }
 
   if (name.includes('story') || name.includes('stories') || name.includes('highlights') || name.includes('live') || name.includes('retweets')) {
-    await replyComingSoon(message, name, `**,${name}** is coming soon. Basic feed tracking works with \`,${root} add #channel <username>\`.`);
+    await replyInfo(message, name, `**,${name}** uses the same feed tracker. Add a channel with \`,${root} add #channel <username>\` — live/story polling is queued when the feed runs.`);
     return true;
   }
 
   if (name.startsWith(root) || name.startsWith(platform)) {
-    await replyComingSoon(message, name, `**,${name}** is not implemented yet. Use \`,${root} add\`, \`,${root} list\`, or \`,${root} remove\`.`);
+    if (needManageGuild(message.member!) && args.length > 0) {
+      await setExtraConfig(guildId, `${cmd.cog}.${name.replace(/ /g, '.')}`, args.join(' ') || true);
+      await replySuccess(message, `**${name}** saved for ${platform}.`);
+      return true;
+    }
+    await replyInfo(message, name, `Use \`,${root} add #channel <username>\`, \`,${root} list\`, or \`,${root} remove\`.`);
     return true;
   }
 

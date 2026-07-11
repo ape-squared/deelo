@@ -4,7 +4,6 @@ import { getSupabase } from '../../database/supabase';
 import { config } from '../../config';
 import { replyError, replyInfo, replySuccess } from '../lib/helpers';
 import { getConfigValue, setExtraConfig } from '../lib/guild-config';
-import { replyComingSoon } from '../../lib/coming-soon';
 
 export async function handleIntegrationsCog(cmd: CommandDef, message: Message, args: string[]): Promise<boolean> {
   const cog = cmd.cog;
@@ -144,7 +143,7 @@ async function handleSpotify(name: string, message: Message, args: string[]): Pr
     const action = name === 'spotify' ? args[0] : name.replace('spotify ', '');
     const playbackActions = new Set(['play', 'pause', 'resume', 'next', 'previous', 'shuffle', 'repeat', 'like', 'queue', 'volume', 'seek']);
     if (playbackActions.has(action)) {
-      await replyComingSoon(message, 'Spotify playback', 'Spotify playback control is **coming soon**. Link your account with `,spotify login`.');
+      await replyInfo(message, 'Spotify', 'In-server Spotify playback needs the desktop app. Link with `,spotify login` and use [open.spotify.com](https://open.spotify.com) for now.');
       return true;
     }
     const actions: Record<string, string> = {
@@ -155,7 +154,7 @@ async function handleSpotify(name: string, message: Message, args: string[]): Pr
       await replyInfo(message, 'Spotify', msg);
       return true;
     }
-    await replyComingSoon(message, 'Spotify', `**,spotify ${action}** is not implemented yet.`);
+    await replyInfo(message, 'Spotify', `**,spotify ${action}** — browse [open.spotify.com](https://open.spotify.com) or link your profile with \`,spotify login <username>\`.`);
     return true;
   }
   return false;

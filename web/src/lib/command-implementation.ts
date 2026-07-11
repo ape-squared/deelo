@@ -29,11 +29,11 @@ export const SUPPORTED_COGS = new Set([
   'counters',
   'snipe',
   'reaction',
+  'servers',
 ]);
 
 /** Cogs with real commands for common actions; many catalog entries still coming soon. */
 export const PARTIAL_COGS = new Set([
-  'servers',
   'features',
   'integrations',
   'instagram',

@@ -1,6 +1,7 @@
 import type { Message } from 'discord.js';
 import type { CommandDef } from '../types';
 import { handleInformationCommand } from '../information';
+import { handleLookupCommands } from './lookup-commands';
 import { replyError, replyInfo, replySuccess, resolveUserId, deeloEmbed } from '../lib/helpers';
 import { replyWithMediaEffect, resolveImageUrl } from '../../lib/reply-media';
 import { config } from '../../config';
@@ -8,6 +9,7 @@ import { config } from '../../config';
 export async function handleInformationCog(cmd: CommandDef, message: Message, args: string[]): Promise<boolean> {
   if (cmd.cog !== 'information') return false;
   if (await handleInformationCommand(cmd.name, message, args)) return true;
+  if (await handleLookupCommands(cmd.name, message, args)) return true;
 
   const name = cmd.name;
   const guild = message.guild!;
@@ -135,7 +137,8 @@ export async function handleInformationCog(cmd: CommandDef, message: Message, ar
     return true;
   }
 
-  if (name === 'avatar' || name === 'av') return false; // native bridge
+  if (name === 'avatar' || name === 'av' || name === 'pfp') return false; // native bridge
+  if (name === 'serverinfo' || name === 'userinfo' || name === 'whois' || name === 'ui' || name === 'si') return false;
 
   if (name === 'banner') {
     const user = message.mentions.users.first() ?? message.author;

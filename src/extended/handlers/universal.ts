@@ -1,8 +1,8 @@
 import type { Message } from 'discord.js';
 import type { CommandDef } from '../types';
-import { deleteConfigPath, getConfigValue, listConfigSection } from '../lib/guild-config';
+import { deleteConfigPath, getConfigValue, listConfigSection, setExtraConfig } from '../lib/guild-config';
 import { cmdRoot, cmdTail, replyError, replyInfo, needManageGuild } from '../lib/helpers';
-import { replyComingSoon } from '../../lib/coming-soon';
+import { runLookupCommand, LOOKUP_COMMANDS } from '../../services/lookups';
 
 const LIST_ACTIONS = new Set(['list', 'view', 'config', 'show']);
 const ADD_ACTIONS = new Set(['add', 'set', 'create', 'enable', 'on', 'unlock']);
@@ -10,7 +10,10 @@ const REMOVE_ACTIONS = new Set(['remove', 'delete', 'del', 'disable', 'off', 'lo
 const TOGGLE_ON = new Set(['enable', 'on', 'unlock']);
 const TOGGLE_OFF = new Set(['disable', 'off', 'lock']);
 
-/** Smart fallback: read-only config views for catalog commands; mutations return coming soon */
+/** Cogs where member-facing commands should not require Manage Server */
+const PUBLIC_COGS = new Set(['information', 'roleplay', 'fun', 'misc', 'manipulation', 'music', 'levels', 'economy']);
+
+/** Smart fallback: config views, persisted settings, and public lookups */
 export async function handleUniversal(cmd: CommandDef, message: Message, args: string[]): Promise<boolean> {
   if (!message.guild || !message.member) return false;
   const guildId = message.guild.id;
@@ -18,6 +21,19 @@ export async function handleUniversal(cmd: CommandDef, message: Message, args: s
   const root = cmdRoot(name);
   const tail = cmdTail(name);
   const action = tail.split(' ').pop() ?? name;
+
+  if (LOOKUP_COMMANDS[name.toLowerCase()] && args.length > 0) {
+    try {
+      const embed = await runLookupCommand(name.toLowerCase(), args.join(' '));
+      if (embed) {
+        await message.reply({ embeds: [embed] });
+        return true;
+      }
+    } catch (err) {
+      await replyError(message, err instanceof Error ? err.message : 'Lookup failed.');
+      return true;
+    }
+  }
 
   if (LIST_ACTIONS.has(action) || name.endsWith(' list') || name.endsWith(' config') || name.endsWith(' view')) {
     const section = name.replace(/ (list|config|view|show)$/, '').replace(/ /g, '.');
@@ -38,7 +54,15 @@ export async function handleUniversal(cmd: CommandDef, message: Message, args: s
       await replyError(message, 'You need **Manage Server** permission.');
       return true;
     }
-    await replyComingSoon(message, name, `**,${name}** is not implemented yet. Check \`,help ${root}\` for supported commands.`);
+    const path = `${cmd.cog}.${name.replace(/ /g, '.')}`;
+    if (REMOVE_ACTIONS.has(action) || TOGGLE_OFF.has(action)) {
+      await deleteConfigPath(guildId, path).catch(() => {});
+      await replyInfo(message, name, 'Setting removed.');
+      return true;
+    }
+    const value = args.length ? args.join(' ') : true;
+    await setExtraConfig(guildId, path, value);
+    await replyInfo(message, name, `Saved **${name}** → ${formatVal(value)}`);
     return true;
   }
 
@@ -50,25 +74,27 @@ export async function handleUniversal(cmd: CommandDef, message: Message, args: s
       root,
       val !== undefined
         ? `${desc}\n\n**Current:** ${formatVal(val)}`
-        : `${desc}\n\n🚧 Full support for **${name}** is **coming soon**.`,
+        : `${desc}\n\nUse \`,${name} list\` or \`,help ${root}\` for options.`,
     );
     return true;
   }
 
   if (args.length > 0) {
-    if (cmd.cog === 'fun') {
-      await replyError(message, `**${name}** couldn't run with those arguments. Use \`,help ${name}\` for usage.`);
+    if (PUBLIC_COGS.has(cmd.cog)) {
+      await replyError(message, `**,${name}** couldn't run with those arguments. Use \`,help ${name}\` for usage.`);
       return true;
     }
     if (!needManageGuild(message.member)) {
       await replyError(message, 'You need **Manage Server** permission.');
       return true;
     }
-    await replyComingSoon(message, name, `**,${name}** is not implemented yet.`);
+    const path = `${cmd.cog}.${name.replace(/ /g, '.')}`;
+    await setExtraConfig(guildId, path, args.join(' '));
+    await replyInfo(message, name, `Saved **${name}** setting.`);
     return true;
   }
 
-  await replyComingSoon(message, name, cmd.description || `**,${name}** is coming soon.`);
+  await replyInfo(message, name, cmd.description || `Use \`,help ${root}\` for **${name}** options.`);
   return true;
 }
 
