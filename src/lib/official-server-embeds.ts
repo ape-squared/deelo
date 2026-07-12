@@ -77,6 +77,16 @@ export const DEFAULT_OFFICIAL_DISCORD_EMBEDS: OfficialDiscordEmbedsSettings = {
       },
     },
     {
+      id: 'role-select',
+      label: 'Role select',
+      channel: 'role-select',
+      embed: {
+        title: '🎭 Notification Roles',
+        description: 'Click a button to toggle a role.',
+        color: 0x0047ff,
+      },
+    },
+    {
       id: 'general',
       label: 'General welcome',
       channel: 'general',
@@ -90,6 +100,15 @@ export const DEFAULT_OFFICIAL_DISCORD_EMBEDS: OfficialDiscordEmbedsSettings = {
   ],
 };
 
+function normalizeChannelSlug(name: string): string {
+  return name
+    .trim()
+    .replace(/^#+/, '')
+    .toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/_/g, '-');
+}
+
 export function mergeOfficialDiscordEmbeds(raw: unknown): OfficialDiscordEmbedsSettings {
   const base = JSON.parse(JSON.stringify(DEFAULT_OFFICIAL_DISCORD_EMBEDS)) as OfficialDiscordEmbedsSettings;
   if (!raw || typeof raw !== 'object') return base;
@@ -101,7 +120,7 @@ export function mergeOfficialDiscordEmbeds(raw: unknown): OfficialDiscordEmbedsS
     if (!entry || typeof entry !== 'object') continue;
     const e = entry as Record<string, unknown>;
     const id = String(e.id ?? '').trim().toLowerCase();
-    const channel = String(e.channel ?? '').trim().toLowerCase();
+    const channel = normalizeChannelSlug(String(e.channel ?? ''));
     if (!id || !channel) continue;
     const existing = byId.get(id);
     const embed = (e.embed && typeof e.embed === 'object' ? e.embed : {}) as EmbedTemplateJson;

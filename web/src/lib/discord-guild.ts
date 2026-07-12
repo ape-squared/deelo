@@ -4,7 +4,14 @@ import type { GuildRole } from '@/lib/discord-roles';
 
 export type { ChannelKind, GuildChannel } from '@/lib/discord-channels';
 export type { GuildRole } from '@/lib/discord-roles';
-export { CHANNEL_TYPES, channelOptions, filterChannelsByKind } from '@/lib/discord-channels';
+export {
+  CHANNEL_TYPES,
+  MESSAGE_CHANNEL_TYPES,
+  channelOptions,
+  filterChannelsByKind,
+  findGuildChannelByName,
+  normalizeChannelSlug,
+} from '@/lib/discord-channels';
 
 const cache = new Map<string, { channels: GuildChannel[]; expires: number }>();
 const rolesCache = new Map<string, { roles: GuildRole[]; expires: number }>();
@@ -39,7 +46,7 @@ export async function fetchGuildChannels(guildId: string): Promise<GuildChannel[
   const channels: GuildChannel[] = raw.map((c) => ({
     id: c.id,
     name: c.name,
-    type: c.type,
+    type: Number(c.type),
     parent_id: c.parent_id ?? null,
     position: c.position ?? 0,
   }));

@@ -319,6 +319,12 @@ export function MiniRoleSelect({
   );
 }
 
+export function useChannelName(channelId: string): string {
+  const { channels } = useGuildChannels();
+  const channel = channels.find((c) => c.id === channelId);
+  return channel ? `#${channel.name}` : channelId;
+}
+
 export function useRoleName(roleId: string): string {
   const { roles } = useGuildRoles();
   const role = roles.find((r) => r.id === roleId);

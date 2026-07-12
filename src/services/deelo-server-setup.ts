@@ -37,6 +37,20 @@ export interface EmbedSyncLine {
   error?: string;
 }
 
+const MESSAGE_CHANNEL_TYPES = new Set<number>([
+  ChannelType.GuildText,
+  ChannelType.GuildAnnouncement,
+]);
+
+function normalizeChannelSlug(name: string): string {
+  return name
+    .trim()
+    .replace(/^#+/, '')
+    .toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/_/g, '-');
+}
+
 export async function syncOfficialEmbedsToGuild(guild: Guild): Promise<EmbedSyncLine[]> {
   const settings = await loadOfficialDiscordEmbeds();
   if (guild.id !== settings.guild_id && guild.id !== DEFAULT_OFFICIAL_GUILD_ID) {
@@ -48,7 +62,9 @@ export async function syncOfficialEmbedsToGuild(guild: Guild): Promise<EmbedSync
 
   for (const entry of settings.channels) {
     const channel = guild.channels.cache.find(
-      (c) => c.type === ChannelType.GuildText && c.name === entry.channel,
+      (c) =>
+        MESSAGE_CHANNEL_TYPES.has(c.type) &&
+        normalizeChannelSlug(c.name) === normalizeChannelSlug(entry.channel),
     ) as TextChannel | undefined;
 
     if (!channel) {

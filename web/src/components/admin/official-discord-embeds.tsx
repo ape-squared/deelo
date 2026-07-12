@@ -12,6 +12,7 @@ import {
 } from '@/lib/embed-template';
 import type { OfficialChannelEmbed, OfficialDiscordEmbedsSettings } from '@/lib/official-server-embeds';
 import { DEFAULT_OFFICIAL_DISCORD_EMBEDS } from '@/lib/official-server-embeds';
+import { normalizeChannelSlug } from '@/lib/discord-channels';
 
 type SyncResult = { id: string; channel: string; ok: boolean; message_id?: string; error?: string };
 
@@ -34,6 +35,18 @@ export function OfficialDiscordEmbedsManager({
     () => settings.channels.find((c) => c.id === selectedId) ?? null,
     [settings.channels, selectedId],
   );
+
+  function addChannel() {
+    const slug = `channel-${settings.channels.length + 1}`;
+    const entry: OfficialChannelEmbed = {
+      id: slug,
+      label: 'New channel',
+      channel: slug,
+      embed: { title: 'New embed', description: '', color: 0x0047ff },
+    };
+    setSettings((prev) => ({ ...prev, channels: [...prev.channels, entry] }));
+    setSelectedId(slug);
+  }
 
   function updateChannel(id: string, patch: Partial<OfficialChannelEmbed>) {
     setSettings((prev) => ({
@@ -168,7 +181,13 @@ export function OfficialDiscordEmbedsManager({
 
         <div className="grid gap-0 xl:grid-cols-[220px_1fr_300px]">
           <div className="border-b xl:border-b-0 xl:border-r border-border p-4 space-y-1">
-            <p className="text-xs font-medium text-muted uppercase tracking-wide px-2 mb-2">Channels</p>
+            <div className="flex items-center justify-between px-2 mb-2">
+              <p className="text-xs font-medium text-muted uppercase tracking-wide">Channels</p>
+              <button type="button" className="text-xs text-accent hover:underline inline-flex items-center gap-1" onClick={addChannel}>
+                <Plus className="h-3 w-3" />
+                Add
+              </button>
+            </div>
             {settings.channels.map((ch) => (
               <button
                 key={ch.id}
@@ -204,7 +223,8 @@ export function OfficialDiscordEmbedsManager({
                     <input
                       className="input font-mono text-sm"
                       value={selected.channel}
-                      onChange={(e) => updateChannel(selected.id, { channel: e.target.value.toLowerCase().replace(/\s+/g, '-') })}
+                      onChange={(e) => updateChannel(selected.id, { channel: normalizeChannelSlug(e.target.value) })}
+                      placeholder="role-select"
                     />
                   </div>
                 </div>

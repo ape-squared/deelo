@@ -3,6 +3,7 @@ import { requireDiscordBotToken } from '@/lib/discord-bot';
 import { fetchWithTimeout } from '@/lib/fetch-with-timeout';
 import type { EmbedTemplate } from '@/lib/embed-template';
 import { templateToDiscordApi } from '@/lib/embed-template';
+import { findGuildChannelByName, normalizeChannelSlug } from '@/lib/discord-channels';
 import { fetchGuildChannels } from '@/lib/discord-guild';
 import { createAdminClient } from '@/lib/supabase/admin';
 import {
@@ -110,27 +111,24 @@ export async function syncOfficialDiscordEmbeds(
   settings: OfficialDiscordEmbedsSettings,
 ): Promise<{ settings: OfficialDiscordEmbedsSettings; results: OfficialEmbedSyncResult[] }> {
   const guildChannels = await fetchGuildChannels(settings.guild_id);
-  const textByName = new Map(
-    guildChannels.filter((c) => c.type === 0).map((c) => [c.name.toLowerCase(), c.id]),
-  );
 
   const next = structuredClone(settings);
   const results: OfficialEmbedSyncResult[] = [];
 
   for (const entry of next.channels) {
-    const channelId = textByName.get(entry.channel.toLowerCase());
-    if (!channelId) {
+    const match = findGuildChannelByName(guildChannels, entry.channel);
+    if (!match) {
       results.push({
         id: entry.id,
         channel: entry.channel,
         ok: false,
-        error: `Channel #${entry.channel} not found`,
+        error: `Channel #${normalizeChannelSlug(entry.channel) || entry.channel} not found`,
       });
       continue;
     }
 
     try {
-      const messageId = await postOrUpdateChannelEmbed(channelId, entry);
+      const messageId = await postOrUpdateChannelEmbed(match.id, entry);
       entry.message_id = messageId;
       results.push({ id: entry.id, channel: entry.channel, ok: true, message_id: messageId });
     } catch (err) {

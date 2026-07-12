@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import type { DashboardGuildSettings } from '@/lib/guild-settings';
 import type { GuildFullConfig } from '@/lib/guild-types';
 import { AddRow, CrudList, MiniInput, MiniSelect, type AddRowResult } from '@/components/dashboard/guild-crud';
-import { MiniChannelSelect, MiniRoleSelect, RoleSelect, useRoleName } from '@/components/dashboard/discord-resources';
+import { MiniChannelSelect, MiniRoleSelect, RoleSelect, useChannelName, useRoleName } from '@/components/dashboard/discord-resources';
 
 const BUTTON_STYLES = [
   { value: 'primary', label: 'Primary (blue)' },
@@ -12,6 +12,11 @@ const BUTTON_STYLES = [
   { value: 'success', label: 'Success (green)' },
   { value: 'danger', label: 'Danger (red)' },
 ] as const;
+
+function ChannelCell({ channelId }: { channelId: string }) {
+  const name = useChannelName(channelId);
+  return <span className="font-medium text-foreground">{name}</span>;
+}
 
 function RoleCell({ roleId }: { roleId: string }) {
   const name = useRoleName(roleId);
@@ -398,7 +403,7 @@ function ReactionRolesList({
       items={items}
       columns={['Channel', 'Message', 'Emoji', 'Role']}
       renderRow={(r) => [
-        <span key="ch" className="font-mono text-muted">{r.channel_id.slice(-6)}</span>,
+        <ChannelCell key="ch" channelId={r.channel_id} />,
         <span key="msg" className="font-mono text-muted">{r.message_id.slice(-6)}</span>,
         r.emoji,
         <RoleCell key="role" roleId={r.role_id} />,
@@ -479,7 +484,7 @@ function ButtonRolesList({
       items={items}
       columns={['Channel', 'Label', 'Style', 'Role']}
       renderRow={(r) => [
-        <span key="ch" className="font-mono text-muted">{r.channel_id.slice(-6)}</span>,
+        <ChannelCell key="ch" channelId={r.channel_id} />,
         r.label,
         r.style,
         <RoleCell key="role" roleId={r.role_id} />,

@@ -1,9 +1,15 @@
 /** Client-safe Discord channel types and formatting (no server-only imports). */
 
+/** Channels where bots can post messages (embeds, panels, etc.). */
+export const MESSAGE_CHANNEL_TYPES = [0, 5] as const;
+
 export const CHANNEL_TYPES = {
-  text: [0, 5, 15] as const,
+  /** Text + announcement channels (postable). Forum excluded — requires thread creation. */
+  text: [...MESSAGE_CHANNEL_TYPES] as const,
   voice: [2, 13] as const,
   category: [4] as const,
+  /** Forum channels — pick only when explicitly needed (e.g. ticket category). */
+  forum: [15] as const,
 } as const;
 
 export type ChannelKind = keyof typeof CHANNEL_TYPES;
@@ -16,9 +22,29 @@ export interface GuildChannel {
   position: number;
 }
 
+export function normalizeChannelSlug(name: string): string {
+  return name
+    .trim()
+    .replace(/^#+/, '')
+    .toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/_/g, '-');
+}
+
 export function filterChannelsByKind(channels: GuildChannel[], kinds: ChannelKind[]): GuildChannel[] {
   const allowed = new Set<number>(kinds.flatMap((k) => [...CHANNEL_TYPES[k]]));
-  return channels.filter((c) => allowed.has(c.type));
+  return channels.filter((c) => allowed.has(Number(c.type)));
+}
+
+export function findGuildChannelByName(
+  channels: GuildChannel[],
+  name: string,
+  types: readonly number[] = MESSAGE_CHANNEL_TYPES,
+): GuildChannel | undefined {
+  const slug = normalizeChannelSlug(name);
+  if (!slug) return undefined;
+  const allowed = new Set(types);
+  return channels.find((c) => allowed.has(Number(c.type)) && normalizeChannelSlug(c.name) === slug);
 }
 
 export function channelOptions(
@@ -26,7 +52,7 @@ export function channelOptions(
   kinds: ChannelKind[],
 ): { value: string; label: string }[] {
   const categories = new Map(
-    channels.filter((c) => c.type === 4).map((c) => [c.id, c.name]),
+    channels.filter((c) => Number(c.type) === 4).map((c) => [c.id, c.name]),
   );
 
   const filtered = filterChannelsByKind(channels, kinds).sort((a, b) => {
@@ -46,8 +72,10 @@ export function channelOptions(
 }
 
 function channelKindPrefix(type: number): string {
-  if (type === 2 || type === 13) return '🔊 ';
-  if (type === 4) return '📁 ';
-  if (type === 15) return '💬 ';
+  const t = Number(type);
+  if (t === 2 || t === 13) return '🔊 ';
+  if (t === 4) return '📁 ';
+  if (t === 5) return '📢 ';
+  if (t === 15) return '💬 ';
   return '#';
 }

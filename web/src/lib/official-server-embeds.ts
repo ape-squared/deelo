@@ -1,5 +1,6 @@
 import type { EmbedTemplate } from '@/lib/embed-template';
 import { sanitizeEmbedTemplate } from '@/lib/embed-template';
+import { normalizeChannelSlug } from '@/lib/discord-channels';
 
 export interface OfficialChannelEmbed {
   /** Stable key, e.g. rules, bot-help */
@@ -92,6 +93,16 @@ export const DEFAULT_OFFICIAL_DISCORD_EMBEDS: OfficialDiscordEmbedsSettings = {
       },
     },
     {
+      id: 'role-select',
+      label: 'Role select',
+      channel: 'role-select',
+      embed: {
+        title: '🎭 Notification Roles',
+        description: 'Click a button to toggle a role.',
+        color: 0x0047ff,
+      },
+    },
+    {
       id: 'general',
       label: 'General welcome',
       channel: 'general',
@@ -111,7 +122,7 @@ function sanitizeChannel(raw: unknown): OfficialChannelEmbed | null {
   if (!raw || typeof raw !== 'object') return null;
   const src = raw as Record<string, unknown>;
   const id = String(src.id ?? '').trim().toLowerCase().replace(/[^a-z0-9_-]/g, '');
-  const channel = String(src.channel ?? '').trim().toLowerCase();
+  const channel = normalizeChannelSlug(String(src.channel ?? ''));
   if (!id || !channel) return null;
   const embed = sanitizeEmbedTemplate(src.embed, true);
   return {
