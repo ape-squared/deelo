@@ -41,7 +41,13 @@ export function isModuleEnabled(
     case 'autoreact':
       return config.reactionTriggers.length > 0;
     case 'roles':
-      return !!(guild.autorole || config.autoroles.length || config.vanityRoles.length);
+      return !!(
+        guild.autorole
+        || config.autoroles.length
+        || config.vanityRoles.length
+        || config.reactionRoles.length
+        || config.buttonRoles.length
+      );
     case 'levels':
       return guild.levels_enabled;
     case 'economy':

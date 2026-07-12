@@ -41,6 +41,61 @@ export async function addMessageReaction(channelId: string, messageId: string, e
   }
 }
 
+export async function removeMessageReaction(channelId: string, messageId: string, emoji: string): Promise<void> {
+  const token = requireDiscordBotToken();
+  const res = await fetchWithTimeout(
+    `${DISCORD_API}/channels/${channelId}/messages/${messageId}/reactions/${encodeEmoji(emoji)}/@me`,
+    { method: 'DELETE', headers: { Authorization: `Bot ${token}` }, timeoutMs: 8_000 },
+  );
+  if (!res.ok && res.status !== 204 && res.status !== 404) {
+    const detail = await discordErrorDetail(res);
+    throw new Error(`Failed to remove reaction (${res.status})${detail ? `: ${detail}` : ''}`);
+  }
+}
+
+export async function updateButtonRolePanel(
+  channelId: string,
+  messageId: string,
+  label: string,
+  roleId: string,
+  options?: { title?: string; description?: string; style?: 'primary' | 'secondary' | 'success' | 'danger' },
+): Promise<void> {
+  const token = requireDiscordBotToken();
+  const styleMap = { primary: 1, secondary: 2, success: 3, danger: 4 } as const;
+  const res = await fetchWithTimeout(`${DISCORD_API}/channels/${channelId}/messages/${messageId}`, {
+    method: 'PATCH',
+    headers: botHeaders(token),
+    timeoutMs: 12_000,
+    body: JSON.stringify({
+      embeds: [
+        {
+          title: options?.title ?? 'Role Menu',
+          description: options?.description ?? `Click **${label}** to get your role.`,
+          color: 0x0047ff,
+        },
+      ],
+      components: [
+        {
+          type: 1,
+          components: [
+            {
+              type: 2,
+              style: styleMap[options?.style ?? 'primary'],
+              label: label.slice(0, 80),
+              custom_id: `role_${roleId}`,
+            },
+          ],
+        },
+      ],
+    }),
+  });
+
+  if (!res.ok) {
+    const detail = await discordErrorDetail(res);
+    throw new Error(`Failed to update button panel (${res.status})${detail ? `: ${detail}` : ''}`);
+  }
+}
+
 export async function createButtonRolePanel(
   channelId: string,
   label: string,

@@ -3,9 +3,12 @@ import { badRequest, guildRoute, snowflake } from '@/lib/guild-route';
 import {
   addMessageReaction,
   createButtonRolePanel,
+  deleteDiscordMessage,
   fetchGuildCounterStats,
   formatCounterChannelName,
+  removeMessageReaction,
   renameDiscordChannel,
+  updateButtonRolePanel,
 } from '@/lib/discord-guild-actions';
 
 async function crudList(db: ReturnType<typeof import('@/lib/supabase/admin').createAdminClient>, table: string, guildId: string, key: string) {
@@ -164,6 +167,11 @@ export const POST = guildRoute(async (req, { guildId, db }) => {
         message_id = await createButtonRolePanel(channel_id, label, role_id, {
           title: body.title ? String(body.title) : undefined,
           description: body.description ? String(body.description) : undefined,
+          style: (['primary', 'secondary', 'success', 'danger'] as const).includes(
+            (body.style ?? 'primary') as 'primary',
+          )
+            ? (body.style as 'primary' | 'secondary' | 'success' | 'danger')
+            : 'primary',
         });
       } catch (err) {
         const msg = err instanceof Error ? err.message : 'Failed to post button panel in Discord.';
@@ -179,6 +187,121 @@ export const POST = guildRoute(async (req, { guildId, db }) => {
           role_id,
           style: body.style ?? 'primary',
         })
+        .select()
+        .single();
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ item: data });
+    }
+    default:
+      return badRequest('Unknown resource.');
+  }
+});
+
+export const PATCH = guildRoute(async (req, { guildId, db }) => {
+  const body = await req.json();
+  const resource = body.resource as string;
+
+  switch (resource) {
+    case 'autoroles': {
+      const old_role_id = snowflake(body.old_role_id);
+      const role_id = snowflake(body.role_id);
+      if (!old_role_id || !role_id) return badRequest('Old and new role IDs required.');
+      if (old_role_id === role_id) return NextResponse.json({ ok: true });
+      const { error: delErr } = await db.from('autoroles').delete().eq('guild_id', guildId).eq('role_id', old_role_id);
+      if (delErr) return NextResponse.json({ error: delErr.message }, { status: 500 });
+      const { data, error } = await db.from('autoroles').upsert({ guild_id: guildId, role_id }).select().single();
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ item: data });
+    }
+    case 'vanity-roles': {
+      const old_vanity_string = String(body.old_vanity_string ?? body.vanity_string ?? '').trim().toLowerCase();
+      const vanity_string = String(body.vanity_string ?? '').trim().toLowerCase();
+      const role_id = snowflake(body.role_id);
+      if (!old_vanity_string || !vanity_string || !role_id) {
+        return badRequest('Vanity string and role ID required.');
+      }
+      if (old_vanity_string !== vanity_string) {
+        await db.from('vanity_roles').delete().eq('guild_id', guildId).eq('vanity_string', old_vanity_string);
+      }
+      const { data, error } = await db
+        .from('vanity_roles')
+        .upsert({ guild_id: guildId, vanity_string, role_id })
+        .select()
+        .single();
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ item: data });
+    }
+    case 'reaction-roles': {
+      const rowId = parseInt(String(body.id), 10);
+      if (!rowId) return badRequest('Missing id.');
+      const { data: existing, error: fetchErr } = await db
+        .from('reaction_roles')
+        .select('*')
+        .eq('id', rowId)
+        .eq('guild_id', guildId)
+        .single();
+      if (fetchErr || !existing) return NextResponse.json({ error: 'Reaction role not found.' }, { status: 404 });
+
+      const emoji = body.emoji != null ? String(body.emoji).trim() : existing.emoji;
+      const role_id = body.role_id ? snowflake(body.role_id) : existing.role_id;
+      if (!emoji || !role_id) return badRequest('Emoji and role ID required.');
+
+      if (emoji !== existing.emoji) {
+        try {
+          await removeMessageReaction(existing.channel_id, existing.message_id, existing.emoji);
+          await addMessageReaction(existing.channel_id, existing.message_id, emoji);
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : 'Failed to sync reaction in Discord.';
+          return NextResponse.json({ error: msg }, { status: 502 });
+        }
+      }
+
+      const { data, error } = await db
+        .from('reaction_roles')
+        .update({ emoji, role_id })
+        .eq('id', rowId)
+        .eq('guild_id', guildId)
+        .select()
+        .single();
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ item: data });
+    }
+    case 'button-roles': {
+      const rowId = parseInt(String(body.id), 10);
+      if (!rowId) return badRequest('Missing id.');
+      const { data: existing, error: fetchErr } = await db
+        .from('button_roles')
+        .select('*')
+        .eq('id', rowId)
+        .eq('guild_id', guildId)
+        .single();
+      if (fetchErr || !existing) return NextResponse.json({ error: 'Button role not found.' }, { status: 404 });
+
+      const label = body.label != null ? String(body.label).trim() : existing.label;
+      const role_id = body.role_id ? snowflake(body.role_id) : existing.role_id;
+      const style = body.style != null ? String(body.style) : existing.style;
+      if (!label || !role_id) return badRequest('Label and role ID required.');
+
+      try {
+        await updateButtonRolePanel(existing.channel_id, existing.message_id, label, role_id, {
+          title: body.title ? String(body.title) : undefined,
+          description: body.description ? String(body.description) : undefined,
+          style: (['primary', 'secondary', 'success', 'danger'] as const).includes(
+            style as 'primary',
+          )
+            ? (style as 'primary' | 'secondary' | 'success' | 'danger')
+            : 'primary',
+        });
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : 'Failed to update button panel in Discord.';
+        return NextResponse.json({ error: msg }, { status: 502 });
+      }
+
+      const { data, error } = await db
+        .from('button_roles')
+        .update({ label, role_id, style })
+        .eq('id', rowId)
+        .eq('guild_id', guildId)
         .select()
         .single();
       if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -214,6 +337,22 @@ export const DELETE = guildRoute(async (req, { guildId, db }) => {
         : resource === 'reaction-roles' ? 'reaction_roles'
         : resource === 'button-roles' ? 'button_roles'
         : 'command_aliases';
+
+      if (resource === 'reaction-roles' || resource === 'button-roles') {
+        const { data: row } = await db.from(table).select('*').eq('id', rowId).eq('guild_id', guildId).single();
+        if (row) {
+          try {
+            if (resource === 'reaction-roles') {
+              await removeMessageReaction(row.channel_id, row.message_id, row.emoji);
+            } else {
+              await deleteDiscordMessage(row.channel_id, row.message_id);
+            }
+          } catch {
+            /* panel may already be gone */
+          }
+        }
+      }
+
       const { error } = await db.from(table).delete().eq('id', rowId).eq('guild_id', guildId);
       if (error) return NextResponse.json({ error: error.message }, { status: 500 });
       return NextResponse.json({ ok: true });

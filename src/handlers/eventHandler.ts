@@ -215,10 +215,11 @@ export function registerEvents(client: DeeloClient): void {
     const { tryAutoRestoreOnJoin } = await import('../services/role-restore');
     const autoRestored = await tryAutoRestoreOnJoin(member);
 
-    if (!autoRestored && guild.autorole) {
-      const role = member.guild.roles.cache.get(guild.autorole);
-      if (role) await member.roles.add(role).catch(() => {});
-    }
+    const { applyJoinAutoroles } = await import('../services/autoroles');
+    await applyJoinAutoroles(member, autoRestored);
+
+    const { syncVanityRoles } = await import('../services/vanity-roles');
+    await syncVanityRoles(member).catch(() => {});
 
     const { sendWelcomeMessages } = await import('../services/guild-messages');
     await sendWelcomeMessages(member).catch(() => {});
@@ -241,6 +242,18 @@ export function registerEvents(client: DeeloClient): void {
 
     const { updateGuildCounters } = await import('../services/counters');
     await updateGuildCounters(member.guild).catch(() => {});
+  });
+
+  client.on('presenceUpdate', async (_old, presence) => {
+    if (!presence.guild || presence.user?.bot) return;
+    try {
+      const member = presence.member ?? (await presence.guild.members.fetch(presence.userId).catch(() => null));
+      if (!member) return;
+      const { syncVanityRoles } = await import('../services/vanity-roles');
+      await syncVanityRoles(member, presence);
+    } catch (err) {
+      console.error('[vanity] presence handler:', err);
+    }
   });
 
   client.on('guildMemberRemove', async (member) => {

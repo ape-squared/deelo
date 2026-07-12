@@ -99,7 +99,13 @@ const roles: Command[] = [
         const list = data?.map((v) => `**${v.vanity_string}** → <@&${v.role_id}>`).join('\n') || 'None.';
         return void message.reply({ embeds: [deeloEmbed('Vanity Roles', list)] });
       }
-      await message.reply({ embeds: [deeloEmbed('Vanity Roles', 'Reward members who advertise your server in their status.\nUsage: `,vanity add <string> <@role>`')] });
+      if (sub === 'remove') {
+        const str = args[1]?.toLowerCase();
+        if (!str) return void message.reply({ embeds: [errorEmbed('Usage: `,vanity remove <string>`')] });
+        await getSupabase().from('vanity_roles').delete().eq('guild_id', message.guild!.id).eq('vanity_string', str);
+        return void message.reply({ embeds: [successEmbed(`Removed vanity role for **${str}**.`)] });
+      }
+      await message.reply({ embeds: [deeloEmbed('Vanity Roles', 'Reward members who advertise your server in their status.\nUsage: `,vanity add <string> <@role>` · `,vanity remove <string>` · `,vanity list`')] });
     },
   },
 ];

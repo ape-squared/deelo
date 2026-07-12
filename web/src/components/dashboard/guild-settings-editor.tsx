@@ -12,7 +12,8 @@ import { EXTRA_CONFIG_FIELDS, KNOWN_EVENTS, SOCIAL_FEED_PLATFORMS } from '@/lib/
 import { MODULE_GROUPS, isValidModuleId, moduleById, type ModuleId } from '@/lib/dashboard-modules';
 import { buildModuleTogglePatch, isModuleEnabled } from '@/lib/module-toggles';
 import { AddRow, CrudList, MiniInput, MiniSelect } from '@/components/dashboard/guild-crud';
-import { ChannelSelect, GuildChannelsProvider, MiniChannelSelect } from '@/components/dashboard/discord-resources';
+import { ChannelSelect, GuildChannelsProvider, GuildRolesProvider, MiniChannelSelect } from '@/components/dashboard/discord-resources';
+import { RolesTab } from '@/components/dashboard/roles-tab';
 import { RedeemCodePanel } from '@/components/dashboard/redeem-panel';
 import { ModuleOverview } from '@/components/dashboard/module-overview';
 import { EmbedsTab } from '@/components/dashboard/embed-builder';
@@ -185,6 +186,7 @@ export function GuildSettingsEditor({
 
   return (
     <GuildChannelsProvider guildId={guildId}>
+    <GuildRolesProvider guildId={guildId}>
     <div className="module-layout">
       <aside className="module-sidebar">
         <div className="module-sidebar-inner">
@@ -360,17 +362,14 @@ export function GuildSettingsEditor({
         )}
 
         {tab === 'roles' && (
-          <>
-            <Section title="Core roles" desc="Primary moderation and join roles">
-              <Field label="Primary autorole ID"><IdInput value={guild.autorole} onChange={(v) => update('autorole', v)} /></Field>
-              <Field label="Mute role ID"><IdInput value={guild.mute_role} onChange={(v) => update('mute_role', v)} /></Field>
-              <Field label="Jail role ID"><IdInput value={guild.jail_role} onChange={(v) => update('jail_role', v)} /></Field>
-            </Section>
-            <AutorolesList guildId={guildId} items={initial.autoroles} onReload={onReload} />
-            <VanityList guildId={guildId} items={initial.vanityRoles} onReload={onReload} />
-            <ReactionRolesList guildId={guildId} items={initial.reactionRoles} onReload={onReload} setMessage={setMessage} />
-            <ButtonRolesList guildId={guildId} items={initial.buttonRoles} onReload={onReload} setMessage={setMessage} />
-          </>
+          <RolesTab
+            guildId={guildId}
+            guild={guild}
+            config={{ ...initial, guild }}
+            update={update}
+            onReload={onReload}
+            setMessage={setMessage}
+          />
         )}
 
         {tab === 'levels' && (
@@ -568,6 +567,7 @@ export function GuildSettingsEditor({
         </div>
       </div>
     </div>
+    </GuildRolesProvider>
     </GuildChannelsProvider>
   );
 }
@@ -889,106 +889,6 @@ function CountersList({ guildId, items, onReload }: { guildId: string; items: Gu
   );
 }
 
-function ReactionRolesList({
-  guildId,
-  items,
-  onReload,
-  setMessage,
-}: {
-  guildId: string;
-  items: GuildFullConfig['reactionRoles'];
-  onReload: () => Promise<void>;
-  setMessage: (m: string) => void;
-}) {
-  const [channel_id, setChannelId] = useState('');
-  const [message_id, setMessageId] = useState('');
-  const [emoji, setEmoji] = useState('');
-  const [role_id, setRoleId] = useState('');
-
-  return (
-    <CrudList
-      title="Reaction roles"
-      desc="Adds the emoji reaction on the message in Discord when you save."
-      items={items}
-      columns={['Channel', 'Message', 'Emoji', 'Role']}
-      renderRow={(r) => [r.channel_id, r.message_id, r.emoji, r.role_id]}
-      onDelete={async (r) => {
-        await fetch(`/api/guilds/${guildId}/resources?resource=reaction-roles&id=${r.id}`, { method: 'DELETE' });
-        await onReload();
-      }}
-      addForm={
-        <AddRow
-          label="Add reaction role"
-          onAdd={async () => {
-            const res = await fetch(`/api/guilds/${guildId}/resources`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ resource: 'reaction-roles', channel_id, message_id, emoji, role_id }),
-            });
-            if (!res.ok) { setMessage((await res.json()).error ?? 'Failed'); return; }
-            setMessageId(''); setEmoji(''); setRoleId('');
-            await onReload();
-          }}
-        >
-          <MiniChannelSelect label="Channel" value={channel_id} onChange={setChannelId} />
-          <MiniInput label="Message ID" value={message_id} onChange={setMessageId} />
-          <MiniInput label="Emoji" value={emoji} onChange={setEmoji} placeholder="👋" />
-          <MiniInput label="Role ID" value={role_id} onChange={setRoleId} />
-        </AddRow>
-      }
-    />
-  );
-}
-
-function ButtonRolesList({
-  guildId,
-  items,
-  onReload,
-  setMessage,
-}: {
-  guildId: string;
-  items: GuildFullConfig['buttonRoles'];
-  onReload: () => Promise<void>;
-  setMessage: (m: string) => void;
-}) {
-  const [channel_id, setChannelId] = useState('');
-  const [label, setLabel] = useState('');
-  const [role_id, setRoleId] = useState('');
-
-  return (
-    <CrudList
-      title="Button roles"
-      desc="Posts a button panel in the channel — members click to get the role."
-      items={items}
-      columns={['Channel', 'Message', 'Label', 'Role']}
-      renderRow={(r) => [r.channel_id, r.message_id, r.label, r.role_id]}
-      onDelete={async (r) => {
-        await fetch(`/api/guilds/${guildId}/resources?resource=button-roles&id=${r.id}`, { method: 'DELETE' });
-        await onReload();
-      }}
-      addForm={
-        <AddRow
-          label="Create button role"
-          onAdd={async () => {
-            const res = await fetch(`/api/guilds/${guildId}/resources`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ resource: 'button-roles', channel_id, label, role_id }),
-            });
-            if (!res.ok) { setMessage((await res.json()).error ?? 'Failed'); return; }
-            setLabel(''); setRoleId('');
-            await onReload();
-          }}
-        >
-          <MiniChannelSelect label="Channel" value={channel_id} onChange={setChannelId} />
-          <MiniInput label="Button label" value={label} onChange={setLabel} placeholder="Get role" />
-          <MiniInput label="Role ID" value={role_id} onChange={setRoleId} />
-        </AddRow>
-      }
-    />
-  );
-}
-
 function OpenTicketsTab({
   guildId,
   plan,
@@ -1097,32 +997,6 @@ function OpenTicketsTab({
         </div>
       )}
     </div>
-  );
-}
-
-function AutorolesList({ guildId, items, onReload }: { guildId: string; items: GuildFullConfig['autoroles']; onReload: () => Promise<void> }) {
-  const [role_id, setRoleId] = useState('');
-  return (
-    <CrudList title="Extra autoroles" desc="Additional roles on join (autoroles table)" items={items.map((r, i) => ({ ...r, id: i }))} columns={['Role ID']} renderRow={(r) => [r.role_id]}
-      onDelete={async (r) => { await fetch(`/api/guilds/${guildId}/resources?resource=autoroles&id=${r.role_id}`, { method: 'DELETE' }); await onReload(); }}
-      addForm={<AddRow label="Add autorole" onAdd={async () => { await fetch(`/api/guilds/${guildId}/resources`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ resource: 'autoroles', role_id }) }); setRoleId(''); await onReload(); }}>
-        <MiniInput label="Role ID" value={role_id} onChange={setRoleId} />
-      </AddRow>}
-    />
-  );
-}
-
-function VanityList({ guildId, items, onReload }: { guildId: string; items: GuildFullConfig['vanityRoles']; onReload: () => Promise<void> }) {
-  const [vanity_string, setVanity] = useState('');
-  const [role_id, setRoleId] = useState('');
-  return (
-    <CrudList title="Vanity roles" desc="Role when custom status contains a string" items={items.map((r, i) => ({ ...r, id: i }))} columns={['String', 'Role']} renderRow={(r) => [r.vanity_string, r.role_id]}
-      onDelete={async (r) => { await fetch(`/api/guilds/${guildId}/resources?resource=vanity-roles&key=${encodeURIComponent(r.vanity_string)}`, { method: 'DELETE' }); await onReload(); }}
-      addForm={<AddRow label="Add vanity role" onAdd={async () => { await fetch(`/api/guilds/${guildId}/resources`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ resource: 'vanity-roles', vanity_string, role_id }) }); setVanity(''); setRoleId(''); await onReload(); }}>
-        <MiniInput label="Vanity string" value={vanity_string} onChange={setVanity} />
-        <MiniInput label="Role ID" value={role_id} onChange={setRoleId} />
-      </AddRow>}
-    />
   );
 }
 

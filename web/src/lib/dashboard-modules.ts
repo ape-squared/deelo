@@ -158,8 +158,20 @@ export function getModuleStatus(
       };
     case 'roles':
       return {
-        enabled: !!(guild.autorole || config.autoroles.length || config.vanityRoles.length),
-        detail: `${config.autoroles.length + (guild.autorole ? 1 : 0)} role setup`,
+        enabled: !!(
+          guild.autorole
+          || config.autoroles.length
+          || config.vanityRoles.length
+          || config.reactionRoles.length
+          || config.buttonRoles.length
+        ),
+        detail: [
+          guild.autorole && 'Primary autorole',
+          config.autoroles.length && `${config.autoroles.length} extra`,
+          config.vanityRoles.length && `${config.vanityRoles.length} vanity`,
+          config.reactionRoles.length && `${config.reactionRoles.length} reaction`,
+          config.buttonRoles.length && `${config.buttonRoles.length} button`,
+        ].filter(Boolean).join(' · ') || 'Not configured',
       };
     case 'levels':
       return {

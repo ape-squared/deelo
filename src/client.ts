@@ -25,6 +25,7 @@ export class DeeloClient extends Client {
         GatewayIntentBits.GuildMessageReactions,
         GatewayIntentBits.GuildVoiceStates,
         GatewayIntentBits.GuildModeration,
+        GatewayIntentBits.GuildPresences,
         GatewayIntentBits.MessageContent,
         GatewayIntentBits.DirectMessages,
       ],
