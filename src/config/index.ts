@@ -2,7 +2,10 @@ import 'dotenv/config';
 
 export const config = {
   token: process.env.DISCORD_TOKEN ?? '',
-  ownerIds: (process.env.OWNER_IDS ?? '').split(',').filter(Boolean),
+  ownerIds: (process.env.OWNER_IDS ?? process.env.PLATFORM_OWNER_IDS ?? '')
+    .split(',')
+    .map((id) => id.trim())
+    .filter(Boolean),
   supportGuildId: process.env.SUPPORT_GUILD_ID ?? '',
   /** Puter auth token — preferred free OpenAI gateway (https://developer.puter.com/tutorials/puter-auth-token/) */
   puterAuthToken: process.env.PUTER_AUTH_TOKEN ?? '',

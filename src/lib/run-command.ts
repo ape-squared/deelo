@@ -6,6 +6,7 @@ import { errorEmbed } from '../utils/embeds';
 import { formatPermissionList } from '../utils/permissions';
 import { ackCommandMessage, shouldAckCommand } from './command-ack';
 import { getGuild, getGuildPlan } from '../database';
+import { getPlatformStaffRole, staffMeetsRole } from '../services/platform-staff';
 
 export async function runCommand(
   client: DeeloClient,
@@ -49,8 +50,25 @@ export async function runCommand(
 
   try {
     if (command.ownerOnly && !config.ownerIds.includes(message.author.id)) {
-      await safeReply({ embeds: [errorEmbed('This command is owner-only.', embedGuild)] });
-      return;
+      const role = await getPlatformStaffRole(message.author.id);
+      const staffOk = role !== null && staffMeetsRole(role, 'developer');
+      if (!staffOk) {
+        await safeReply({
+          embeds: [
+            errorEmbed(
+              [
+                'This command is owner-only.',
+                `Your Discord ID: \`${message.author.id}\``,
+                config.ownerIds.length
+                  ? 'If you run the bot, add your ID to `OWNER_IDS` in the bot environment and redeploy.'
+                  : '`OWNER_IDS` is not set on this bot — add your ID there and redeploy.',
+              ].join('\n'),
+              embedGuild,
+            ),
+          ],
+        });
+        return;
+      }
     }
     if (command.permissions && message.member) {
       const missing = command.permissions.filter((p) => !message.member!.permissions.has(p));
