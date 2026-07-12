@@ -1332,6 +1332,19 @@ body {
   @apply fixed inset-0 z-[100] flex items-end justify-center p-4 sm:items-center;
 }
 
+.whats-new-overlay--dashboard {
+  @apply z-[60];
+}
+
+.whats-new-overlay--dashboard .whats-new-backdrop {
+  @apply bg-black/55;
+}
+
+.whats-new-overlay--dashboard .whats-new-panel {
+  @apply max-w-md;
+  box-shadow: 0 24px 64px -24px rgba(0, 71, 255, 0.35);
+}
+
 .whats-new-backdrop {
   @apply absolute inset-0 bg-black/70 backdrop-blur-sm;
 }

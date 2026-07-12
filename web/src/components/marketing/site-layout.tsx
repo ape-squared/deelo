@@ -1,8 +1,6 @@
 import { Suspense } from 'react';
 import { SiteFooter, SiteTopBanner } from '@/components/site-chrome';
 import { SiteHeader } from '@/components/site-header';
-import { getLatestAutoRelease } from '@/lib/releases';
-import { WhatsNewModal } from '@/components/marketing/whats-new-modal';
 import { SiteJsonLd } from '@/components/site-json-ld';
 import { CookieConsent } from '@/components/cookie-consent';
 import { MobileCtaBar } from '@/components/mobile-cta-bar';
@@ -14,8 +12,6 @@ export async function MarketingLayout({
   children: React.ReactNode;
   banner?: boolean;
 }) {
-  const latestRelease = getLatestAutoRelease();
-
   return (
     <div className="site-v3 mesh-bg v3-mesh flex min-h-screen flex-col overflow-x-hidden">
       <a href="#main-content" className="skip-link">
@@ -34,7 +30,6 @@ export async function MarketingLayout({
       </Suspense>
       <MobileCtaBar />
       <CookieConsent />
-      <WhatsNewModal release={latestRelease} />
     </div>
   );
 }

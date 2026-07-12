@@ -5,11 +5,13 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard, CreditCard, BookOpen, LogOut, ExternalLink,
-  ChevronRight, Plus, Home,
+  ChevronRight, Plus, Home, Sparkles,
 } from 'lucide-react';
 import { DeeloIcon, DeeloWordmark } from '@/components/brand/logo';
 import { inviteApiPath } from '@/lib/invite';
 import { dashboardRedeemPath } from '@/lib/dashboard-paths';
+import { WhatsNewModal } from '@/components/marketing/whats-new-modal';
+import { getLatestAutoRelease } from '@/lib/releases';
 
 export interface DashboardGuild {
   id: string;
@@ -20,6 +22,7 @@ export interface DashboardGuild {
 }
 
 const FOOTER_NAV = [
+  { href: '/changelog', label: 'Changelog', icon: Sparkles },
   { href: '/commands', label: 'Commands', icon: BookOpen },
 ] as const;
 
@@ -144,6 +147,9 @@ export function DashboardShell({
           {children}
         </main>
       </div>
+      {user ? (
+        <WhatsNewModal release={getLatestAutoRelease()} enabled variant="dashboard" />
+      ) : null}
     </div>
   );
 }

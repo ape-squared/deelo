@@ -13,11 +13,20 @@ function releaseStorageKey(release: AutoRelease): string {
   return `${release.id}:${lead}`;
 }
 
-export function WhatsNewModal({ release }: { release: AutoRelease | null }) {
+export function WhatsNewModal({
+  release,
+  enabled = true,
+  variant = 'marketing',
+}: {
+  release: AutoRelease | null;
+  /** When false, never auto-opens (e.g. logged-out visitors). */
+  enabled?: boolean;
+  variant?: 'marketing' | 'dashboard';
+}) {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    if (!release?.version) return;
+    if (!enabled || !release?.version) return;
     const key = releaseStorageKey(release);
     try {
       const seen = localStorage.getItem(STORAGE_KEY);
@@ -25,7 +34,7 @@ export function WhatsNewModal({ release }: { release: AutoRelease | null }) {
     } catch {
       setOpen(true);
     }
-  }, [release]);
+  }, [enabled, release]);
 
   function dismiss() {
     if (release?.version) {
@@ -41,7 +50,12 @@ export function WhatsNewModal({ release }: { release: AutoRelease | null }) {
   if (!open || !release) return null;
 
   return (
-    <div className="whats-new-overlay" role="dialog" aria-modal="true" aria-labelledby="whats-new-title">
+    <div
+      className={`whats-new-overlay ${variant === 'dashboard' ? 'whats-new-overlay--dashboard' : ''}`}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="whats-new-title"
+    >
       <button type="button" className="whats-new-backdrop" aria-label="Close" onClick={dismiss} />
       <div className="whats-new-panel animate-scale-in">
         <div className="whats-new-header">
@@ -61,7 +75,12 @@ export function WhatsNewModal({ release }: { release: AutoRelease | null }) {
           <h2 id="whats-new-title" className="text-xl font-bold tracking-tight sm:text-2xl">
             {release.title}
           </h2>
-          <p className="mt-2 text-sm text-muted">
+          {variant === 'dashboard' ? (
+            <p className="mt-2 text-sm text-muted">
+              Fresh updates since your last visit — see what changed in Deelo.
+            </p>
+          ) : null}
+          <p className={`text-sm text-muted ${variant === 'dashboard' ? 'mt-1' : 'mt-2'}`}>
             {CHANGELOG_CATEGORY_LABELS[release.category]} ·{' '}
             {new Date(release.published_at).toLocaleDateString('en-US', {
               month: 'long',
