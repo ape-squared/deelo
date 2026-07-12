@@ -4,16 +4,19 @@ import { requireStaffPage } from '@/lib/staff-page';
 import { StaffPageHeader } from '@/components/staff/ui';
 import { WebsiteManager } from '@/components/admin-website';
 import { getAllAnnouncementsAdmin, getAllChangelogAdmin, getSiteSettingsAdmin } from '@/lib/site-data';
+import { loadOfficialDiscordEmbeds } from '@/lib/official-discord-sync';
+import { DEFAULT_OFFICIAL_DISCORD_EMBEDS } from '@/lib/official-server-embeds';
 import { platformHasPermission } from '@/lib/platform-roles';
 
 export default async function DeveloperChangelogPage() {
   const staff = await requireStaffPage('cms.read');
   const canWrite = platformHasPermission(staff.role, 'cms.write');
 
-  const [announcements, changelog, settings] = await Promise.all([
+  const [announcements, changelog, settings, officialDiscord] = await Promise.all([
     getAllAnnouncementsAdmin(),
     getAllChangelogAdmin(),
     getSiteSettingsAdmin(),
+    loadOfficialDiscordEmbeds().catch(() => DEFAULT_OFFICIAL_DISCORD_EMBEDS),
   ]);
 
   return (
@@ -38,6 +41,7 @@ export default async function DeveloperChangelogPage() {
           initialAnnouncements={announcements}
           initialChangelog={changelog}
           initialSettings={settings}
+          initialOfficialDiscord={officialDiscord}
         />
       ) : (
         <div className="card p-6 space-y-4">

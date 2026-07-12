@@ -2,22 +2,26 @@
 
 import { useState } from 'react';
 import {
-  Globe, Megaphone, ScrollText, Plus, Loader2, Pencil, Trash2, Eye, EyeOff, Pin, Bell,
+  Globe, Megaphone, ScrollText, Plus, Loader2, Pencil, Trash2, Eye, EyeOff, Pin, Bell, MessageSquare,
 } from 'lucide-react';
 import { AdminCard, AdminEmpty, AdminStatCard, AdminTable } from '@/components/admin/ui';
+import { OfficialDiscordEmbedsManager } from '@/components/admin/official-discord-embeds';
 import type { SiteAnnouncement, SiteChangelogEntry, ChangelogCategory } from '@/lib/site-content';
 import { CHANGELOG_CATEGORY_LABELS } from '@/lib/site-content';
+import type { OfficialDiscordEmbedsSettings } from '@/lib/official-server-embeds';
 
-type Tab = 'announcements' | 'changelog' | 'settings';
+type Tab = 'announcements' | 'changelog' | 'discord' | 'settings';
 
 export function WebsiteManager({
   initialAnnouncements,
   initialChangelog,
   initialSettings,
+  initialOfficialDiscord,
 }: {
   initialAnnouncements: SiteAnnouncement[];
   initialChangelog: SiteChangelogEntry[];
   initialSettings: Record<string, unknown>;
+  initialOfficialDiscord: OfficialDiscordEmbedsSettings;
 }) {
   const [tab, setTab] = useState<Tab>('announcements');
   const [announcements, setAnnouncements] = useState(initialAnnouncements);
@@ -156,6 +160,7 @@ export function WebsiteManager({
   const tabs: { id: Tab; label: string; icon: typeof Globe }[] = [
     { id: 'announcements', label: 'Announcements', icon: Megaphone },
     { id: 'changelog', label: 'Changelog', icon: ScrollText },
+    { id: 'discord', label: 'Discord server', icon: MessageSquare },
     { id: 'settings', label: 'Site settings', icon: Globe },
   ];
 
@@ -373,6 +378,13 @@ export function WebsiteManager({
             )}
           </AdminCard>
         </>
+      )}
+
+      {tab === 'discord' && (
+        <OfficialDiscordEmbedsManager
+          initialSettings={initialOfficialDiscord}
+          onMessage={(msg, isError) => flash(msg, isError)}
+        />
       )}
 
       {tab === 'settings' && (

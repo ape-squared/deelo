@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-12T00:01:16.089Z",
+  "generated_at": "2026-07-12T13:25:42.928Z",
   "by_cog": {
     "servers": [
       {
@@ -21,6 +21,10 @@
       {
         "name": "autorole",
         "description": "Set auto-role for new members"
+      },
+      {
+        "name": "deelorun",
+        "description": "Sync official Deelo server embeds from the admin CMS"
       },
       {
         "name": "event",
