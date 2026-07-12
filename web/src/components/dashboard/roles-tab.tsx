@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { DashboardGuildSettings } from '@/lib/guild-settings';
 import type { GuildFullConfig } from '@/lib/guild-types';
-import { AddRow, CrudList, MiniInput, MiniSelect } from '@/components/dashboard/guild-crud';
+import { AddRow, CrudList, MiniInput, MiniSelect, type AddRowResult } from '@/components/dashboard/guild-crud';
 import { MiniChannelSelect, MiniRoleSelect, RoleSelect, useRoleName } from '@/components/dashboard/discord-resources';
 
 const BUTTON_STYLES = [
@@ -22,10 +22,47 @@ async function apiJson(
   url: string,
   init?: RequestInit,
 ): Promise<{ ok: boolean; error?: string; data?: unknown }> {
-  const res = await fetch(url, init);
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) return { ok: false, error: (data as { error?: string }).error ?? 'Request failed' };
-  return { ok: true, data };
+  try {
+    const res = await fetch(url, init);
+    const text = await res.text();
+    let data: { error?: string } = {};
+    if (text) {
+      try {
+        data = JSON.parse(text) as { error?: string };
+      } catch {
+        data = { error: text.slice(0, 200) || `HTTP ${res.status}` };
+      }
+    }
+    if (!res.ok) {
+      return {
+        ok: false,
+        error: data.error ?? `Request failed (HTTP ${res.status})`,
+      };
+    }
+    try {
+      return { ok: true, data: text ? JSON.parse(text) : {} };
+    } catch {
+      return { ok: true, data: {} };
+    }
+  } catch (err) {
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : 'Network error — could not reach the server.',
+    };
+  }
+}
+
+function snowflakeOrError(value: string, label: string): AddRowResult | null {
+  const trimmed = value.trim();
+  if (!trimmed) return { ok: false, error: `${label} is required.` };
+  if (!/^\d{17,20}$/.test(trimmed)) {
+    return { ok: false, error: `${label} must be a valid Discord ID — pick it from the dropdown.` };
+  }
+  return null;
+}
+
+function notify(setMessage: (m: string) => void, text: string, type: 'error' | 'success') {
+  setMessage(type === 'error' ? `Error: ${text}` : text);
 }
 
 function Section({ title, desc, children }: { title: string; desc: string; children: React.ReactNode }) {
@@ -48,6 +85,50 @@ function Field({ label, hint, children }: { label: string; hint?: string; childr
   );
 }
 
+export function RolesCoreSection({
+  guild,
+  update,
+}: {
+  guild: DashboardGuildSettings;
+  update: <K extends keyof DashboardGuildSettings>(key: K, value: DashboardGuildSettings[K]) => void;
+}) {
+  return (
+    <Section title="Core roles" desc="Primary join role and moderation roles. Save with the bar below.">
+      <Field label="Primary autorole" hint="Assigned when members join (unless roles are restored).">
+        <RoleSelect value={guild.autorole} onChange={(v) => update('autorole', v)} />
+      </Field>
+      <Field label="Mute role">
+        <RoleSelect value={guild.mute_role} onChange={(v) => update('mute_role', v)} />
+      </Field>
+      <Field label="Jail role">
+        <RoleSelect value={guild.jail_role} onChange={(v) => update('jail_role', v)} />
+      </Field>
+    </Section>
+  );
+}
+
+export function RolesListsSection({
+  guildId,
+  config,
+  onReload,
+  setMessage,
+}: {
+  guildId: string;
+  config: GuildFullConfig;
+  onReload: () => Promise<void>;
+  setMessage: (m: string) => void;
+}) {
+  return (
+    <>
+      <ExtraAutorolesList guildId={guildId} items={config.autoroles} onReload={onReload} setMessage={setMessage} />
+      <VanityRolesList guildId={guildId} items={config.vanityRoles} onReload={onReload} setMessage={setMessage} />
+      <ReactionRolesList guildId={guildId} items={config.reactionRoles} onReload={onReload} setMessage={setMessage} />
+      <ButtonRolesList guildId={guildId} items={config.buttonRoles} onReload={onReload} setMessage={setMessage} />
+    </>
+  );
+}
+
+/** @deprecated use RolesCoreSection + RolesListsSection */
 export function RolesTab({
   guildId,
   guild,
@@ -65,22 +146,8 @@ export function RolesTab({
 }) {
   return (
     <>
-      <Section title="Core roles" desc="Primary join role and moderation roles. Save with the bar below.">
-        <Field label="Primary autorole" hint="Assigned when members join (unless roles are restored).">
-          <RoleSelect value={guild.autorole} onChange={(v) => update('autorole', v)} />
-        </Field>
-        <Field label="Mute role">
-          <RoleSelect value={guild.mute_role} onChange={(v) => update('mute_role', v)} />
-        </Field>
-        <Field label="Jail role">
-          <RoleSelect value={guild.jail_role} onChange={(v) => update('jail_role', v)} />
-        </Field>
-      </Section>
-
-      <ExtraAutorolesList guildId={guildId} items={config.autoroles} onReload={onReload} setMessage={setMessage} />
-      <VanityRolesList guildId={guildId} items={config.vanityRoles} onReload={onReload} setMessage={setMessage} />
-      <ReactionRolesList guildId={guildId} items={config.reactionRoles} onReload={onReload} setMessage={setMessage} />
-      <ButtonRolesList guildId={guildId} items={config.buttonRoles} onReload={onReload} setMessage={setMessage} />
+      <RolesCoreSection guild={guild} update={update} />
+      <RolesListsSection guildId={guildId} config={config} onReload={onReload} setMessage={setMessage} />
     </>
   );
 }
@@ -131,14 +198,21 @@ function ExtraAutorolesList({
         <AddRow
           label="Add autorole"
           onAdd={async () => {
+            const invalid = snowflakeOrError(role_id, 'Role');
+            if (invalid) return invalid;
             const res = await apiJson(`/api/guilds/${guildId}/resources`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ resource: 'autoroles', role_id }),
             });
-            if (!res.ok) { setMessage(res.error ?? 'Failed'); return; }
+            if (!res.ok) {
+              notify(setMessage, res.error ?? 'Failed', 'error');
+              return { ok: false, error: res.error ?? 'Failed to add autorole.' };
+            }
             setRoleId('');
             await onReload();
+            notify(setMessage, 'Autorole added.', 'success');
+            return { ok: true, message: 'Autorole added.' };
           }}
         >
           <MiniRoleSelect label="Role" value={role_id} onChange={setRoleId} />
@@ -446,25 +520,43 @@ function ButtonRolesList({
         <AddRow
           label="Create button role"
           onAdd={async () => {
+            const channelErr = snowflakeOrError(channel_id, 'Channel');
+            if (channelErr) return channelErr;
+            const roleErr = snowflakeOrError(role_id, 'Role');
+            if (roleErr) return roleErr;
+            if (!label.trim()) {
+              const msg = 'Button label is required.';
+              notify(setMessage, msg, 'error');
+              return { ok: false, error: msg };
+            }
+
             const res = await apiJson(`/api/guilds/${guildId}/resources`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                 resource: 'button-roles',
-                channel_id,
-                label,
-                role_id,
+                channel_id: channel_id.trim(),
+                label: label.trim(),
+                role_id: role_id.trim(),
                 style,
-                title: title || undefined,
-                description: description || undefined,
+                title: title.trim() || undefined,
+                description: description.trim() || undefined,
               }),
             });
-            if (!res.ok) { setMessage(res.error ?? 'Failed'); return; }
+
+            if (!res.ok) {
+              notify(setMessage, res.error ?? 'Failed to create button role panel.', 'error');
+              return { ok: false, error: res.error ?? 'Failed to post the panel in Discord.' };
+            }
+
             setLabel('');
             setRoleId('');
             setTitle('');
             setDescription('');
             await onReload();
+            const success = 'Button role panel posted in Discord.';
+            notify(setMessage, success, 'success');
+            return { ok: true, message: success };
           }}
         >
           <MiniChannelSelect label="Channel" value={channel_id} onChange={setChannelId} />

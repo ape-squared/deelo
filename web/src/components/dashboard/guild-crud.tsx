@@ -147,20 +147,72 @@ export function CrudList<T extends object>({
   );
 }
 
-export function AddRow({ onAdd, children, label = 'Add' }: { onAdd: () => Promise<void>; children: React.ReactNode; label?: string }) {
+export type AddRowResult = { ok: true; message?: string } | { ok: false; error: string };
+
+export function AddRow({
+  onAdd,
+  children,
+  label = 'Add',
+}: {
+  onAdd: () => Promise<AddRowResult | void>;
+  children: React.ReactNode;
+  label?: string;
+}) {
   const [adding, setAdding] = useState(false);
+  const [feedback, setFeedback] = useState<{ type: 'error' | 'success'; text: string } | null>(null);
+
+  async function handleAdd(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    setFeedback(null);
+    setAdding(true);
+    try {
+      const result = await onAdd();
+      if (!result) return;
+      if (result.ok) {
+        setFeedback({ type: 'success', text: result.message ?? 'Saved successfully.' });
+      } else {
+        setFeedback({ type: 'error', text: result.error });
+      }
+    } catch (err) {
+      setFeedback({
+        type: 'error',
+        text: err instanceof Error ? err.message : 'Something went wrong. Try again.',
+      });
+    } finally {
+      setAdding(false);
+    }
+  }
+
   return (
-    <div className="space-y-3">
+    <div
+      className="space-y-3"
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') e.preventDefault();
+      }}
+    >
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{children}</div>
       <button
         type="button"
         className="btn-secondary text-sm"
         disabled={adding}
-        onClick={async () => { setAdding(true); await onAdd(); setAdding(false); }}
+        onClick={handleAdd}
       >
         <Plus className="h-4 w-4" />
-        {adding ? 'Adding...' : label}
+        {adding ? 'Working…' : label}
       </button>
+      {feedback ? (
+        <p
+          className={`text-sm rounded-lg border px-3 py-2 ${
+            feedback.type === 'error'
+              ? 'border-red-500/30 bg-red-500/10 text-red-300'
+              : 'border-green-500/30 bg-green-500/10 text-green-300'
+          }`}
+          role="status"
+        >
+          {feedback.text}
+        </p>
+      ) : null}
     </div>
   );
 }

@@ -161,12 +161,20 @@ export const POST = guildRoute(async (req, { guildId, db }) => {
       const channel_id = snowflake(body.channel_id);
       const label = String(body.label ?? '').trim();
       const role_id = snowflake(body.role_id);
-      if (!channel_id || !label || !role_id) return badRequest('Channel, label, and role ID are required.');
+      if (!channel_id) {
+        return badRequest('Invalid or missing channel. Select a channel from the dropdown.');
+      }
+      if (!label) {
+        return badRequest('Button label is required.');
+      }
+      if (!role_id) {
+        return badRequest('Invalid or missing role. Select a role from the dropdown.');
+      }
       let message_id: string;
       try {
         message_id = await createButtonRolePanel(channel_id, label, role_id, {
-          title: body.title ? String(body.title) : undefined,
-          description: body.description ? String(body.description) : undefined,
+          title: body.title ? String(body.title).trim() : undefined,
+          description: body.description ? String(body.description).trim() : undefined,
           style: (['primary', 'secondary', 'success', 'danger'] as const).includes(
             (body.style ?? 'primary') as 'primary',
           )
@@ -175,6 +183,7 @@ export const POST = guildRoute(async (req, { guildId, db }) => {
         });
       } catch (err) {
         const msg = err instanceof Error ? err.message : 'Failed to post button panel in Discord.';
+        console.error('[button-roles] Discord post failed:', msg);
         return NextResponse.json({ error: msg }, { status: 502 });
       }
       const { data, error } = await db
@@ -189,7 +198,12 @@ export const POST = guildRoute(async (req, { guildId, db }) => {
         })
         .select()
         .single();
-      if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+      if (error) {
+        console.error('[button-roles] DB insert failed after Discord post:', error.message, { message_id, channel_id });
+        return NextResponse.json({
+          error: `Panel was posted in Discord but saving failed: ${error.message}`,
+        }, { status: 500 });
+      }
       return NextResponse.json({ item: data });
     }
     default:

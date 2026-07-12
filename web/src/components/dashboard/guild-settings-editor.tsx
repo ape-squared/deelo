@@ -13,7 +13,7 @@ import { MODULE_GROUPS, isValidModuleId, moduleById, type ModuleId } from '@/lib
 import { buildModuleTogglePatch, isModuleEnabled } from '@/lib/module-toggles';
 import { AddRow, CrudList, MiniInput, MiniSelect } from '@/components/dashboard/guild-crud';
 import { ChannelSelect, GuildChannelsProvider, GuildRolesProvider, MiniChannelSelect } from '@/components/dashboard/discord-resources';
-import { RolesTab } from '@/components/dashboard/roles-tab';
+import { RolesCoreSection, RolesListsSection } from '@/components/dashboard/roles-tab';
 import { RedeemCodePanel } from '@/components/dashboard/redeem-panel';
 import { ModuleOverview } from '@/components/dashboard/module-overview';
 import { EmbedsTab } from '@/components/dashboard/embed-builder';
@@ -221,7 +221,12 @@ export function GuildSettingsEditor({
       <div className="module-content">
         <div className="module-content-pad">
         {message && (
-          <div className={`mb-6 rounded-xl border px-4 py-3 text-sm animate-fade-in ${message.includes('Failed') || message.includes('failed') ? 'border-red-500/30 bg-red-500/10 text-red-400' : 'border-green-500/30 bg-green-500/10 text-green-400'}`}>
+          <div className={`mb-6 rounded-xl border px-4 py-3 text-sm animate-fade-in ${
+            message.startsWith('Error:')
+            || /fail|error|required|invalid|missing|forbidden|unauthorized/i.test(message)
+              ? 'border-red-500/30 bg-red-500/10 text-red-400'
+              : 'border-green-500/30 bg-green-500/10 text-green-400'
+          }`}>
             {message}
           </div>
         )}
@@ -362,14 +367,7 @@ export function GuildSettingsEditor({
         )}
 
         {tab === 'roles' && (
-          <RolesTab
-            guildId={guildId}
-            guild={guild}
-            config={{ ...initial, guild }}
-            update={update}
-            onReload={onReload}
-            setMessage={setMessage}
-          />
+          <RolesCoreSection guild={guild} update={update} />
         )}
 
         {tab === 'levels' && (
@@ -563,6 +561,17 @@ export function GuildSettingsEditor({
           </div>
         )}
           </form>
+        )}
+
+        {tab === 'roles' && (
+          <div className="space-y-6">
+            <RolesListsSection
+              guildId={guildId}
+              config={{ ...initial, guild }}
+              onReload={onReload}
+              setMessage={setMessage}
+            />
+          </div>
         )}
         </div>
       </div>
