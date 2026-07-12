@@ -571,35 +571,45 @@ async function handleFortnite(name: string, message: Message, args: string[]) {
 }
 
 async function handleCrypto(name: string, message: Message, args: string[]) {
+  const { buildCryptoPriceEmbed, buildEthAddressEmbed, buildGasPriceEmbed } = await import(
+    '../../services/integrations/crypto-lookups'
+  );
+
   if (name === 'crypto' || name === 'cryptocurrency') {
-    const coin = args[0]?.toLowerCase() ?? 'bitcoin';
+    const coin = args[0] ?? 'bitcoin';
     try {
-      const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${coin}&vs_currencies=usd`);
-      const data = (await res.json()) as Record<string, { usd: number }>;
-      const price = data[coin]?.usd;
-      if (!price) { await replyError(message, `Unknown coin: ${coin}`); return true; }
-      await replyInfo(message, 'Crypto', `**${coin}**: $${price.toLocaleString()}`);
-    } catch {
-      await replyError(message, 'Price fetch failed.');
+      await message.reply({ embeds: [await buildCryptoPriceEmbed(coin)] });
+    } catch (err) {
+      await replyError(message, err instanceof Error ? err.message : 'Price fetch failed.');
     }
     return true;
   }
+
   if (name === 'gas') {
-    try {
-      const res = await fetch('https://api.etherscan.io/api?module=gastracker&action=gasoracle');
-      const data = (await res.json()) as { result?: { ProposeGasPrice: string } };
-      await replyInfo(message, 'Gas Price', `**${data.result?.ProposeGasPrice ?? '?'}** Gwei (Ethereum)`);
-    } catch {
-      await replyInfo(message, 'Gas', 'Ethereum gas prices vary — check etherscan.io/gastracker');
-    }
+    await message.reply({ embeds: [await buildGasPriceEmbed()] });
     return true;
   }
+
   if (name === 'subscribe' || name === 'transaction') {
-    await replyInfo(message, name, `**,${name}** wallet tracking is not live yet. Use \`,crypto <coin>\` for spot prices, or save a watch address with \`,${name} <address>\` (stored for when alerts ship).`);
-    if (needManageGuild(message.member!) && args.length > 0) {
-      await setExtraConfig(message.guild!.id, `crypto.${name}`, args.join(' '));
+    const addr = args.join(' ').trim();
+    if (!addr) {
+      await replyInfo(
+        message,
+        name,
+        `**,${name}** — check an Ethereum wallet balance.\nUsage: \`,${name} <0x address>\`\n\nFor spot prices use \`,crypto btc\` or \`,crypto eth\`.`,
+      );
+      return true;
+    }
+    try {
+      await message.reply({ embeds: [await buildEthAddressEmbed(addr)] });
+      if (needManageGuild(message.member!)) {
+        await setExtraConfig(message.guild!.id, `crypto.${name}`, addr);
+      }
+    } catch (err) {
+      await replyError(message, err instanceof Error ? err.message : 'Address lookup failed.');
     }
     return true;
   }
+
   return false;
 }

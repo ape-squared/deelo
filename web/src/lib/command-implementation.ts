@@ -29,12 +29,7 @@ export const SUPPORTED_COGS = new Set([
   'snipe',
   'reaction',
   'servers',
-]);
-
-/** Cogs with real commands for common actions; many catalog entries still coming soon. */
-export const PARTIAL_COGS = new Set([
-  'features',
-  'integrations',
+  // Social feeds + lookups (free APIs)
   'instagram',
   'twitter',
   'tiktok',
@@ -44,12 +39,11 @@ export const PARTIAL_COGS = new Set([
   'reddit',
   'soundcloud',
   'crypto',
-  'applications',
-  'metrics',
-  'monitor',
-  'network',
   'pinterest',
 ]);
+
+/** Cogs with real commands for common actions; many catalog entries still coming soon. */
+export const PARTIAL_COGS = new Set<string>([]);
 
 export type CommandImplementationStatus = 'supported' | 'partial' | 'coming-soon';
 

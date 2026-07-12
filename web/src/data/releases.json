@@ -1,13 +1,33 @@
 {
-  "generated_at": "2026-07-11T23:42:55.030Z",
+  "generated_at": "2026-07-12T00:01:16.003Z",
   "latest": {
     "id": "release-2026-07-11",
-    "version": "824d492",
-    "published_at": "2026-07-11T19:41:04-04:00",
+    "version": "c247473",
+    "published_at": "2026-07-11T19:57:37-04:00",
     "title": "Updates for July 11, 2026",
     "category": "improvement",
-    "body": "- Remove Last.fm, Spotify integration commands, and sports APIs\n- v5 command coverage: real lookups, 400+ native bridges, no more dead ends\n- Fix ticket panel button stuck on thinking after click\n- Sync changelog release data for v5 ticket overhaul\n- v5 overhaul: rebuild ticket system end-to-end for bot and dashboard\n- Fix dashboard ticket panel creation failing to post to Discord\n- Revert \"Overhaul user, admin, and staff dashboards with HeroUI v3 on Tailwind v4.\"\n- Overhaul user, admin, and staff dashboards with HeroUI v3 on Tailwind v4\n- Improve Discord OAuth secret handling and diagnostics\n- Update July 11 changelog bundle and add docs wordmark asset\n- Fix slow Docker web builds during static page generation\n- Auto-join dashboard users to official Discord via guilds.join",
+    "body": "- Auto-sync native bot commands to the /commands catalog\n- Add stream radio commands to the public /commands catalog\n- Polish status and content pages for consistent marketing layout\n- Fix changelog day bundles being replaced on shallow deploy builds\n- Remove Last.fm, Spotify integration commands, and sports APIs\n- v5 command coverage: real lookups, 400+ native bridges, no more dead ends\n- Fix ticket panel button stuck on thinking after click\n- Sync changelog release data for v5 ticket overhaul\n- v5 overhaul: rebuild ticket system end-to-end for bot and dashboard\n- Fix dashboard ticket panel creation failing to post to Discord\n- Revert \"Overhaul user, admin, and staff dashboards with HeroUI v3 on Tailwind v4.\"\n- Overhaul user, admin, and staff dashboards with HeroUI v3 on Tailwind v4",
     "items": [
+      {
+        "title": "Auto-sync native bot commands to the /commands catalog",
+        "category": "improvement",
+        "hash": "c247473"
+      },
+      {
+        "title": "Add stream radio commands to the public /commands catalog",
+        "category": "feature",
+        "hash": "db4f219"
+      },
+      {
+        "title": "Polish status and content pages for consistent marketing layout",
+        "category": "improvement",
+        "hash": "f8be384"
+      },
+      {
+        "title": "Fix changelog day bundles being replaced on shallow deploy builds",
+        "category": "fix",
+        "hash": "e61b0fe"
+      },
       {
         "title": "Remove Last.fm, Spotify integration commands, and sports APIs",
         "category": "improvement",
@@ -47,26 +67,6 @@
         "title": "Overhaul user, admin, and staff dashboards with HeroUI v3 on Tailwind v4",
         "category": "feature",
         "hash": "cc4052e"
-      },
-      {
-        "title": "Improve Discord OAuth secret handling and diagnostics",
-        "category": "improvement",
-        "hash": "f50bf6f"
-      },
-      {
-        "title": "Update July 11 changelog bundle and add docs wordmark asset",
-        "category": "improvement",
-        "hash": "d44243d"
-      },
-      {
-        "title": "Fix slow Docker web builds during static page generation",
-        "category": "fix",
-        "hash": "24d1660"
-      },
-      {
-        "title": "Auto-join dashboard users to official Discord via guilds.join",
-        "category": "improvement",
-        "hash": "7d6d87b"
       }
     ],
     "source": "git"
@@ -74,12 +74,32 @@
   "releases": [
     {
       "id": "release-2026-07-11",
-      "version": "824d492",
-      "published_at": "2026-07-11T19:41:04-04:00",
+      "version": "c247473",
+      "published_at": "2026-07-11T19:57:37-04:00",
       "title": "Updates for July 11, 2026",
       "category": "improvement",
-      "body": "- Remove Last.fm, Spotify integration commands, and sports APIs\n- v5 command coverage: real lookups, 400+ native bridges, no more dead ends\n- Fix ticket panel button stuck on thinking after click\n- Sync changelog release data for v5 ticket overhaul\n- v5 overhaul: rebuild ticket system end-to-end for bot and dashboard\n- Fix dashboard ticket panel creation failing to post to Discord\n- Revert \"Overhaul user, admin, and staff dashboards with HeroUI v3 on Tailwind v4.\"\n- Overhaul user, admin, and staff dashboards with HeroUI v3 on Tailwind v4\n- Improve Discord OAuth secret handling and diagnostics\n- Update July 11 changelog bundle and add docs wordmark asset\n- Fix slow Docker web builds during static page generation\n- Auto-join dashboard users to official Discord via guilds.join",
+      "body": "- Auto-sync native bot commands to the /commands catalog\n- Add stream radio commands to the public /commands catalog\n- Polish status and content pages for consistent marketing layout\n- Fix changelog day bundles being replaced on shallow deploy builds\n- Remove Last.fm, Spotify integration commands, and sports APIs\n- v5 command coverage: real lookups, 400+ native bridges, no more dead ends\n- Fix ticket panel button stuck on thinking after click\n- Sync changelog release data for v5 ticket overhaul\n- v5 overhaul: rebuild ticket system end-to-end for bot and dashboard\n- Fix dashboard ticket panel creation failing to post to Discord\n- Revert \"Overhaul user, admin, and staff dashboards with HeroUI v3 on Tailwind v4.\"\n- Overhaul user, admin, and staff dashboards with HeroUI v3 on Tailwind v4",
       "items": [
+        {
+          "title": "Auto-sync native bot commands to the /commands catalog",
+          "category": "improvement",
+          "hash": "c247473"
+        },
+        {
+          "title": "Add stream radio commands to the public /commands catalog",
+          "category": "feature",
+          "hash": "db4f219"
+        },
+        {
+          "title": "Polish status and content pages for consistent marketing layout",
+          "category": "improvement",
+          "hash": "f8be384"
+        },
+        {
+          "title": "Fix changelog day bundles being replaced on shallow deploy builds",
+          "category": "fix",
+          "hash": "e61b0fe"
+        },
         {
           "title": "Remove Last.fm, Spotify integration commands, and sports APIs",
           "category": "improvement",
@@ -119,26 +139,6 @@
           "title": "Overhaul user, admin, and staff dashboards with HeroUI v3 on Tailwind v4",
           "category": "feature",
           "hash": "cc4052e"
-        },
-        {
-          "title": "Improve Discord OAuth secret handling and diagnostics",
-          "category": "improvement",
-          "hash": "f50bf6f"
-        },
-        {
-          "title": "Update July 11 changelog bundle and add docs wordmark asset",
-          "category": "improvement",
-          "hash": "d44243d"
-        },
-        {
-          "title": "Fix slow Docker web builds during static page generation",
-          "category": "fix",
-          "hash": "24d1660"
-        },
-        {
-          "title": "Auto-join dashboard users to official Discord via guilds.join",
-          "category": "improvement",
-          "hash": "7d6d87b"
         }
       ],
       "source": "git"
