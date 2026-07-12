@@ -3,7 +3,7 @@
  * Generates web/src/data/native-commands.json from Deelo's native command modules.
  * Run before `next build` so /commands stays in sync with the bot.
  */
-import { readFileSync, writeFileSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync, readdirSync, statSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -109,6 +109,7 @@ function resolveCog(category, name) {
 }
 
 function walkCommandFiles(dir, files = []) {
+  if (!existsSync(dir)) return files;
   for (const entry of readdirSync(dir)) {
     const full = join(dir, entry);
     if (statSync(full).isDirectory()) {
@@ -135,6 +136,7 @@ function parseCommandsFromSource(content) {
 
 function parseLookupCommands() {
   const path = join(repoRoot, 'src/services/lookups.ts');
+  if (!existsSync(path)) return [];
   const content = readFileSync(path, 'utf8');
   const block = content.match(/export const LOOKUP_COMMANDS[^=]*=\s*\{([\s\S]*?)\n\};/);
   if (!block) return [];
@@ -170,6 +172,16 @@ function addCommand(byCog, cogName, entry) {
   const key = entry.name.toLowerCase();
   if (byCog[cogName].some((c) => c.name.toLowerCase() === key)) return;
   byCog[cogName].push({ name: entry.name, description: entry.description ?? '' });
+}
+
+if (!existsSync(commandsDir)) {
+  if (existsSync(outFile)) {
+    console.log(
+      `[native-commands] ${commandsDir} missing — keeping existing catalog → ${outFile}`,
+    );
+    process.exit(0);
+  }
+  throw new Error(`[native-commands] Commands dir not found: ${commandsDir}`);
 }
 
 const byCog = {};

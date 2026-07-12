@@ -27,6 +27,9 @@ RUN apt-get update \
 
 COPY .git ./.git
 COPY web ./web
+# Native command catalog sync reads bot source during prebuild.
+COPY src/commands ./src/commands
+COPY src/services/lookups.ts ./src/services/lookups.ts
 WORKDIR /workspace/web
 COPY --from=deps /workspace/web/node_modules ./node_modules
 RUN npm run build
