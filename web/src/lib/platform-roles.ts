@@ -14,6 +14,7 @@ export type PlatformPermission =
   | 'staff.read'
   | 'guilds.read'
   | 'guilds.write'
+  | 'guilds.dashboard'
   | 'users.read'
   | 'subscriptions.read'
   | 'subscriptions.write'
@@ -26,15 +27,15 @@ export type PlatformPermission =
   | 'dev.tools';
 
 const ROLE_PERMISSIONS: Record<PlatformStaffRole, PlatformPermission[]> = {
-  support: ['staff.read', 'guilds.read', 'users.read', 'subscriptions.read', 'audit.read'],
-  moderator: ['staff.read', 'guilds.read', 'guilds.write', 'users.read', 'subscriptions.read', 'redeem.read', 'audit.read'],
+  support: ['staff.read', 'guilds.read', 'guilds.dashboard', 'users.read', 'subscriptions.read', 'audit.read'],
+  moderator: ['staff.read', 'guilds.read', 'guilds.write', 'guilds.dashboard', 'users.read', 'subscriptions.read', 'redeem.read', 'audit.read'],
   developer: [
-    'staff.read', 'guilds.read', 'guilds.write', 'users.read',
+    'staff.read', 'guilds.read', 'guilds.write', 'guilds.dashboard', 'users.read',
     'subscriptions.read', 'subscriptions.write', 'redeem.read', 'redeem.write',
     'audit.read', 'cms.read', 'dev.tools',
   ],
   lead: [
-    'staff.read', 'staff.manage', 'guilds.read', 'guilds.write', 'users.read',
+    'staff.read', 'staff.manage', 'guilds.read', 'guilds.write', 'guilds.dashboard', 'users.read',
     'subscriptions.read', 'subscriptions.write', 'redeem.read', 'redeem.write',
     'audit.read', 'cms.read', 'cms.write', 'dev.tools',
   ],

@@ -4,6 +4,26 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { getDiscordBotToken, resolveBotPresenceForGuilds } from '@/lib/discord-bot';
 import { resolveEffectivePlan } from '@/lib/plan-resolve';
 import { getOfficialGuildInviteUrl, isMemberOfOfficialGuild } from '@/lib/official-guild';
+import { getPlatformStaffByDiscordId } from '@/lib/platform-staff';
+import { platformHasPermission } from '@/lib/platform-roles';
+import { getStaffDashboardElevation, staffRoleToDashboardRole } from '@/lib/staff-dashboard-access';
+import { DISCORD_API } from '@/lib/discord-api';
+
+async function discordGuildMeta(guildId: string): Promise<{ name: string; icon: string | null } | null> {
+  const token = getDiscordBotToken();
+  if (!token) return null;
+  try {
+    const res = await fetch(`${DISCORD_API}/guilds/${guildId}`, {
+      headers: { Authorization: `Bot ${token}` },
+      cache: 'no-store',
+    });
+    if (!res.ok) return null;
+    const data = (await res.json()) as { name: string; icon: string | null };
+    return { name: data.name, icon: data.icon };
+  } catch {
+    return null;
+  }
+}
 
 export async function GET() {
   try {
@@ -47,6 +67,27 @@ export async function GET() {
       ...delegatedIds,
     ]);
 
+    const elevation = await getStaffDashboardElevation();
+    let staffSupport: {
+      guildId: string;
+      reason: string | null;
+      role: string;
+      grantedAt: string;
+    } | null = null;
+
+    if (elevation && elevation.staffDiscordId === session.discordId) {
+      const staff = await getPlatformStaffByDiscordId(session.discordId);
+      if (staff && platformHasPermission(staff.role, 'guilds.dashboard')) {
+        allIds.add(elevation.guildId);
+        staffSupport = {
+          guildId: elevation.guildId,
+          reason: elevation.reason,
+          role: staffRoleToDashboardRole(staff.role),
+          grantedAt: elevation.grantedAt,
+        };
+      }
+    }
+
     const ids = [...allIds];
     const [botGuildsResult, subsResult] = await Promise.all([
       ids.length
@@ -75,7 +116,7 @@ export async function GET() {
       return NextResponse.json({ error: `Database error: ${error.message}` }, { status: 500 });
     }
 
-    const guilds = ids.map((id) => {
+    const guilds = await Promise.all(ids.map(async (id) => {
       const g = discordById.get(id);
       const delegatedRole = (delegated ?? []).find((d) => d.guild_id === id)?.role;
       const bot = botGuilds?.find((b) => b.id === id);
@@ -85,24 +126,40 @@ export async function GET() {
         sub,
       );
       const isDiscordAdmin = g ? canManageServer(g) : false;
+      const isStaffGuild = staffSupport?.guildId === id;
+      let name = g?.name;
+      let icon = g?.icon ?? null;
+      if (!name && isStaffGuild) {
+        const meta = await discordGuildMeta(id);
+        name = meta?.name ?? `Server ${id.slice(-6)}`;
+        icon = meta?.icon ?? null;
+      }
       return {
         id,
-        name: g?.name ?? `Server ${id.slice(-6)}`,
-        icon: g?.icon ?? null,
+        name: name ?? `Server ${id.slice(-6)}`,
+        icon,
         owner: g?.owner ?? false,
         botPresent: botMemberIds.has(id),
         plan: effective.plan,
         prefix: bot?.prefix ?? ',',
         planExpiresAt: effective.plan_expires_at,
-        dashboardRole: g?.owner ? 'owner' : isDiscordAdmin ? 'admin' : delegatedRole ?? null,
+        dashboardRole: isStaffGuild
+          ? staffSupport!.role
+          : g?.owner
+            ? 'owner'
+            : isDiscordAdmin
+              ? 'admin'
+              : delegatedRole ?? null,
+        staffSupport: isStaffGuild,
       };
-    });
+    }));
 
     return NextResponse.json({
       guilds,
       user: { id: session.discordId, username: session.username, avatar: session.avatar },
       officialMember,
       officialGuildInvite: getOfficialGuildInviteUrl(),
+      staffSupport,
       meta: {
         totalDiscordGuilds: result.guilds.length,
         manageableGuilds: manageable.length,

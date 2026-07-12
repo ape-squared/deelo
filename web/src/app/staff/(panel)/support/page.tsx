@@ -1,4 +1,4 @@
-import { Headphones, Search, Users, CreditCard, ScrollText } from 'lucide-react';
+import { Headphones, Search, Users, CreditCard, ScrollText, LayoutDashboard } from 'lucide-react';
 import { requireStaffPage } from '@/lib/staff-page';
 import { StaffHubCard, StaffPageHeader } from '@/components/staff/ui';
 
@@ -14,6 +14,7 @@ export default async function SupportHubPage() {
       />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <StaffHubCard href="/staff/support/guilds" title="Guild lookup" description="Search by snowflake ID, view plan and active subscription." icon={Search} />
+        <StaffHubCard href="/staff/support/dashboard-access" title="Dashboard access" description="Open a user's server dashboard to troubleshoot settings and modules." icon={LayoutDashboard} />
         <StaffHubCard href="/staff/support/users" title="User lookup" description="Browse Discord users who signed into the dashboard." icon={Users} />
         <StaffHubCard href="/staff/support/subscriptions" title="Subscriptions" description="Read-only view of premium grants and expirations." icon={CreditCard} />
         <StaffHubCard href="/staff/support/audit" title="Audit log" description="Review recent platform actions for troubleshooting." icon={ScrollText} />

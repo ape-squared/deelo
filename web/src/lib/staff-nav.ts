@@ -45,6 +45,7 @@ export const STAFF_NAV_SECTIONS: StaffNavSection[] = [
     items: [
       { href: '/staff/support', label: 'Support hub', icon: Headphones, permission: 'guilds.read' },
       { href: '/staff/support/guilds', label: 'Guild lookup', icon: Search, permission: 'guilds.read' },
+      { href: '/staff/support/dashboard-access', label: 'Dashboard access', icon: LayoutDashboard, permission: 'guilds.dashboard' },
       { href: '/staff/support/users', label: 'User lookup', icon: Users, permission: 'users.read' },
       { href: '/staff/support/subscriptions', label: 'Subscriptions', icon: CreditCard, permission: 'subscriptions.read' },
       { href: '/staff/support/audit', label: 'Audit log', icon: ScrollText, permission: 'audit.read' },

@@ -59,6 +59,7 @@ function DashboardContent() {
   const [search, setSearch] = useState('');
   const [officialMember, setOfficialMember] = useState<boolean | null>(null);
   const [officialGuildInvite, setOfficialGuildInvite] = useState('https://discord.gg/deelo');
+  const [staffSupport, setStaffSupport] = useState<{ guildId: string; reason: string | null; role: string } | null>(null);
 
   useEffect(() => {
     fetch('/api/guilds')
@@ -70,6 +71,7 @@ function DashboardContent() {
         setGuilds(data.guilds ?? []);
         setOfficialMember(data.officialMember ?? false);
         if (data.officialGuildInvite) setOfficialGuildInvite(data.officialGuildInvite);
+        if (data.staffSupport) setStaffSupport(data.staffSupport);
         if (data.error) setEmptyHint(data.error);
         else if (!data.guilds?.length) setEmptyHint('You need Administrator or Manage Server permission in a server to manage Deelo here.');
         setLoading(false);
@@ -90,6 +92,12 @@ function DashboardContent() {
     : welcomeIntent
       ? '/dashboard?welcome=1'
       : '/dashboard';
+
+  async function endStaffSession() {
+    await fetch('/api/staff/dashboard-access', { method: 'DELETE' });
+    setStaffSupport(null);
+    router.push('/staff/support/dashboard-access');
+  }
 
   async function logout() {
     await fetch('/api/auth/logout', { method: 'POST' });
@@ -135,6 +143,8 @@ function DashboardContent() {
       user={{ username: user.username, avatar: userAvatar }}
       guilds={guilds.map((g) => ({ id: g.id, name: g.name, icon: g.icon, botPresent: g.botPresent, plan: g.plan }))}
       onLogout={logout}
+      staffSupport={staffSupport}
+      onEndStaffSession={endStaffSession}
     >
       <div className="h-full overflow-y-auto">
         <div className="p-4 sm:p-6 lg:p-8 animate-fade-in max-w-6xl mx-auto w-full">

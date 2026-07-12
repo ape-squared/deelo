@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard, CreditCard, BookOpen, LogOut, ExternalLink,
-  ChevronRight, Plus, Home, Sparkles,
+  ChevronRight, Plus, Home, Sparkles, Headphones,
 } from 'lucide-react';
 import { DeeloIcon, DeeloWordmark } from '@/components/brand/logo';
 import { inviteApiPath } from '@/lib/invite';
@@ -33,6 +33,8 @@ export function DashboardShell({
   currentGuild,
   onLogout,
   dashboardRole,
+  staffSupport,
+  onEndStaffSession,
 }: {
   children: React.ReactNode;
   user?: { username: string; avatar: string | null } | null;
@@ -40,6 +42,8 @@ export function DashboardShell({
   currentGuild?: DashboardGuild | null;
   onLogout?: () => void;
   dashboardRole?: string;
+  staffSupport?: { guildId: string; reason: string | null; role: string } | null;
+  onEndStaffSession?: () => void;
 }) {
   const pathname = usePathname();
   const isGuildPage = pathname.startsWith('/dashboard/') && pathname !== '/dashboard';
@@ -144,6 +148,31 @@ export function DashboardShell({
         </aside>
 
         <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+          {staffSupport && (
+            <div className="shrink-0 border-b border-amber-500/30 bg-amber-500/10 px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-start gap-2 text-sm min-w-0">
+                <Headphones className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
+                <div className="min-w-0">
+                  <p className="font-medium text-amber-200">Staff support mode</p>
+                  <p className="text-xs text-amber-100/75 mt-0.5">
+                    <span className="capitalize">{staffSupport.role}</span> access
+                    {staffSupport.reason ? ` · ${staffSupport.reason}` : ''}
+                    {' · '}Actions are logged
+                  </p>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-2 shrink-0">
+                <Link href="/staff/support/dashboard-access" className="btn-ghost text-xs py-1.5">
+                  Staff panel
+                </Link>
+                {onEndStaffSession && (
+                  <button type="button" className="btn-secondary text-xs py-1.5" onClick={onEndStaffSession}>
+                    End session
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
           {children}
         </main>
       </div>

@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Search, ExternalLink, Crown, Clock } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Search, ExternalLink, Crown, Clock, Headphones, Loader2 } from 'lucide-react';
 import { SearchField } from '@/components/search-field';
 import { StaffPageHeader } from '@/components/staff/ui';
 
@@ -23,11 +24,14 @@ type SubscriptionResult = {
 };
 
 export function StaffGuildLookup({ apiBase = '/api/staff/guilds' }: { apiBase?: string }) {
+  const router = useRouter();
   const [q, setQ] = useState('');
   const [guild, setGuild] = useState<GuildResult | null>(null);
   const [subscription, setSubscription] = useState<SubscriptionResult | null>(null);
   const [list, setList] = useState<GuildResult[]>([]);
   const [loading, setLoading] = useState(false);
+  const [openingStaff, setOpeningStaff] = useState(false);
+  const [staffError, setStaffError] = useState('');
   const [error, setError] = useState('');
 
   async function search(e: React.FormEvent) {
@@ -52,6 +56,23 @@ export function StaffGuildLookup({ apiBase = '/api/staff/guilds' }: { apiBase?: 
     }
   }
 
+  async function openAsStaff(guildId: string) {
+    setOpeningStaff(true);
+    setStaffError('');
+    const res = await fetch('/api/staff/dashboard-access', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ guildId, reason: 'Guild lookup support session' }),
+    });
+    const data = await res.json();
+    setOpeningStaff(false);
+    if (!res.ok) {
+      setStaffError(data.error ?? 'Could not open dashboard access');
+      return;
+    }
+    router.push(data.redirect ?? `/dashboard/${guildId}`);
+  }
+
   return (
     <div>
       <StaffPageHeader
@@ -59,6 +80,10 @@ export function StaffGuildLookup({ apiBase = '/api/staff/guilds' }: { apiBase?: 
         title="Guild lookup"
         description="Search servers by Discord snowflake ID or browse recent registrations. Subscription and plan details appear for exact matches."
       />
+
+      {staffError && (
+        <div className="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">{staffError}</div>
+      )}
 
       {error && (
         <div className="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">{error}</div>
@@ -98,10 +123,21 @@ export function StaffGuildLookup({ apiBase = '/api/staff/guilds' }: { apiBase?: 
                 <p className="font-medium mt-0.5">{guild.plan_expires_at ? new Date(guild.plan_expires_at).toLocaleDateString() : '—'}</p>
               </div>
             </div>
-            <Link href={`/dashboard/${guild.id}`} className="btn-secondary text-sm w-full justify-center" target="_blank">
-              <ExternalLink className="h-4 w-4" />
-              Open server dashboard
-            </Link>
+            <div className="flex flex-col gap-2">
+              <button
+                type="button"
+                className="btn-primary text-sm w-full justify-center"
+                disabled={openingStaff}
+                onClick={() => openAsStaff(guild.id)}
+              >
+                {openingStaff ? <Loader2 className="h-4 w-4 animate-spin" /> : <Headphones className="h-4 w-4" />}
+                Open as staff
+              </button>
+              <Link href={`/dashboard/${guild.id}`} className="btn-secondary text-sm w-full justify-center" target="_blank">
+                <ExternalLink className="h-4 w-4" />
+                Open if you have access
+              </Link>
+            </div>
           </div>
 
           <div className="card p-6">

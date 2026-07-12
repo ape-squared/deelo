@@ -26,6 +26,7 @@ export default function GuildDashboardPage() {
   const [user, setUser] = useState<{ username: string; avatar: string | null } | null>(null);
   const [guilds, setGuilds] = useState<GuildMeta[]>([]);
   const [dashboardRole, setDashboardRole] = useState<GuildDashboardRole>('admin');
+  const [staffSupport, setStaffSupport] = useState<{ guildId: string; reason: string | null; role: string } | null>(null);
 
   const load = useCallback(async () => {
     const r = await fetch(`/api/guilds/${guildId}`);
@@ -82,6 +83,8 @@ export default function GuildDashboardPage() {
         const current = data.guilds.find((g: GuildMeta) => g.id === guildId);
         if (current?.dashboardRole) setDashboardRole(current.dashboardRole as GuildDashboardRole);
       }
+      if (data.staffSupport) setStaffSupport(data.staffSupport);
+      else setStaffSupport(null);
     })().catch(() => {
       if (!cancelled) router.push('/dashboard');
     });
@@ -101,6 +104,12 @@ export default function GuildDashboardPage() {
     router.refresh();
   }
 
+  async function endStaffSession() {
+    await fetch('/api/staff/dashboard-access', { method: 'DELETE' });
+    setStaffSupport(null);
+    router.push('/staff/support/dashboard-access');
+  }
+
   if (!config) return <LoadingScreen label="Loading server settings..." />;
 
   return (
@@ -110,6 +119,8 @@ export default function GuildDashboardPage() {
       currentGuild={currentGuild ? { ...currentGuild, plan: config.guild.plan } : { id: guildId, name: 'Server', icon: null, plan: config.guild.plan }}
       onLogout={logout}
       dashboardRole={dashboardRole}
+      staffSupport={staffSupport?.guildId === guildId ? staffSupport : null}
+      onEndStaffSession={endStaffSession}
     >
       <div className="flex min-h-0 flex-1 flex-col">
       <Suspense fallback={<LoadingScreen label="Loading server settings..." />}>
